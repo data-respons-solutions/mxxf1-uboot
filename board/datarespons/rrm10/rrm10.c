@@ -345,7 +345,7 @@ int board_early_init_f(void)
 	setup_iomux_uart();
 	/* Bring up basic power for serial debug etc	*/
 	gpio_set_value(GPIO_AUX_5V, 1);
-	udelay(1000);
+	//udelay(1000);
 
 	return 0;
 }
