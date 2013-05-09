@@ -17,7 +17,7 @@
 #ifndef __RRM10_CONFIG_H
 #define __RRM10_CONFIG_H
 
-#define CONFIG_MACH_TYPE	3980
+#define CONFIG_MACH_TYPE	4444
 #define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONFIG_CONSOLE_DEV		"ttymxc0"
 #define CONFIG_MMCROOT			"/dev/mmcblk1p2"
