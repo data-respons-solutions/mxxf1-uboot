@@ -61,6 +61,12 @@ DECLARE_GLOBAL_DATA_PTR;
 	PAD_CTL_DSE_DISABLE   | PAD_CTL_SRE_FAST  | PAD_CTL_HYS)
 
 #define GPIO_AUX_5V IMX_GPIO_NR(6, 10)
+#define GPIO_PCIE_RST_N IMX_GPIO_NR(7, 12)
+#define GPIO_EEPROM_WP	IMX_GPIO_NR(1, 5)
+#define GPIO_SPI_NOR_WP	IMX_GPIO_NR(6, 11)
+#define GPIO_LAN2_EE_WP	IMX_GPIO_NR(6, 14)
+#define GPIO_CAP_TOUCH_RST	IMX_GPIO_NR(6, 16)
+#define GPIO_CAP_TOUCH_PWR	IMX_GPIO_NR(1, 4)
 
 int dram_init(void)
 {
@@ -115,11 +121,11 @@ iomux_v3_cfg_t const extra_nvcc_gpio_pads[] = {
 	MX6_PAD_GPIO_4__GPIO_1_4			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* TCH_PWRON	*/
 	MX6_PAD_GPIO_5__GPIO_1_5			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* EEPROM_WP	*/
 	MX6_PAD_GPIO_6__I2C3_SDA			| MUX_PAD_CTRL(PAD_CTL_SPEED_LOW | PAD_CTL_DSE_40ohm | PAD_CTL_ODE),	/* I2C3_SDA	*/
-	MX6_PAD_GPIO_7__SPDIF_PLOCK			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* SPDIF_CLK	*/
+	MX6_PAD_GPIO_7__CAN1_TXCAN			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* CAN1_TX	*/
 
 	MX6_PAD_GPIO_8__CAN1_RXCAN			| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* CAN1_RX		*/
 	MX6_PAD_GPIO_9__PWM1_PWMO			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* BL_PWM		*/
-	MX6_PAD_GPIO_17__SPDIF_OUT1			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* SPDIF_OUT	*/
+	MX6_PAD_GPIO_17__GPIO_7_12			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* PCIE_RST	*/
 	MX6_PAD_GPIO_18__GPIO_7_13			| MUX_PAD_CTRL(PAD_CTL_HYS | PAD_CTL_PUE | PAD_CTL_PUS_100K_DOWN),	/* PMIC_INT_B	*/
 
 };
@@ -342,9 +348,16 @@ int board_early_init_f(void)
 {
 	imx_iomux_v3_setup_multiple_pads(extra_early_pads, ARRAY_SIZE(extra_early_pads));
 	imx_iomux_v3_setup_multiple_pads(extra_nandf_pads, ARRAY_SIZE(extra_nandf_pads));
+	imx_iomux_v3_setup_multiple_pads(extra_nvcc_gpio_pads, ARRAY_SIZE(extra_nvcc_gpio_pads));
 	setup_iomux_uart();
 	/* Bring up basic power for serial debug etc	*/
-	gpio_set_value(GPIO_AUX_5V, 1);
+	gpio_direction_output(GPIO_AUX_5V, 1);
+	gpio_direction_output(GPIO_PCIE_RST_N, 0);
+	gpio_direction_output(GPIO_EEPROM_WP, 0);
+	gpio_direction_output(GPIO_LAN2_EE_WP, 0);
+	gpio_direction_output(GPIO_SPI_NOR_WP, 0);
+	gpio_direction_output(GPIO_CAP_TOUCH_PWR, 1);
+	gpio_direction_output(GPIO_CAP_TOUCH_RST, 0);
 	//udelay(1000);
 
 	return 0;
@@ -353,6 +366,8 @@ int board_early_init_f(void)
 int board_init(void)
 {
 	/* address of boot parameters */
+	gpio_set_value(GPIO_PCIE_RST_N, 1);
+	gpio_set_value(GPIO_CAP_TOUCH_RST, 1);
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
 	return 0;
