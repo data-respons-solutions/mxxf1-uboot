@@ -42,8 +42,12 @@ DECLARE_GLOBAL_DATA_PTR;
 	PAD_CTL_PUS_47K_UP  | PAD_CTL_SPEED_LOW |               \
 	PAD_CTL_DSE_80ohm   | PAD_CTL_SRE_FAST  | PAD_CTL_HYS)
 
-#define ENET_PAD_CTRL  (PAD_CTL_PKE | PAD_CTL_PUE |		\
+#define ENET_PAD_CTRL_UP  (PAD_CTL_PKE | PAD_CTL_PUE |		\
 	PAD_CTL_PUS_100K_UP | PAD_CTL_SPEED_MED   |		\
+	PAD_CTL_DSE_40ohm   | PAD_CTL_HYS)
+
+#define ENET_PAD_CTRL_DN  (PAD_CTL_PKE | PAD_CTL_PUE |		\
+	PAD_CTL_PUS_100K_DOWN | PAD_CTL_SPEED_MED   |		\
 	PAD_CTL_DSE_40ohm   | PAD_CTL_HYS)
 
 #define SLOWOUT_PAD_CTRL  (PAD_CTL_PKE | PAD_CTL_PUE |		\
@@ -67,6 +71,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define GPIO_LAN2_EE_WP	IMX_GPIO_NR(6, 14)
 #define GPIO_CAP_TOUCH_RST	IMX_GPIO_NR(6, 16)
 #define GPIO_CAP_TOUCH_PWR	IMX_GPIO_NR(1, 4)
+#define GPIO_LCD_EN	IMX_GPIO_NR(6, 15)
 
 int dram_init(void)
 {
@@ -152,7 +157,7 @@ iomux_v3_cfg_t const extra_early_pads[] = {
 	MX6_PAD_EIM_D16__ECSPI1_SCLK		| MUX_PAD_CTRL(SPI_OUT_PAD_CTRL),	/* CSPI1_CLK		*/
 	MX6_PAD_EIM_D17__ECSPI1_MISO		| MUX_PAD_CTRL(SPI_IN_PAD_CTRL),	/* CSPI1_MISO		*/
 	MX6_PAD_EIM_D18__ECSPI1_MOSI		| MUX_PAD_CTRL(SPI_OUT_PAD_CTRL),	/* CSPI1_MOSI		*/
-	MX6_PAD_EIM_D19__ECSPI1_SS1			| MUX_PAD_CTRL(SPI_OUT_PAD_CTRL),	/* CSPI1_CS0		*/
+	MX6_PAD_EIM_D19__ECSPI1_SS1			| MUX_PAD_CTRL(SPI_OUT_PAD_CTRL),	/* CSPI1_CS1		*/
 
 	MX6_PAD_EIM_D23__GPIO_3_23			| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* LAN2_DEV_OFF#	*/
 	MX6_PAD_EIM_D24__GPIO_3_24			| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* LAN2_SMB_ALRT#	*/
@@ -167,35 +172,39 @@ iomux_v3_cfg_t const audio_pads[] = {
 };
 
 iomux_v3_cfg_t const enet_pads[] = {
-	MX6_PAD_ENET_MDIO__ENET_MDIO		| MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_ENET_MDC__ENET_MDC			| MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_RGMII_TXC__ENET_RGMII_TXC	| MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_RGMII_TD0__ENET_RGMII_TD0	| MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_RGMII_TD1__ENET_RGMII_TD1	| MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_RGMII_TD2__ENET_RGMII_TD2	| MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_RGMII_TD3__ENET_RGMII_TD3	| MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_RGMII_TX_CTL__RGMII_TX_CTL	| MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_ENET_REF_CLK__ENET_TX_CLK	| MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_RGMII_RXC__ENET_RGMII_RXC	| MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_RGMII_RD0__ENET_RGMII_RD0	| MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_RGMII_RD1__ENET_RGMII_RD1	| MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_RGMII_RD2__ENET_RGMII_RD2	| MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_RGMII_RD3__ENET_RGMII_RD3	| MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_RGMII_RX_CTL__RGMII_RX_CTL	| MUX_PAD_CTRL(ENET_PAD_CTRL),
+	MX6_PAD_ENET_MDIO__ENET_MDIO		| MUX_PAD_CTRL(ENET_PAD_CTRL_UP),
+	MX6_PAD_ENET_MDC__ENET_MDC			| MUX_PAD_CTRL(ENET_PAD_CTRL_UP),
+	MX6_PAD_RGMII_TXC__ENET_RGMII_TXC	| MUX_PAD_CTRL(ENET_PAD_CTRL_DN),
+	MX6_PAD_RGMII_TD0__ENET_RGMII_TD0	| MUX_PAD_CTRL(ENET_PAD_CTRL_DN),
+	MX6_PAD_RGMII_TD1__ENET_RGMII_TD1	| MUX_PAD_CTRL(ENET_PAD_CTRL_DN),
+	MX6_PAD_RGMII_TD2__ENET_RGMII_TD2	| MUX_PAD_CTRL(ENET_PAD_CTRL_DN),
+	MX6_PAD_RGMII_TD3__ENET_RGMII_TD3	| MUX_PAD_CTRL(ENET_PAD_CTRL_DN),
+	MX6_PAD_RGMII_TX_CTL__RGMII_TX_CTL	| MUX_PAD_CTRL(ENET_PAD_CTRL_DN),
+	MX6_PAD_ENET_REF_CLK__ENET_TX_CLK	| MUX_PAD_CTRL(ENET_PAD_CTRL_DN),
+	MX6_PAD_RGMII_RXC__ENET_RGMII_RXC	| MUX_PAD_CTRL(ENET_PAD_CTRL_DN),
+	MX6_PAD_RGMII_RD0__ENET_RGMII_RD0	| MUX_PAD_CTRL(ENET_PAD_CTRL_DN),
+	MX6_PAD_RGMII_RD1__ENET_RGMII_RD1	| MUX_PAD_CTRL(ENET_PAD_CTRL_DN),
+	MX6_PAD_RGMII_RD2__ENET_RGMII_RD2	| MUX_PAD_CTRL(ENET_PAD_CTRL_DN),
+	MX6_PAD_RGMII_RD3__ENET_RGMII_RD3	| MUX_PAD_CTRL(ENET_PAD_CTRL_DN),
+	MX6_PAD_RGMII_RX_CTL__RGMII_RX_CTL	| MUX_PAD_CTRL(ENET_PAD_CTRL_DN),
 	/* AR8031 PHY Reset */
-	MX6_PAD_ENET_CRS_DV__GPIO_1_25		| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),
-	MX6_PAD_ENET_TX_EN__GPIO_1_28		| MUX_PAD_CTRL(ENET_PAD_CTRL), 	/* ENET_WOL_INT (low)	*/
-	MX6_PAD_ENET_RXD1__GPIO_1_26		| MUX_PAD_CTRL(ENET_PAD_CTRL), 	/* RGMII_INT (low)	*/
+	MX6_PAD_ENET_CRS_DV__GPIO_1_25		| MUX_PAD_CTRL(ENET_PAD_CTRL_UP),
+	MX6_PAD_ENET_TX_EN__GPIO_1_28		| MUX_PAD_CTRL(ENET_PAD_CTRL_UP), 	/* ENET_WOL_INT (low)	*/
+	MX6_PAD_ENET_RXD1__GPIO_1_26		| MUX_PAD_CTRL(ENET_PAD_CTRL_UP), 	/* RGMII_INT (low)	*/
 };
 
 static void setup_iomux_enet(void)
 {
-	imx_iomux_v3_setup_multiple_pads(enet_pads, ARRAY_SIZE(enet_pads));
+
 
 	/* Reset AR8031 PHY */
 	gpio_direction_output(IMX_GPIO_NR(1, 25) , 0);
+	gpio_direction_output(GPIO_CAP_TOUCH_RST, 0);
+	gpio_direction_output(GPIO_PCIE_RST_N, 0);
 	udelay(500);
 	gpio_set_value(IMX_GPIO_NR(1, 25), 1);
+	gpio_set_value(GPIO_PCIE_RST_N, 1);
+	gpio_set_value(GPIO_CAP_TOUCH_RST, 1);
 }
 
 
@@ -302,7 +311,7 @@ int mx6_rgmii_rework(struct phy_device *phydev)
 {
 	unsigned short val;
 
-	/* To enable AR8031 ouput a 125MHz clk from CLK_25M */
+	/* To enable AR8031 output a 125MHz clk from CLK_25M */
 	phy_write(phydev, MDIO_DEVAD_NONE, 0xd, 0x7);
 	phy_write(phydev, MDIO_DEVAD_NONE, 0xe, 0x8016);
 	phy_write(phydev, MDIO_DEVAD_NONE, 0xd, 0x4007);
@@ -346,18 +355,20 @@ int board_eth_init(bd_t *bis)
 
 int board_early_init_f(void)
 {
+	imx_iomux_v3_setup_multiple_pads(enet_pads, ARRAY_SIZE(enet_pads));
 	imx_iomux_v3_setup_multiple_pads(extra_early_pads, ARRAY_SIZE(extra_early_pads));
 	imx_iomux_v3_setup_multiple_pads(extra_nandf_pads, ARRAY_SIZE(extra_nandf_pads));
 	imx_iomux_v3_setup_multiple_pads(extra_nvcc_gpio_pads, ARRAY_SIZE(extra_nvcc_gpio_pads));
 	setup_iomux_uart();
 	/* Bring up basic power for serial debug etc	*/
 	gpio_direction_output(GPIO_AUX_5V, 1);
-	gpio_direction_output(GPIO_PCIE_RST_N, 0);
+
 	gpio_direction_output(GPIO_EEPROM_WP, 0);
 	gpio_direction_output(GPIO_LAN2_EE_WP, 0);
 	gpio_direction_output(GPIO_SPI_NOR_WP, 0);
 	gpio_direction_output(GPIO_CAP_TOUCH_PWR, 1);
-	gpio_direction_output(GPIO_CAP_TOUCH_RST, 0);
+
+	gpio_direction_output(GPIO_LCD_EN, 1);
 	//udelay(1000);
 
 	return 0;
@@ -366,8 +377,7 @@ int board_early_init_f(void)
 int board_init(void)
 {
 	/* address of boot parameters */
-	gpio_set_value(GPIO_PCIE_RST_N, 1);
-	gpio_set_value(GPIO_CAP_TOUCH_RST, 1);
+
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
 	return 0;
