@@ -200,10 +200,9 @@ static void setup_iomux_enet(void)
 	/* Reset AR8031 PHY */
 	gpio_direction_output(IMX_GPIO_NR(1, 25) , 0);
 	gpio_direction_output(GPIO_CAP_TOUCH_RST, 0);
-	gpio_direction_output(GPIO_PCIE_RST_N, 0);
+
 	udelay(500);
 	gpio_set_value(IMX_GPIO_NR(1, 25), 1);
-	gpio_set_value(GPIO_PCIE_RST_N, 1);
 	gpio_set_value(GPIO_CAP_TOUCH_RST, 1);
 }
 
@@ -362,7 +361,7 @@ int board_early_init_f(void)
 	setup_iomux_uart();
 	/* Bring up basic power for serial debug etc	*/
 	gpio_direction_output(GPIO_AUX_5V, 1);
-
+	gpio_direction_output(GPIO_PCIE_RST_N, 1);
 	gpio_direction_output(GPIO_EEPROM_WP, 0);
 	gpio_direction_output(GPIO_LAN2_EE_WP, 0);
 	gpio_direction_output(GPIO_SPI_NOR_WP, 0);
