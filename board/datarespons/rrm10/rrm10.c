@@ -72,6 +72,9 @@ DECLARE_GLOBAL_DATA_PTR;
 #define GPIO_CAP_TOUCH_RST	IMX_GPIO_NR(6, 16)
 #define GPIO_CAP_TOUCH_PWR	IMX_GPIO_NR(1, 4)
 #define GPIO_LCD_EN	IMX_GPIO_NR(6, 15)
+#define GPIO_FAN_EN IMX_GPIO_NR(1, 18)
+#define GPIO_BUZ_INT_EN IMX_GPIO_NR(1, 17)
+#define GPIO_BUZ_EXT_EN IMX_GPIO_NR(1, 19)
 
 int dram_init(void)
 {
@@ -367,7 +370,10 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_SPI_NOR_WP, 0);
 	gpio_direction_output(GPIO_CAP_TOUCH_PWR, 1);
 
-	gpio_direction_output(GPIO_LCD_EN, 1);
+	gpio_direction_output(GPIO_LCD_EN, 0);
+	gpio_direction_output(GPIO_FAN_EN, 0);
+	gpio_direction_output(GPIO_BUZ_INT_EN, 0);
+	gpio_direction_output(GPIO_BUZ_EXT_EN, 0);
 	//udelay(1000);
 
 	return 0;
