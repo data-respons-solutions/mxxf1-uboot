@@ -183,7 +183,7 @@
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_ENV_OFFSET		(6 * 64 * 1024)
 #define CONFIG_SYS_MMC_ENV_DEV		1	/* SDHC3 */
-#define CONFIG_SYS_MMC_ENV_PART		1	/* Boot partition 2 */
+#define CONFIG_SYS_MMC_ENV_PART		2	/* Boot partition 2 */
 #elif defined(CONFIG_ENV_IS_IN_SPI_FLASH)
 #define CONFIG_ENV_OFFSET		0xc0000
 #define CONFIG_ENV_SECT_SIZE		0x10000
