@@ -31,6 +31,8 @@
 #include <fsl_esdhc.h>
 #include <miiphy.h>
 #include <netdev.h>
+#include <asm/imx-common/mxc_i2c.h>
+#include <i2c.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -58,11 +60,19 @@ DECLARE_GLOBAL_DATA_PTR;
 	PAD_CTL_PUS_100K_UP | PAD_CTL_SPEED_LOW   |		\
 	PAD_CTL_DSE_DISABLE  | PAD_CTL_HYS)
 
-#define SPI_OUT_PAD_CTRL (PAD_CTL_SPEED_HIGH | PAD_CTL_DSE_48ohm | PAD_CTL_SRE_FAST)
+#define SPI_PAD_CTRL (PAD_CTL_HYS |				\
+	PAD_CTL_PUS_100K_DOWN | PAD_CTL_SPEED_MED |		\
+	PAD_CTL_DSE_40ohm     | PAD_CTL_SRE_FAST)
 
 #define SPI_IN_PAD_CTRL (PAD_CTL_PKE | PAD_CTL_PUE |            \
 	PAD_CTL_PUS_47K_UP  | PAD_CTL_SPEED_HIGH |               \
 	PAD_CTL_DSE_DISABLE   | PAD_CTL_SRE_FAST  | PAD_CTL_HYS)
+
+#define I2C_PAD_CTRL	(PAD_CTL_PKE | PAD_CTL_PUE |		\
+	PAD_CTL_PUS_100K_UP | PAD_CTL_SPEED_MED |		\
+	PAD_CTL_DSE_40ohm | PAD_CTL_HYS |			\
+	PAD_CTL_ODE | PAD_CTL_SRE_FAST)
+
 
 #define GPIO_AUX_5V IMX_GPIO_NR(6, 10)
 #define GPIO_PCIE_RST_N IMX_GPIO_NR(7, 12)
@@ -75,6 +85,13 @@ DECLARE_GLOBAL_DATA_PTR;
 #define GPIO_FAN_EN IMX_GPIO_NR(1, 18)
 #define GPIO_BUZ_INT_EN IMX_GPIO_NR(1, 17)
 #define GPIO_BUZ_EXT_EN IMX_GPIO_NR(1, 19)
+
+#define GPIO_USBP0_EN	IMX_GPIO_NR(3, 28)
+#define GPIO_USBP1_EN	IMX_GPIO_NR(2, 3)
+#define GPIO_USBP2_EN	IMX_GPIO_NR(2, 7)
+#define GPIO_USBP3_EN	IMX_GPIO_NR(6, 9)
+
+
 
 int dram_init(void)
 {
@@ -115,8 +132,6 @@ iomux_v3_cfg_t const extra_nvcc_gpio_pads[] = {
 
 	MX6_PAD_KEY_COL2__GPIO_4_10			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* CODEC_PWR_EN	*/
 	MX6_PAD_KEY_ROW2__GPIO_4_11			| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* HDMI_CEC_IN	*/
-	MX6_PAD_KEY_COL3__I2C2_SCL			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* I2C2_SCL		*/
-	MX6_PAD_KEY_ROW3__I2C2_SDA			| MUX_PAD_CTRL(PAD_CTL_SPEED_LOW | PAD_CTL_DSE_40ohm | PAD_CTL_ODE),	/* I2C2_SDA	*/
 
 	MX6_PAD_KEY_COL4__CAN2_TXCAN		| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* CAN2_TX	*/
 	MX6_PAD_KEY_ROW4__CAN2_RXCAN		| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* CAN2_RX	*/
@@ -124,11 +139,9 @@ iomux_v3_cfg_t const extra_nvcc_gpio_pads[] = {
 	MX6_PAD_GPIO_0__CCM_CLKO			| MUX_PAD_CTRL(PAD_CTL_DSE_40ohm | PAD_CTL_SPEED_HIGH),	/* AUD_MCLK	*/
 	MX6_PAD_GPIO_1__GPIO_1_1			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* WDOG_B		*/
 	MX6_PAD_GPIO_2__GPIO_1_2			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* BLON_3V_H	*/
-	MX6_PAD_GPIO_3__I2C3_SCL			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* I2C3_SCL		*/
 
 	MX6_PAD_GPIO_4__GPIO_1_4			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* TCH_PWRON	*/
 	MX6_PAD_GPIO_5__GPIO_1_5			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* EEPROM_WP	*/
-	MX6_PAD_GPIO_6__I2C3_SDA			| MUX_PAD_CTRL(PAD_CTL_SPEED_LOW | PAD_CTL_DSE_40ohm | PAD_CTL_ODE),	/* I2C3_SDA	*/
 	MX6_PAD_GPIO_7__CAN1_TXCAN			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* CAN1_TX	*/
 
 	MX6_PAD_GPIO_8__CAN1_RXCAN			| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* CAN1_RX		*/
@@ -147,8 +160,6 @@ iomux_v3_cfg_t const extra_early_pads[] = {
 	MX6_PAD_SD1_DAT2__GPIO_1_19			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* BUZ_EXT_EN	*/
 
 	MX6_PAD_CSI0_DATA_EN__GPIO_5_20		| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* PCIE_WAKE_B	*/
-	MX6_PAD_CSI0_DAT8__I2C1_SDA			| MUX_PAD_CTRL(PAD_CTL_SPEED_LOW | PAD_CTL_DSE_40ohm | PAD_CTL_ODE),	/* I2C1_SDA	*/
-	MX6_PAD_CSI0_DAT9__I2C1_SCL			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* I2C1_SCL	*/
 
 	MX6_PAD_EIM_D21__GPIO_3_21			| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* USB_OTG_OC		*/
 	MX6_PAD_EIM_D22__GPIO_3_22			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* USB_ORG_PWR_EN	*/
@@ -156,11 +167,6 @@ iomux_v3_cfg_t const extra_early_pads[] = {
 	MX6_PAD_EIM_D30__GPIO_3_30			| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* USB_H1_OC		*/
 	MX6_PAD_EIM_D31__GPIO_3_31			| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* USB_P0_OC		*/
 	MX6_PAD_EIM_D28__GPIO_3_28			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* USBP0_EN			*/
-
-	MX6_PAD_EIM_D16__ECSPI1_SCLK		| MUX_PAD_CTRL(SPI_OUT_PAD_CTRL),	/* CSPI1_CLK		*/
-	MX6_PAD_EIM_D17__ECSPI1_MISO		| MUX_PAD_CTRL(SPI_IN_PAD_CTRL),	/* CSPI1_MISO		*/
-	MX6_PAD_EIM_D18__ECSPI1_MOSI		| MUX_PAD_CTRL(SPI_OUT_PAD_CTRL),	/* CSPI1_MOSI		*/
-	MX6_PAD_EIM_D19__ECSPI1_SS1			| MUX_PAD_CTRL(SPI_OUT_PAD_CTRL),	/* CSPI1_CS1		*/
 
 	MX6_PAD_EIM_D23__GPIO_3_23			| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* LAN2_DEV_OFF#	*/
 	MX6_PAD_EIM_D24__GPIO_3_24			| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* LAN2_SMB_ALRT#	*/
@@ -195,6 +201,64 @@ iomux_v3_cfg_t const enet_pads[] = {
 	MX6_PAD_ENET_TX_EN__GPIO_1_28		| MUX_PAD_CTRL(ENET_PAD_CTRL_UP), 	/* ENET_WOL_INT (low)	*/
 	MX6_PAD_ENET_RXD1__GPIO_1_26		| MUX_PAD_CTRL(ENET_PAD_CTRL_UP), 	/* RGMII_INT (low)	*/
 };
+
+struct i2c_pads_info i2c_pad_info0 = {
+	.scl = {
+		.i2c_mode = MX6_PAD_CSI0_DAT9__I2C1_SCL | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		.gpio_mode = MX6_PAD_CSI0_DAT9__GPIO_5_27 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		.gp = IMX_GPIO_NR(5, 27)
+	},
+	.sda = {
+		.i2c_mode = MX6_PAD_CSI0_DAT8__I2C1_SDA | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		.gpio_mode = MX6_PAD_CSI0_DAT8__GPIO_5_26 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		.gp = IMX_GPIO_NR(5, 26)
+	}
+};
+
+/* I2C2 Camera, MIPI */
+struct i2c_pads_info i2c_pad_info1 = {
+	.scl = {
+		.i2c_mode = MX6_PAD_KEY_COL3__I2C2_SCL | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		.gpio_mode = MX6_PAD_KEY_COL3__GPIO_4_12 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		.gp = IMX_GPIO_NR(4, 12)
+	},
+	.sda = {
+		.i2c_mode = MX6_PAD_KEY_ROW3__I2C2_SDA | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		.gpio_mode = MX6_PAD_KEY_ROW3__GPIO_4_13 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		.gp = IMX_GPIO_NR(4, 13)
+	}
+};
+
+/* I2C3, J15 - RGB connector */
+struct i2c_pads_info i2c_pad_info2 = {
+	.scl = {
+		.i2c_mode = MX6_PAD_GPIO_3__I2C3_SCL | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		.gpio_mode = MX6_PAD_GPIO_3__GPIO_1_3 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		.gp = IMX_GPIO_NR(1, 3)
+	},
+	.sda = {
+		.i2c_mode = MX6_PAD_GPIO_6__I2C3_SDA | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		.gpio_mode = MX6_PAD_GPIO_6__GPIO_1_6 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		.gp = IMX_GPIO_NR(1, 6)
+	}
+};
+
+#ifdef CONFIG_MXC_SPI
+iomux_v3_cfg_t const ecspi1_pads[] = {
+	/* SS1 */
+	MX6_PAD_EIM_D19__GPIO_3_19   | MUX_PAD_CTRL(SPI_PAD_CTRL),
+	MX6_PAD_EIM_D17__ECSPI1_MISO | MUX_PAD_CTRL(SPI_PAD_CTRL),
+	MX6_PAD_EIM_D18__ECSPI1_MOSI | MUX_PAD_CTRL(SPI_PAD_CTRL),
+	MX6_PAD_EIM_D16__ECSPI1_SCLK | MUX_PAD_CTRL(SPI_PAD_CTRL),
+};
+
+void setup_spi(void)
+{
+	gpio_direction_output(CONFIG_SF_DEFAULT_CS, 1);
+	imx_iomux_v3_setup_multiple_pads(ecspi1_pads,
+					 ARRAY_SIZE(ecspi1_pads));
+}
+#endif
 
 static void setup_iomux_enet(void)
 {
@@ -355,6 +419,13 @@ int board_eth_init(bd_t *bis)
 	return 0;
 }
 
+#ifdef CONFIG_USB_EHCI_MX6
+int board_ehci_hcd_init(int port)
+{
+	return 0;
+}
+#endif
+
 int board_early_init_f(void)
 {
 	imx_iomux_v3_setup_multiple_pads(enet_pads, ARRAY_SIZE(enet_pads));
@@ -374,17 +445,77 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_FAN_EN, 0);
 	gpio_direction_output(GPIO_BUZ_INT_EN, 0);
 	gpio_direction_output(GPIO_BUZ_EXT_EN, 0);
+
+	gpio_direction_output(GPIO_USBP0_EN, 1);
+	gpio_direction_output(GPIO_USBP1_EN, 1);
+	gpio_direction_output(GPIO_USBP2_EN, 1);
+	gpio_direction_output(GPIO_USBP3_EN, 1);
 	//udelay(1000);
+#ifdef CONFIG_MXC_SPI
+	gpio_direction_output(CONFIG_SF_DEFAULT_CS, 1);
+#endif
+	return 0;
+}
+
+
+
+#ifdef CONFIG_CMD_SATA
+
+int setup_sata(void)
+{
+	struct iomuxc_base_regs *const iomuxc_regs
+		= (struct iomuxc_base_regs *) IOMUXC_BASE_ADDR;
+	int ret = enable_sata_clock();
+	if (ret)
+		return ret;
+
+	clrsetbits_le32(&iomuxc_regs->gpr[13],
+			IOMUXC_GPR13_SATA_MASK,
+			IOMUXC_GPR13_SATA_PHY_8_RXEQ_3P0DB
+			|IOMUXC_GPR13_SATA_PHY_7_SATA2M
+			|IOMUXC_GPR13_SATA_SPEED_3G
+			|(3<<IOMUXC_GPR13_SATA_PHY_6_SHIFT)
+			|IOMUXC_GPR13_SATA_SATA_PHY_5_SS_DISABLED
+			|IOMUXC_GPR13_SATA_SATA_PHY_4_ATTEN_9_16
+			|IOMUXC_GPR13_SATA_PHY_3_TXBOOST_0P00_DB
+			|IOMUXC_GPR13_SATA_PHY_2_TX_1P104V
+			|IOMUXC_GPR13_SATA_PHY_1_SLOW);
 
 	return 0;
 }
+#endif
+
+int overwrite_console(void)
+{
+	return 1;
+}
+
 
 int board_init(void)
 {
 	/* address of boot parameters */
-
+	int ret;
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
+#ifdef CONFIG_MXC_SPI
+	setup_spi();
+#endif
+
+#ifdef CONFIG_CMD_I2C
+	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
+	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
+	setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info2);
+#endif
+
+#ifdef CONFIG_CMD_SATA
+	ret = setup_sata();
+	if (ret)
+	{
+		printf("setup_sata failed with %d\n", ret);
+		return ret;
+	}
+#endif
+	printf("%s: OK\n", __func__);
 	return 0;
 }
 
