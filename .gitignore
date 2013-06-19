@@ -81,3 +81,7 @@ cscope.*
 
 # spl ais files
 /spl/*.ais
+
+.project
+.settings
+.cproject

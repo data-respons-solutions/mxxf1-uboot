@@ -972,9 +972,12 @@ static int fec_probe(bd_t *bd, int dev_id, uint32_t base_addr,
 	eth_register(edev);
 
 	if (fec_get_hwaddr(edev, dev_id, ethaddr) == 0) {
-		debug("got MAC%d address from fuse: %pM\n", dev_id, ethaddr);
+		printf("%s: got MAC%d address from fuse: %pM\n", __func__, dev_id, ethaddr);
 		memcpy(edev->enetaddr, ethaddr, 6);
 	}
+	else
+		printf("%s: Invalid MAC%d address from fuse: %pM\n", __func__, dev_id, ethaddr);
+
 	return ret;
 err3:
 	free(fec);

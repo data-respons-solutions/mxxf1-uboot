@@ -68,13 +68,11 @@
 
 /* SPI */
 
-#undef CONFIG_CMD_SF
+#define CONFIG_CMD_SF
 #ifdef CONFIG_CMD_SF
 #define CONFIG_CMD_SPI
-#define CONFIG_SPI_FLASH_ATMEL
 #define CONFIG_SPI_FLASH_STMICRO
 #define CONFIG_SPI_FLASH
-#define CONFIG_SPI_FLASH_SST
 #define CONFIG_MXC_SPI
 #define CONFIG_SF_DEFAULT_BUS  0
 #define CONFIG_SF_DEFAULT_CS   (1|(IMX_GPIO_NR(3, 19)<<8))
@@ -133,6 +131,8 @@
 #define CONFIG_I2C_MULTI_BUS
 #define CONFIG_I2C_MXC
 #define CONFIG_SYS_I2C_SPEED		100000
+#define CONFIG_EEPROM_ON_BUS 1
+#define CONFIG_EEPROM_ADDR	0x50
 #endif
 
 /* OCOTP Configs */
@@ -177,8 +177,8 @@
 #define CONFIG_ENV_SIZE			(8 * 1024)
 
 #undef CONFIG_ENV_IS_NOWHERE
-#undef CONFIG_ENV_IS_IN_SPI_FLASH
-#define CONFIG_ENV_IS_IN_MMC
+#define CONFIG_ENV_IS_IN_SPI_FLASH
+#undef CONFIG_ENV_IS_IN_MMC
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_ENV_OFFSET		(6 * 64 * 1024)
@@ -203,8 +203,8 @@
 	"console=" CONFIG_CONSOLE_DEV "\0" \
 	"fdt_high=0xffffffff\0"	  \
 	"initrd_high=0xffffffff\0" \
-	"mmcdev=" __stringify(CONFIG_SYS_MMC_ENV_DEV) "\0" \
-	"mmcpart=" __stringify(CONFIG_SYS_MMC_ENV_PART) "\0" \
+	"mmcdev=1\0" \
+	"mmcpart=2\0" \
 	"mmcroot=" CONFIG_MMCROOT " rootwait rw rootfstype=ext4\0" \
 	"mmcargs=setenv bootargs console=${console},${baudrate} " \
 		"root=${mmcroot}\0" \

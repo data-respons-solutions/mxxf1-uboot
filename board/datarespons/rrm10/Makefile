@@ -23,7 +23,7 @@ include $(TOPDIR)/config.mk
 
 LIB    = $(obj)lib$(BOARD).o
 
-COBJS  := rrm10.o
+COBJS  := rrm10.o eeprom.o
 
 SRCS   := $(COBJS:.o=.c)
 OBJS   := $(addprefix $(obj),$(COBJS))

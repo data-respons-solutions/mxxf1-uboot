@@ -92,6 +92,9 @@ DECLARE_GLOBAL_DATA_PTR;
 #define GPIO_USBP3_EN	IMX_GPIO_NR(6, 9)
 
 
+int rrm10_eeprom_read (unsigned dev_addr, unsigned offset, uchar *buffer, unsigned cnt);
+
+static unsigned char eeprom_content[2048];
 
 int dram_init(void)
 {
@@ -406,17 +409,92 @@ int board_phy_config(struct phy_device *phydev)
 	return 0;
 }
 
+static int rrm_i2c_init(void)
+{
+	int ret;
+	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
+	i2c_set_bus_num(CONFIG_EEPROM_ON_BUS);
+	i2c_set_bus_speed(CONFIG_SYS_I2C_SPEED);
+	ret = i2c_probe(CONFIG_EEPROM_ADDR);
+	if (ret)
+	{
+		printf("%s: No I2C EEPROM at 0x%x", __func__, CONFIG_EEPROM_ADDR);
+		return ret;
+	}
+	rrm10_eeprom_read(CONFIG_EEPROM_ADDR, 0, eeprom_content, sizeof(eeprom_content) );
+	char *p = strstr((char*)&eeprom_content[4], "FEC_MAC_ADDR=");
+	if (p)
+	{
+		printf("%s: found MAC info %s\n", __func__, p);
+		p += 13;
+		if (strlen(p) > 0)
+		{
+			setenv("ethaddr", p);
+		}
+	}
+	else
+		printf("%s: FEC_MAC_ADDR not present in eeprom\n", __func__);
+
+	return 0;
+}
+
 int board_eth_init(bd_t *bis)
 {
 	int ret;
+	uint32_t base = IMX_FEC_BASE;
+	struct mii_dev *bus = NULL;
+	struct phy_device *phydev = NULL;
+	struct eth_device *fec;
+	uchar mac_addr[6];
 
 	setup_iomux_enet();
+	rrm_i2c_init();
 
+#ifdef CONFIG_FEC_MXC
+	bus = fec_get_miibus(base, -1);
+	if (!bus)
+		return 0;
+	/* scan phy 4,5,6,7 */
+	phydev = phy_find_by_mask(bus, (0xf << 4), PHY_INTERFACE_MODE_RGMII);
+	if (!phydev) {
+		free(bus);
+		return 0;
+	}
+	printf("using phy at %d\n", phydev->addr);
+	ret  = fec_probe(bis, -1, base, bus, phydev);
+	if (ret) {
+		printf("FEC MXC: %s:failed\n", __func__);
+		free(phydev);
+		free(bus);
+		return ret;
+	}
+	fec = eth_get_dev_by_name("FEC");
+	if (!fec) {
+		printf("%s: Could not get FEC\n", __func__);
+		return -EINVAL;
+	}
+
+	ret = eth_getenv_enetaddr("ethaddr", mac_addr);
+
+
+	if (!ret) {
+		printf("%s: No environment MAC for FEC\n", __func__);
+		return -EINVAL;
+	}
+
+	printf("%s: Using MAC %pM for FEC\n", __func__, mac_addr);
+	memcpy(fec->enetaddr, mac_addr, 6);
+	ret = fec->write_hwaddr(fec);
+	return ret;
+
+
+#else
 	ret = cpu_eth_init(bis);
 	if (ret)
 		printf("FEC MXC: %s:failed\n", __func__);
 
-	return 0;
+	return ret;
+#endif
 }
 
 #ifdef CONFIG_USB_EHCI_MX6
