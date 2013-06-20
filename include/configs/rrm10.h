@@ -57,6 +57,7 @@
 #define CONFIG_REVISION_TAG
 
 #undef DEBUG
+//#define CONFIG_SYS_DCACHE_OFF
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		(32 * 1024 * 1024)
 
