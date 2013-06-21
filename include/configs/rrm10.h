@@ -156,6 +156,7 @@
 #define CONFIG_MXC_USB_PORT	1
 #define CONFIG_MXC_USB_PORTSC	(PORT_PTS_UTMI | PORT_PTS_PTW)
 #define CONFIG_MXC_USB_FLAGS	0
+#define CONFIG_USB_KEYBOARD
 
 
 /* allow to overwrite serial and ethaddr */
@@ -194,6 +195,26 @@
 #define CONFIG_ENV_SPI_MAX_HZ		CONFIG_SF_DEFAULT_SPEED
 #endif
 
+/* Framebuffer and LCD */
+#undef CONFIG_VIDEO
+
+#ifdef CONFIG_VIDEO
+#define CONFIG_VIDEO_IPUV3
+#define CONFIG_CFB_CONSOLE
+#define CONFIG_VGA_AS_SINGLE_DEVICE
+#define CONFIG_SYS_CONSOLE_IS_IN_ENV
+#define CONFIG_SYS_CONSOLE_OVERWRITE_ROUTINE
+#define CONFIG_VIDEO_BMP_RLE8
+#define CONFIG_SPLASH_SCREEN
+#define CONFIG_BMP_16BPP
+#define CONFIG_VIDEO_LOGO
+#define CONFIG_IPUV3_CLK 260000000
+#endif
+
+/* allow to overwrite serial and ethaddr */
+#define CONFIG_ENV_OVERWRITE
+
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"script=/boot/boot.scr\0" \
 	"uimage=/boot/uImage\0" \
@@ -208,7 +229,12 @@
 	"mmcpart=2\0" \
 	"mmcroot=" CONFIG_MMCROOT " rootwait rw rootfstype=ext4\0" \
 	"mmcargs=setenv bootargs console=${console},${baudrate} " \
-		"root=${mmcroot}\0" \
+		"root=${mmcroot} fec_mac=${ethaddr}\0" \
+	"usbdev=0\0" \
+	"usbpart=2\0" \
+	"usbroot=/dev/sdb2 rootwait rw rootfstype=ext4\0" \
+	"usbargs=setenv bootargs console=${console},${baudrate} root=${usbroot} fec_mac=${ethaddr} \0" \
+	"usbload=usb start; run usbargs; sleep 2; ext4load usb ${usbdev}:${usbpart} ${loadaddr} ${uimage}; bootm ${loadaddr}\0" \
 	"loadbootscript=" \
 		"ext4load mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
@@ -263,10 +289,10 @@
 		"else " \
 			"if run loaduimage; then " \
 				"run mmcboot; " \
-			"else run netboot; " \
+			"else run usbload; " \
 			"fi; " \
 		"fi; " \
-	"else run netboot; fi"
+	"else run usbload; fi"
 
 #define CONFIG_ARP_TIMEOUT     200UL
 
