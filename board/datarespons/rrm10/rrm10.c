@@ -84,7 +84,8 @@ DECLARE_GLOBAL_DATA_PTR;
 #define GPIO_CAP_TOUCH_RST	IMX_GPIO_NR(6, 16)
 #define GPIO_CAP_TOUCH_PWR	IMX_GPIO_NR(1, 4)
 #define GPIO_LCD_EN	IMX_GPIO_NR(6, 15)
-#define GPIO_BL_EN	IMX_GPIO_NR(1, 9)
+#define GPIO_BL_EN	IMX_GPIO_NR(1, 2)
+#define GPIO_BL_PWM	IMX_GPIO_NR(1, 9)
 #define GPIO_FAN_EN IMX_GPIO_NR(1, 18)
 #define GPIO_BUZ_INT_EN IMX_GPIO_NR(1, 17)
 #define GPIO_BUZ_EXT_EN IMX_GPIO_NR(1, 19)
@@ -516,7 +517,7 @@ int board_early_init_f(void)
 	imx_iomux_v3_setup_multiple_pads(extra_nvcc_gpio_pads, ARRAY_SIZE(extra_nvcc_gpio_pads));
 	setup_iomux_uart();
 	/* Bring up basic power for serial debug etc	*/
-	gpio_direction_output(GPIO_AUX_5V, 1);
+
 	gpio_direction_output(GPIO_PCIE_RST_N, 1);
 	gpio_direction_output(GPIO_EEPROM_WP, 0);
 	gpio_direction_output(GPIO_LAN2_EE_WP, 0);
@@ -525,6 +526,7 @@ int board_early_init_f(void)
 
 	gpio_direction_output(GPIO_LCD_EN, 0);
 	gpio_direction_output(GPIO_BL_EN, 0);
+	gpio_direction_output(GPIO_BL_PWM, 0);
 	gpio_direction_output(GPIO_FAN_EN, 0);
 	gpio_direction_output(GPIO_BUZ_INT_EN, 0);
 	gpio_direction_output(GPIO_BUZ_EXT_EN, 0);
@@ -533,6 +535,7 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_USBP1_EN, 1);
 	gpio_direction_output(GPIO_USBP2_EN, 1);
 	gpio_direction_output(GPIO_USBP3_EN, 1);
+	gpio_direction_output(GPIO_AUX_5V, 1);
 	//udelay(1000);
 #ifdef CONFIG_MXC_SPI
 	gpio_direction_output(CONFIG_SF_DEFAULT_CS, 1);
@@ -659,6 +662,7 @@ static void enable_lvds(void)
 	writel(reg, &iomux->gpr[2]);
 	gpio_direction_output(GPIO_LCD_EN, 1);
 	gpio_direction_output(GPIO_BL_EN, 1);
+	gpio_direction_output(GPIO_BL_PWM, 1);
 }
 
 static struct fb_videomode disp =
