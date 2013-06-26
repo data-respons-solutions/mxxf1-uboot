@@ -17,10 +17,10 @@
 #ifndef __RRM10_CONFIG_H
 #define __RRM10_CONFIG_H
 
-#define CONFIG_MACH_TYPE	4444
+#define CONFIG_MACH_TYPE	3980
 #define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONFIG_CONSOLE_DEV		"ttymxc0"
-#define CONFIG_MMCROOT			"/dev/mmcblk0p2"
+#define CONFIG_MMCROOT			"/dev/mmcblk1p1"
 #define CONFIG_DEFAULT_FDT_FILE	"rrm10.dtb"
 #define PHYS_SDRAM_SIZE		(1u * 1024 * 1024 * 1024)
 
@@ -69,14 +69,14 @@
 
 /* SPI */
 
-#define CONFIG_CMD_SF
+//#define CONFIG_CMD_SF
 #ifdef CONFIG_CMD_SF
 #define CONFIG_CMD_SPI
 #define CONFIG_SPI_FLASH_STMICRO
 #define CONFIG_SPI_FLASH
 #define CONFIG_MXC_SPI
 #define CONFIG_SF_DEFAULT_BUS  0
-#define CONFIG_SF_DEFAULT_CS   (1|(IMX_GPIO_NR(4, 9)<<8))
+#define CONFIG_SF_DEFAULT_CS   (1|(IMX_GPIO_NR(4, 6)<<8))
 #define CONFIG_SF_DEFAULT_SPEED 25000000
 #define CONFIG_SF_DEFAULT_MODE (SPI_MODE_0)
 #endif
@@ -171,7 +171,7 @@
 #define CONFIG_CMD_BOOTZ
 #undef CONFIG_CMD_IMLS
 
-#define CONFIG_BOOTDELAY               2
+#define CONFIG_BOOTDELAY               4
 
 #define CONFIG_LOADADDR                0x12000000
 #define CONFIG_SYS_TEXT_BASE           0x17800000
@@ -179,13 +179,13 @@
 #define CONFIG_ENV_SIZE			(8 * 1024)
 
 #undef CONFIG_ENV_IS_NOWHERE
-#define CONFIG_ENV_IS_IN_SPI_FLASH
-#undef CONFIG_ENV_IS_IN_MMC
+#undef CONFIG_ENV_IS_IN_SPI_FLASH
+#define CONFIG_ENV_IS_IN_MMC
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_ENV_OFFSET		(6 * 64 * 1024)
 #define CONFIG_SYS_MMC_ENV_DEV		1	/* SDHC3 */
-#define CONFIG_SYS_MMC_ENV_PART		2	/* Boot partition 2 */
+#define CONFIG_SYS_MMC_ENV_PART		1	/* Boot partition 2 */
 #elif defined(CONFIG_ENV_IS_IN_SPI_FLASH)
 #define CONFIG_ENV_OFFSET		0xc0000
 #define CONFIG_ENV_SECT_SIZE		0x10000
@@ -226,7 +226,7 @@
 	"fdt_high=0xffffffff\0"	  \
 	"initrd_high=0xffffffff\0" \
 	"mmcdev=1\0" \
-	"mmcpart=2\0" \
+	"mmcpart=1\0" \
 	"mmcroot=" CONFIG_MMCROOT " rootwait rw rootfstype=ext4\0" \
 	"mmcargs=setenv bootargs console=${console},${baudrate} " \
 		"root=${mmcroot} fec_mac=${ethaddr}\0" \
