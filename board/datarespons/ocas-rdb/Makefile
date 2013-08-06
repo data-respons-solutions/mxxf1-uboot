@@ -23,12 +23,14 @@ include $(TOPDIR)/config.mk
 
 LIB    = $(obj)lib$(BOARD).o
 
-COBJS  := ocas-rdb.o
+COBJS  := ocas-rdb.o fpga.o
+
 
 SRCS   := $(COBJS:.o=.c)
 OBJS   := $(addprefix $(obj),$(COBJS))
 
-$(LIB):        $(obj).depend $(OBJS)
+#$(LIB):        $(obj).depend $(OBJS)
+$(LIB):	$(OBJS) $(SOBJS)
 	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################

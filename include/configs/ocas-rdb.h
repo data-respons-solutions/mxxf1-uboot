@@ -14,50 +14,32 @@
  * GNU General Public License for more details.
  */
 
-#ifndef __RRM10_CONFIG_H
-#define __RRM10_CONFIG_H
+#ifndef __OCAS_CRB_CONFIG_H
+#define __OCAS_CRB_CONFIG_H
 
+/* Command definition */
+#include <config_cmd_default.h>
+#include <asm/arch/imx-regs.h>
+#include <asm/imx-common/gpio.h>
+#include "mx6_common.h"
+
+/* Update to use same number as defined in board.cfg */
 #define CONFIG_MACH_TYPE	4445
-#define CONFIG_MXC_UART_BASE	UART1_BASE
-#define CONFIG_CONSOLE_DEV		"ttymxc0"
-#define CONFIG_MMCROOT			"/dev/mmcblk0p2"
-#define CONFIG_DEFAULT_FDT_FILE	"rrm10.dtb"
-#define PHYS_SDRAM_SIZE		(1u * 1024 * 1024 * 1024)
-
-/*
- * Copyright (C) 2012 Freescale Semiconductor, Inc.
- *
- * Configuration settings for the Freescale i.MX6Q SabreSD board.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.         See the
- * GNU General Public License for more details.
- */
-
 #define CONFIG_MX6
 #define CONFIG_MX6Q
 
-#include "mx6_common.h"
 
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 
-#include <asm/arch/imx-regs.h>
-#include <asm/imx-common/gpio.h>
 
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_SETUP_MEMORY_TAGS
-#define CONFIG_INITRD_TAG
+#define CONFIG_INITRD_TAG /* Linux boot arguments support */
 #define CONFIG_REVISION_TAG
 
 #undef DEBUG
-//#define CONFIG_SYS_DCACHE_OFF
+
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		(32 * 1024 * 1024)
 
@@ -65,10 +47,15 @@
 #define CONFIG_BOARD_LATE_INIT
 #define CONFIG_MXC_GPIO
 
+
+
 #define CONFIG_MXC_UART
+#define CONFIG_MXC_UART_BASE	UART1_BASE /* UPDATE to use correct uart for console */
+#define CONFIG_BAUDRATE			115200
+#define CONFIG_CONSOLE_DEV		"ttymxc0"
+#define PHYS_SDRAM_SIZE			(1u * 1024 * 1024 * 1024)
 
 /* SPI */
-
 #define CONFIG_CMD_SF
 #ifdef CONFIG_CMD_SF
 #define CONFIG_CMD_SPI
@@ -76,20 +63,13 @@
 #define CONFIG_SPI_FLASH
 #define CONFIG_MXC_SPI
 #define CONFIG_SF_DEFAULT_BUS  0
-#define CONFIG_SF_DEFAULT_CS   (1|(IMX_GPIO_NR(3, 19)<<8))
+#define CONFIG_SF_DEFAULT_CS   1
 #define CONFIG_SF_DEFAULT_SPEED 25000000
 #define CONFIG_SF_DEFAULT_MODE (SPI_MODE_0)
 #endif
 
 
-/* MMC Configs */
-#define CONFIG_FSL_ESDHC
-#define CONFIG_FSL_USDHC
-#define CONFIG_SYS_FSL_ESDHC_ADDR      0
-
-#define CONFIG_MMC
-#define CONFIG_CMD_MMC
-#define CONFIG_GENERIC_MMC
+/* File system commands (read/write) */
 #define CONFIG_BOUNCE_BUFFER
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_EXT4
@@ -97,10 +77,13 @@
 #define CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
 
+/* Network commands */
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_NET
+
+/* ETHERNET Look into this setup - new interface RMII */
 #define CONFIG_FEC_MXC
 #define CONFIG_MII
 #define IMX_FEC_BASE			ENET_BASE_ADDR
@@ -109,7 +92,7 @@
 #define CONFIG_FEC_MXC_PHYADDR		5
 
 #define CONFIG_PHYLIB
-#define CONFIG_PHY_ATHEROS
+#define CONFIG_PHY_ATHEROS /* PHY compatable */
 
 /* SATA */
 #define CONFIG_CMD_SATA
@@ -132,8 +115,6 @@
 #define CONFIG_I2C_MULTI_BUS
 #define CONFIG_I2C_MXC
 #define CONFIG_SYS_I2C_SPEED		100000
-#define CONFIG_EEPROM_ON_BUS 1
-#define CONFIG_EEPROM_ADDR	0x50
 #endif
 
 /* OCOTP Configs */
@@ -161,20 +142,25 @@
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
+
 #define CONFIG_CONS_INDEX              1
-#define CONFIG_BAUDRATE               115200
 
-/* Command definition */
-#include <config_cmd_default.h>
-
+/* Unknown */
 #define CONFIG_CMD_BMODE
 #define CONFIG_CMD_BOOTZ
 #undef CONFIG_CMD_IMLS
 
+/*FPGA Configuration*/
+#define CONFIG_FPGA
+#define CONFIG_FPGA_ALTERA
+#define CONFIG_FPGA_CYCLON2
+#define CONFIG_CMD_FPGA
+
+/* Number of sec to wait before getting u-boot prompt */
 #define CONFIG_BOOTDELAY               2
 
 #define CONFIG_LOADADDR                0x12000000
-#define CONFIG_SYS_TEXT_BASE           0x17800000
+#define CONFIG_SYS_TEXT_BASE           0x17800000 /* This is the address from where u-boot is executet from in memory */
 
 #define CONFIG_ENV_SIZE			(8 * 1024)
 
@@ -184,22 +170,20 @@
 
 #if defined(CONFIG_ENV_IS_IN_SPI_FLASH)
 #define CONFIG_ENV_OFFSET		0xc0000
-#define CONFIG_ENV_SECT_SIZE		0x10000
+#define CONFIG_ENV_SECT_SIZE	0x10000 /* Sector 512KB*/
 #define CONFIG_ENV_SPI_BUS		CONFIG_SF_DEFAULT_BUS
 #define CONFIG_ENV_SPI_CS		CONFIG_SF_DEFAULT_CS
 #define CONFIG_ENV_SPI_MODE		CONFIG_SF_DEFAULT_MODE
-#define CONFIG_ENV_SPI_MAX_HZ		CONFIG_SF_DEFAULT_SPEED
+#define CONFIG_ENV_SPI_MAX_HZ	CONFIG_SF_DEFAULT_SPEED
 #endif
-
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
 
-
+/* Cleanup here and make your own commands */
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"script=/boot/boot.scr\0" \
 	"uimage=/boot/uImage\0" \
-	"fdt_file=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"fdt_addr=0x11000000\0" \
 	"boot_fdt=no\0" \
 	"ip_dyn=yes\0" \
@@ -239,9 +223,11 @@
 				"fi; " \
 			"fi; " \
 		"else " \
-			"bootm; " \
+			"bootm ; " \
 		"fi;\0"
 
+/* When you run "boot" from u-boot> then it will try to run the define under */
+/* This is very similar as to how ocas want to do it - load Linux image via sata */
 #define CONFIG_BOOTCOMMAND \
 	"if sata init; then " \
 		"if run loadbootscript; then " \
@@ -294,9 +280,7 @@
 
 /* FLASH and environment organization */
 #define CONFIG_SYS_NO_FLASH
-#define CONFIG_SYS_FSL_USDHC_NUM	2
-
-
+#define CONFIG_SYS_FSL_USDHC_NUM	1
 
 
 #define CONFIG_OF_LIBFDT

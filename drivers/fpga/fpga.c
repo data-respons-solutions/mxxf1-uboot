@@ -36,7 +36,7 @@
 
 /* Local definitions */
 #ifndef CONFIG_MAX_FPGA_DEVICES
-#define CONFIG_MAX_FPGA_DEVICES		5
+#define CONFIG_MAX_FPGA_DEVICES		1
 #endif
 
 /* Enable/Disable debug console messages */
