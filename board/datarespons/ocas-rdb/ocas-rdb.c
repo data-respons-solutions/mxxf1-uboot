@@ -344,7 +344,7 @@ int board_early_init_f(void)
 
     setup_iomux_uart();
 
-    /* Bring up basic power */
+    /* Bring up basic power for serial debug etc	*/
     gpio_direction_output(GPIO_NET_12V_EN, 1);
     gpio_direction_output(GPIO_NET_3V35_EN, 1);
     gpio_direction_output(GPIO_LAN_3V3_EN, 1);

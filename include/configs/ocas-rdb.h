@@ -47,12 +47,11 @@
 #define CONFIG_BOARD_LATE_INIT
 #define CONFIG_MXC_GPIO
 
-
-
 #define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE	UART1_BASE /* UPDATE to use correct uart for console */
 #define CONFIG_BAUDRATE			115200
 #define CONFIG_CONSOLE_DEV		"ttymxc0"
+#define CONFIG_DEFAULT_FDT_FILE	"ocas-rdb.dtb"
 #define PHYS_SDRAM_SIZE			(1u * 1024 * 1024 * 1024)
 
 /* SPI */
@@ -160,7 +159,7 @@
 #define CONFIG_BOOTDELAY               2
 
 #define CONFIG_LOADADDR                0x12000000
-#define CONFIG_SYS_TEXT_BASE           0x17800000 /* This is the address from where u-boot is executet from in memory */
+#define CONFIG_SYS_TEXT_BASE           0x17800000 /* This is the address from where u-boot is executed from in memory */
 
 #define CONFIG_ENV_SIZE			(8 * 1024)
 
