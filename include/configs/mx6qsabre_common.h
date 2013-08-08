@@ -51,6 +51,7 @@
 #define CONFIG_GENERIC_MMC
 #define CONFIG_BOUNCE_BUFFER
 #define CONFIG_CMD_EXT2
+#define CONFIG_CMD_EXT4
 #define CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
 
@@ -86,8 +87,8 @@
 #define CONFIG_SYS_TEXT_BASE           0x17800000
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"script=boot.scr\0" \
-	"uimage=uImage\0" \
+	"script=/boot/boot.scr\0" \
+	"uimage=/boot/uImage\0" \
 	"fdt_file=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"fdt_addr=0x11000000\0" \
 	"boot_fdt=try\0" \
@@ -101,11 +102,11 @@
 	"mmcargs=setenv bootargs console=${console},${baudrate} " \
 		"root=${mmcroot}\0" \
 	"loadbootscript=" \
-		"fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
+		"ext4load mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
 		"source\0" \
-	"loaduimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${uimage}\0" \
-	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdt_file}\0" \
+	"loaduimage=ext4load mmc ${mmcdev}:${mmcpart} ${loadaddr} ${uimage}\0" \
+	"loadfdt=ext4load mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdt_file}\0" \
 	"mmcboot=echo Booting from mmc ...; " \
 		"run mmcargs; " \
 		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
