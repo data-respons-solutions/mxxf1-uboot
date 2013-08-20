@@ -20,7 +20,7 @@
 #define CONFIG_MACH_TYPE	4444
 #define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONFIG_CONSOLE_DEV		"ttymxc0"
-#define CONFIG_MMCROOT			"/dev/mmcblk0p1"
+#define CONFIG_MMCROOT			"/dev/mmcblk0p2"
 #define CONFIG_DEFAULT_FDT_FILE	"rrm10.dtb"
 #define PHYS_SDRAM_SIZE		(1u * 1024 * 1024 * 1024)
 
@@ -171,7 +171,7 @@
 #define CONFIG_CMD_BOOTZ
 #undef CONFIG_CMD_IMLS
 
-#define CONFIG_BOOTDELAY               8
+#define CONFIG_BOOTDELAY               2
 
 #define CONFIG_LOADADDR                0x12000000
 #define CONFIG_SYS_TEXT_BASE           0x17800000
@@ -218,31 +218,81 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"script=/boot/boot.scr\0" \
 	"uimage=/boot/uImage\0" \
-	"initrd=/boot/initrd\0" \
+	"fdt_file=" CONFIG_DEFAULT_FDT_FILE "\0" \
+	"fdt_addr=0x11000000\0" \
+	"boot_fdt=no\0" \
 	"ip_dyn=yes\0" \
 	"console=" CONFIG_CONSOLE_DEV "\0" \
 	"fdt_high=0xffffffff\0"	  \
 	"initrd_high=0xffffffff\0" \
-	"boot_dev=mmc 1:1\0" \
-	"root_dev=/dev/mmcblk0p1\0" \
-	"kernelargs=setenv bootargs console=${console},${baudrate} " \
-		"root=${root_dev} rootwait rw rootfstype=ext4 fec_mac=${ethaddr}\0" \
-	"boot_mmc=usb start; setenv boot_dev mmc 1:1; setenv root_dev /dev/mmcblk0p1; run kernelargs; run loaduimage; bootm ${loadaddr}\0" \
-	"boot_usb=usb start; setenv boot_dev usb 0:1; setenv root_dev /dev/sda1; sleep 2; run kernelargs; run loaduimage; bootm ${loadaddr}\0" \
-	"boot_sata=sata init; setenv boot_dev sata 0:1; setenv root_dev /dev/sda1; run kernelargs; run loaduimage; bootm ${loadaddr}\0" \
-	"loadbootscript=ext4load ${boot_dev} ${loadaddr} ${script};\0" \
-	"bootscript=echo Running bootscript from ${boot_dev} ...; source\0" \
-	"loaduimage=ext4load ${boot_dev} ${loadaddr} ${uimage}\0" \
+	"mmcdev=1\0" \
+	"mmcpart=2\0" \
+	"mmcroot=" CONFIG_MMCROOT " rootwait rw rootfstype=ext4\0" \
+	"mmcargs=setenv bootargs console=${console},${baudrate} " \
+		"root=${mmcroot} fec_mac=${ethaddr}\0" \
+	"usbdev=0\0" \
+	"usbpart=2\0" \
+	"usbroot=/dev/sdb2 rootwait rw rootfstype=ext4\0" \
+	"usbargs=setenv bootargs console=${console},${baudrate} root=${usbroot} fec_mac=${ethaddr} \0" \
+	"usbload=usb start; run usbargs; sleep 2; ext4load usb ${usbdev}:${usbpart} ${loadaddr} ${uimage}; bootm ${loadaddr}\0" \
+	"loadbootscript=" \
+		"ext4load mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
+	"bootscript=echo Running bootscript from mmc ...; " \
+		"source\0" \
+	"loaduimage=ext4load mmc ${mmcdev}:${mmcpart} ${loadaddr} ${uimage}\0" \
+	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdt_file}\0" \
+	"mmcboot=echo Booting from mmc ...; " \
+		"run mmcargs; " \
+		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
+			"if run loadfdt; then " \
+				"bootm ${loadaddr} - ${fdt_addr}; " \
+			"else " \
+				"if test ${boot_fdt} = try; then " \
+					"bootm; " \
+				"else " \
+					"echo WARN: Cannot load the DT; " \
+				"fi; " \
+			"fi; " \
+		"else " \
+			"bootm; " \
+		"fi;\0" \
+	"netargs=setenv bootargs console=${console},${baudrate} " \
+		"root=/dev/nfs " \
+		"ip=dhcp nfsroot=${serverip}:${nfsroot},v3,tcp\0" \
+	"netboot=echo Booting from net ...; " \
+		"run netargs; " \
+		"if test ${ip_dyn} = yes; then " \
+			"setenv get_cmd dhcp; " \
+		"else " \
+			"setenv get_cmd tftp; " \
+		"fi; " \
+		"${get_cmd} ${uimage}; " \
+		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
+			"if ${get_cmd} ${fdt_addr} ${fdt_file}; then " \
+				"bootm ${loadaddr} - ${fdt_addr}; " \
+			"else " \
+				"if test ${boot_fdt} = try; then " \
+					"bootm; " \
+				"else " \
+					"echo WARN: Cannot load the DT; " \
+				"fi; " \
+			"fi; " \
+		"else " \
+			"bootm; " \
+		"fi;\0"
 
 #define CONFIG_BOOTCOMMAND \
-	"mmc dev 1;" \
+	"mmc dev ${mmcdev};" \
 	"if mmc rescan; then " \
 		"if run loadbootscript; then " \
-			"run bootscript; " \
+		"run bootscript; " \
 		"else " \
-			"run boot_mmc; " \
+			"if run loaduimage; then " \
+				"run mmcboot; " \
+			"else run usbload; " \
+			"fi; " \
 		"fi; " \
-	"else run boot_usb; fi"
+	"else run usbload; fi"
 
 #define CONFIG_ARP_TIMEOUT     200UL
 
