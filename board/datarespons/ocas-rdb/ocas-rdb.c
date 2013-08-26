@@ -103,20 +103,27 @@ DECLARE_GLOBAL_DATA_PTR;
 #define MX6_PAD_GPIO_16__RMII_REF_CLK  IOMUX_PAD(0x0618, 0x0248, IOMUX_CONFIG_SION | 2, 0x083C, 1, 0)
 
 struct i2c_pads_info i2c_pad_info0 =
-{ .scl =
-{ .i2c_mode = MX6_PAD_CSI0_DAT9__I2C1_SCL | MUX_PAD_CTRL(I2C_PAD_CTRL),
+{
+	.scl =
+	{
+		.i2c_mode = MX6_PAD_CSI0_DAT9__I2C1_SCL | MUX_PAD_CTRL(I2C_PAD_CTRL),
         .gpio_mode = MX6_PAD_CSI0_DAT9__GPIO_5_27 | MUX_PAD_CTRL(I2C_PAD_CTRL),
-        .gp = IMX_GPIO_NR(5, 27) }, .sda =
-{ .i2c_mode = MX6_PAD_CSI0_DAT8__I2C1_SDA | MUX_PAD_CTRL(I2C_PAD_CTRL),
-        .gpio_mode = MX6_PAD_CSI0_DAT8__GPIO_5_26 | MUX_PAD_CTRL(I2C_PAD_CTRL),
-        .gp = IMX_GPIO_NR(5, 26) } };
+        .gp = IMX_GPIO_NR(5, 27)
+	},
+	.sda =
+	{
+		.i2c_mode = MX6_PAD_CSI0_DAT8__I2C1_SDA | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		.gpio_mode = MX6_PAD_CSI0_DAT8__GPIO_5_26 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		.gp = IMX_GPIO_NR(5, 26)
+	}
+};
 
-/* I2C2 Camera, MIPI */
 struct i2c_pads_info i2c_pad_info1 =
 { .scl =
 { .i2c_mode = MX6_PAD_KEY_COL3__I2C2_SCL | MUX_PAD_CTRL(I2C_PAD_CTRL),
         .gpio_mode = MX6_PAD_KEY_COL3__GPIO_4_12 | MUX_PAD_CTRL(I2C_PAD_CTRL),
-        .gp = IMX_GPIO_NR(4, 12) }, .sda =
+        .gp =
+        IMX_GPIO_NR(4, 12) }, .sda =
 { .i2c_mode = MX6_PAD_KEY_ROW3__I2C2_SDA | MUX_PAD_CTRL(I2C_PAD_CTRL),
         .gpio_mode = MX6_PAD_KEY_ROW3__GPIO_4_13 | MUX_PAD_CTRL(I2C_PAD_CTRL),
         .gp = IMX_GPIO_NR(4, 13) } };

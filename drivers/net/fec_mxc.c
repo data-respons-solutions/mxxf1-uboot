@@ -494,7 +494,6 @@ static int fec_open(struct eth_device *edev)
 		}
 	}
 #endif
-
 #ifdef CONFIG_PHYLIB
 	{
 		/* Start up the PHY */
@@ -514,19 +513,19 @@ static int fec_open(struct eth_device *edev)
 	miiphy_duplex(edev->name, fec->phy_id);
 #endif
 
-#ifdef FEC_QUIRK_ENET_MAC_XX
-	{
-		u32 ecr = readl(&fec->eth->ecntrl) & ~FEC_ECNTRL_SPEED;
-		u32 rcr = (readl(&fec->eth->r_cntrl) &
-				~(FEC_RCNTRL_RMII | FEC_RCNTRL_RMII_10T)) |
-				FEC_RCNTRL_RGMII | FEC_RCNTRL_MII_MODE;
-		if (speed == _1000BASET)
-			ecr |= FEC_ECNTRL_SPEED;
-		else if (speed != _100BASET)
-			rcr |= FEC_RCNTRL_RMII_10T;
-		writel(ecr, &fec->eth->ecntrl);
-		writel(rcr, &fec->eth->r_cntrl);
-	}
+#ifdef FEC_QUIRK_ENET_MAC
+	if (PHY_INTERFACE_MODE_RMII != fec->phydev->interface) {
+	u32 ecr = readl(&fec->eth->ecntrl) & ~FEC_ECNTRL_SPEED;
+	u32 rcr = (readl(&fec->eth->r_cntrl) &
+			~(FEC_RCNTRL_RMII | FEC_RCNTRL_RMII_10T)) |
+			FEC_RCNTRL_RGMII | FEC_RCNTRL_MII_MODE;
+	if (speed == _1000BASET)
+		ecr |= FEC_ECNTRL_SPEED;
+	else if (speed != _100BASET)
+		rcr |= FEC_RCNTRL_RMII_10T;
+	writel(ecr, &fec->eth->ecntrl);
+	writel(rcr, &fec->eth->r_cntrl);
+}
 #endif
 	printf("%s:Speed=%i, rcr = 0x%08x\n", __func__, speed, readl(&fec->eth->r_cntrl));
 
