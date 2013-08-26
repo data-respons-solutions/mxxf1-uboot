@@ -506,6 +506,7 @@ static int fec_open(struct eth_device *edev)
 			return ret;
 		}
 		speed = fec->phydev->speed;
+		printf("%s:A Speed=%i\n", __func__, speed);
 	}
 #else
 	miiphy_wait_aneg(edev);
@@ -513,7 +514,7 @@ static int fec_open(struct eth_device *edev)
 	miiphy_duplex(edev->name, fec->phy_id);
 #endif
 
-#ifdef FEC_QUIRK_ENET_MAC
+#ifdef FEC_QUIRK_ENET_MAC_XX
 	{
 		u32 ecr = readl(&fec->eth->ecntrl) & ~FEC_ECNTRL_SPEED;
 		u32 rcr = (readl(&fec->eth->r_cntrl) &
@@ -527,7 +528,7 @@ static int fec_open(struct eth_device *edev)
 		writel(rcr, &fec->eth->r_cntrl);
 	}
 #endif
-	debug("%s:Speed=%i\n", __func__, speed);
+	printf("%s:Speed=%i, rcr = 0x%08x\n", __func__, speed, readl(&fec->eth->r_cntrl));
 
 	/*
 	 * Enable SmartDMA receive task
@@ -803,6 +804,7 @@ static int fec_recv(struct eth_device *dev)
 		return 0;
 	}
 	if (ievent & FEC_IEVENT_HBERR) {
+		printf("%s: Heartbeat error\n", __func__);
 		/* Heartbeat error */
 		writel(0x00000001 | readl(&fec->eth->x_cntrl),
 				&fec->eth->x_cntrl);
@@ -1031,7 +1033,7 @@ int fecmxc_initialize_multi(bd_t *bd, int dev_id, int phy_id, uint32_t addr)
 #else
 	base_mii = addr;
 #endif
-	debug("eth_init: fec_probe(bd, %i, %i) @ %08x\n", dev_id, phy_id, addr);
+	printf("%s: fec_probe(bd, %i, %i) @ %08x\n", __func__, dev_id, phy_id, addr);
 	bus = fec_get_miibus(base_mii, dev_id);
 	if (!bus)
 		return -ENOMEM;
