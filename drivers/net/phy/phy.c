@@ -454,7 +454,9 @@ int phy_init(void)
 #ifdef CONFIG_PHY_VITESSE
 	phy_vitesse_init();
 #endif
-
+#ifdef CONFIG_PHY_MICREL_KSZ8863
+	phy_micrel8863_init();
+#endif
 	return 0;
 }
 
@@ -503,6 +505,7 @@ static struct phy_driver *get_phy_driver(struct phy_device *phydev,
 	}
 
 	/* If we made it here, there's no driver for this PHY */
+	printf("%s: No driver for phy id %d, using generic\n", __func__, phy_id);
 	return generic_for_interface(interface);
 }
 
@@ -571,7 +574,7 @@ static int get_phy_id(struct mii_dev *bus, int addr, int devad, u32 *phy_id)
 		return -EIO;
 
 	*phy_id |= (phy_reg & 0xffff);
-
+	printf("%s: addr = %d, devad = %d id = 0x%8x\n", __func__, addr, devad, *phy_id);
 	return 0;
 }
 
@@ -626,7 +629,7 @@ static struct phy_device *get_phy_device_by_mask(struct mii_dev *bus,
 		if (phydev)
 			return phydev;
 	}
-	printf("Phy not found\n");
+	printf("Phy not found, create at addr %d\n", ffs(phy_mask) - 1);
 	return phy_device_create(bus, ffs(phy_mask) - 1, 0xffffffff, interface);
 }
 
