@@ -138,6 +138,8 @@ struct i2c_pads_info i2c_pad_info2 =
         .gpio_mode = MX6_PAD_GPIO_6__GPIO_1_6 | MUX_PAD_CTRL(I2C_PAD_CTRL),
         .gp = IMX_GPIO_NR(1, 6) } };
 
+int ocas_fpga_init();
+
 int dram_init(void)
 {
 	gd->ram_size = get_ram_size((void *) PHYS_SDRAM, PHYS_SDRAM_SIZE);
@@ -438,6 +440,7 @@ int board_init(void)
 	}
 #endif
 
+	ocas_fpga_init();
 	printf("%s: OK\n", __func__);
 	return 0;
 }
