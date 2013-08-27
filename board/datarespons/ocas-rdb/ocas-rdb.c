@@ -368,9 +368,9 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_NET_3V35_EN, 1);
 	gpio_direction_output(GPIO_LAN_3V3_EN, 1);
 	gpio_direction_output(GPIO_FPGA_12V_EN, 1);
-	gpio_direction_output(GPIO_FPGA_3V3_EN, 1);
-	gpio_direction_output(GPIO_FPGA_2V5_EN, 1);
 	gpio_direction_output(GPIO_FPGA_1V1_EN, 1);
+	gpio_direction_output(GPIO_FPGA_2V5_EN, 1);
+	gpio_direction_output(GPIO_FPGA_3V3_EN, 1);
 	gpio_direction_input(GPIO_MAIN_3V35_PGOOD);
 
 	/* Administration Bus */
@@ -471,113 +471,4 @@ int checkboard(void)
 	return 0;
 }
 
-#if defined(CONFIG_VIDEO_IPUV3)
-
-int overwrite_console(void)
-{
-	return 1;
-}
-
-struct display_info_t
-{
-	int bus;
-	int addr;
-	int pixfmt;
-	int (*detect)(struct display_info_t const *dev);
-	void (*enable)(struct display_info_t const *dev);
-	struct fb_videomode mode;
-};
-
-static void enable_lvds(void)
-{
-	struct iomuxc *iomux = (struct iomuxc *)
-	IOMUXC_BASE_ADDR;
-	u32 reg = readl(&iomux->gpr[2]);
-	reg |= IOMUXC_GPR2_DATA_WIDTH_CH0_24BIT;
-	writel(reg, &iomux->gpr[2]);
-	gpio_direction_output(GPIO_LCD_EN, 1);
-	gpio_direction_output(GPIO_BL_EN, 1);
-	gpio_direction_output(GPIO_BL_PWM, 1);
-}
-
-static struct fb_videomode disp =
-{
-	.name = "RRM10-XGA",
-	.refresh = 60,
-	.xres = 1024,
-	.yres = 768,
-	.pixclock = 15385,
-	.left_margin = 220,
-	.right_margin = 40,
-	.upper_margin = 21,
-	.lower_margin = 7,
-	.hsync_len = 60,
-	.vsync_len = 10,
-	.sync = FB_SYNC_EXT,
-	.vmode = FB_VMODE_NONINTERLACED
-};
-
-static void setup_display(void)
-{
-	struct mxc_ccm_reg *mxc_ccm = (struct mxc_ccm_reg *)CCM_BASE_ADDR;
-	struct anatop_regs *anatop = (struct anatop_regs *)ANATOP_BASE_ADDR;
-	struct iomuxc *iomux = (struct iomuxc *)IOMUXC_BASE_ADDR;
-
-	int reg;
-
-	/* Turn on LDB0,IPU,IPU DI0 clocks */
-	reg = __raw_readl(&mxc_ccm->CCGR3);
-	reg |= MXC_CCM_CCGR3_IPU1_IPU_DI0_OFFSET
-	|MXC_CCM_CCGR3_LDB_DI0_MASK;
-	writel(reg, &mxc_ccm->CCGR3);
-
-	/* set PFD1_FRAC to 0x13 == 455 MHz (480*18)/0x13 */
-	writel(ANATOP_PFD_480_PFD1_FRAC_MASK, &anatop->pfd_480_clr);
-	writel(0x13<<ANATOP_PFD_480_PFD1_FRAC_SHIFT, &anatop->pfd_480_set);
-
-	/* set LDB0, LDB1 clk select to 011/011 */
-	reg = readl(&mxc_ccm->cs2cdr);
-	reg &= ~(MXC_CCM_CS2CDR_LDB_DI0_CLK_SEL_MASK
-			|MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_MASK);
-	reg |= (3<<MXC_CCM_CS2CDR_LDB_DI0_CLK_SEL_OFFSET)
-	|(3<<MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_OFFSET);
-	writel(reg, &mxc_ccm->cs2cdr);
-
-	reg = readl(&mxc_ccm->cscmr2);
-	reg |= MXC_CCM_CSCMR2_LDB_DI0_IPU_DIV;
-	writel(reg, &mxc_ccm->cscmr2);
-
-	reg = readl(&mxc_ccm->chsccdr);
-	reg &= ~(MXC_CCM_CHSCCDR_IPU1_DI0_PRE_CLK_SEL_MASK
-			|MXC_CCM_CHSCCDR_IPU1_DI0_PODF_MASK
-			|MXC_CCM_CHSCCDR_IPU1_DI0_CLK_SEL_MASK);
-	reg |= (CHSCCDR_CLK_SEL_LDB_DI0
-			<<MXC_CCM_CHSCCDR_IPU1_DI0_CLK_SEL_OFFSET)
-	|(CHSCCDR_PODF_DIVIDE_BY_3
-			<<MXC_CCM_CHSCCDR_IPU1_DI0_PODF_OFFSET)
-	|(CHSCCDR_IPU_PRE_CLK_540M_PFD
-			<<MXC_CCM_CHSCCDR_IPU1_DI0_PRE_CLK_SEL_OFFSET);
-	writel(reg, &mxc_ccm->chsccdr);
-
-	reg = IOMUXC_GPR2_BGREF_RRMODE_EXTERNAL_RES
-	|IOMUXC_GPR2_DI1_VS_POLARITY_ACTIVE_HIGH
-	|IOMUXC_GPR2_DI0_VS_POLARITY_ACTIVE_LOW
-	|IOMUXC_GPR2_BIT_MAPPING_CH1_SPWG
-	|IOMUXC_GPR2_DATA_WIDTH_CH1_18BIT
-	|IOMUXC_GPR2_BIT_MAPPING_CH0_SPWG
-	|IOMUXC_GPR2_DATA_WIDTH_CH0_18BIT
-	|IOMUXC_GPR2_LVDS_CH1_MODE_DISABLED
-	|IOMUXC_GPR2_LVDS_CH0_MODE_ENABLED_DI0;
-	writel(reg, &iomux->gpr[2]);
-
-	reg = readl(&iomux->gpr[3]);
-	reg = (reg & ~IOMUXC_GPR3_LVDS0_MUX_CTL_MASK)
-	| (IOMUXC_GPR3_MUX_SRC_IPU1_DI0
-			<<IOMUXC_GPR3_LVDS0_MUX_CTL_OFFSET);
-	writel(reg, &iomux->gpr[3]);
-	ipuv3_fb_init(&disp, 0, IPU_PIX_FMT_LVDS666);
-	enable_lvds();
-	/* backlights off until needed */
-}
-#endif
 
