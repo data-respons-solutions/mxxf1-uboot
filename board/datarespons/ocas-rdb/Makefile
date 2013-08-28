@@ -23,7 +23,7 @@ include $(TOPDIR)/config.mk
 
 LIB    = $(obj)lib$(BOARD).o
 
-COBJS  := ocas-rdb.o fpga.o
+COBJS  := ocas-rdb.o ocas-fpga.o
 
 
 SRCS   := $(COBJS:.o=.c)
