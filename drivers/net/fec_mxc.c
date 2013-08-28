@@ -505,7 +505,6 @@ static int fec_open(struct eth_device *edev)
 			return ret;
 		}
 		speed = fec->phydev->speed;
-		printf("%s:A Speed=%i\n", __func__, speed);
 	}
 #else
 	miiphy_wait_aneg(edev);
@@ -527,7 +526,6 @@ static int fec_open(struct eth_device *edev)
 	writel(rcr, &fec->eth->r_cntrl);
 }
 #endif
-	printf("%s:Speed=%i, rcr = 0x%08x\n", __func__, speed, readl(&fec->eth->r_cntrl));
 
 	/*
 	 * Enable SmartDMA receive task
