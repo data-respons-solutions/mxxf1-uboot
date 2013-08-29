@@ -140,17 +140,25 @@ static int CYC2_ps_load(Altera_desc *desc, const void *buf, size_t bsize)
 		 * Run the pre configuration function if there is one.
 		 */
 		if (*fn->pre) {
-			(*fn->pre) (cookie);
+			ret = (*fn->pre) (cookie);
+			if (ret) {
+				printf("%s: pre function failed with %d\n", __func__, ret);
+				return ret;
+			}
 		}
 
 		/* Establish the initial state */
-		(*fn->config) (false, true, cookie);	/* De-assert nCONFIG */
+		ret = (*fn->config) (false, true, cookie);	/* De-assert nCONFIG */
+		if (ret) {
+			printf("%s: config function failed with %d\n", __func__, ret);
+			return ret;
+		}
 		udelay(100);
 		(*fn->config) (true, true, cookie);	/* Assert nCONFIG */
 
-		udelay(2);		/* T_cfg > 2us	*/
+		udelay(5);		/* T_cfg > 2us	*/
+		(*fn->config) (false, true, cookie);	/* deAssert nCONFIG */
 
-		/* Wait for nSTATUS to be asserted */
 		ts = get_timer (0);		/* get current time */
 		do {
 			CONFIG_FPGA_DELAY ();
@@ -164,6 +172,7 @@ static int CYC2_ps_load(Altera_desc *desc, const void *buf, size_t bsize)
 		/* Get ready for the burn */
 		CONFIG_FPGA_DELAY ();
 
+		printf("%s: Write FPGA\n", __func__);
 		ret = (*fn->write) (buf, bsize, true, cookie);
 		if (ret) {
 			puts ("** Write failed.\n");

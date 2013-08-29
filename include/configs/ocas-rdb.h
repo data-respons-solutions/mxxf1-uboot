@@ -157,8 +157,8 @@
 /* Number of sec to wait before getting u-boot prompt */
 #define CONFIG_BOOTDELAY               2
 
-#define CONFIG_LOADADDR                0x12000000
-#define CONFIG_SYS_TEXT_BASE           0x17800000 /* This is the address from where u-boot is executed from in memory */
+#define CONFIG_LOADADDR			0x12000000
+#define CONFIG_SYS_TEXT_BASE	0x17800000 /* This is the address from where u-boot is executed from in memory */
 
 #define CONFIG_ENV_SIZE			(8 * 1024)
 
@@ -182,22 +182,19 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"script=/boot/boot.scr\0" \
 	"uimage=/boot/uImage\0" \
+	"fpgaimage=/boot/fpgaImage\0" \
 	"fdt_addr=0x11000000\0" \
 	"boot_fdt=no\0" \
 	"ip_dyn=yes\0" \
 	"console=" CONFIG_CONSOLE_DEV "\0" \
 	"fdt_high=0xffffffff\0"	  \
 	"initrd_high=0xffffffff\0" \
-	"usbdev=0\0" \
-	"usbpart=2\0" \
-	"usbroot=/dev/sdb2 rootwait rw rootfstype=ext4\0" \
-	"usbargs=setenv bootargs console=${console},${baudrate} root=${usbroot} fec_mac=${ethaddr} \0" \
 	"sataargs=setenv bootargs console=${console},${baudrate} root=/dev/sda1 rw rootwait rootfstype=ext4 fec_mac=${ethaddr} \0" \
-	"usbload=usb start; run usbargs; sleep 2; ext4load usb ${usbdev}:${usbpart} ${loadaddr} ${uimage}; bootm ${loadaddr}\0" \
 	"loadbootscript=ext4load sata 0:1 ${loadaddr} ${script};\0" \
 	"bootscript=echo Running bootscript from sata ...; " \
 		"source\0" \
 	"loaduimage=ext4load sata 0:1 ${loadaddr} ${uimage}\0" \
+	"loadfpga=ext4load sata 0:1 ${loadaddr} ${fpgaimage}\0" \
 	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdt_file}\0" \
 	"netargs=setenv bootargs console=${console},${baudrate} " \
 		"root=/dev/nfs " \
@@ -229,14 +226,16 @@
 #define CONFIG_BOOTCOMMAND \
 	"if sata init; then " \
 		"if run loadbootscript; then " \
-		"run bootscript; " \
+			"run bootscript; " \
 		"else " \
+			"if run loadfpga; then " \
+				"fpga load 0 ${loadaddr} ${filesize}; " \
+			"fi; " \
 			"if run loaduimage; then " \
-				"run sataargs; bootm ${loadaddr} " \
-			"else run usbload; " \
+				"run sataargs; bootm ${loadaddr}; " \
 			"fi; " \
 		"fi; " \
-	"else run usbload; fi"
+	"fi;"
 
 #define CONFIG_ARP_TIMEOUT     200UL
 

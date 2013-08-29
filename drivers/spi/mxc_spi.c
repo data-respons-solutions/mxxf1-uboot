@@ -170,7 +170,7 @@ static s32 spi_cfg_mxc(struct mxc_spi_slave *mxcs, unsigned int cs,
 		}
 	}
 
-	debug("pre_div = %d, post_div=%d\n", pre_div, post_div);
+	debug("%s: clk@%d, pre_div = %d, post_div=%d\n", __func__, clk_src, pre_div, post_div);
 	reg_ctrl = (reg_ctrl & ~MXC_CSPICTRL_SELCHAN(3)) |
 		MXC_CSPICTRL_SELCHAN(cs);
 	reg_ctrl = (reg_ctrl & ~MXC_CSPICTRL_PREDIV(0x0F)) |
@@ -227,6 +227,7 @@ int spi_xchg_single(struct spi_slave *slave, unsigned int bitlen,
 	int nbytes = (bitlen + 7) / 8;
 	u32 data, cnt, i;
 	struct cspi_regs *regs = (struct cspi_regs *)mxcs->base;
+	int to = 100000;
 
 	debug("%s: bitlen %d dout 0x%x din 0x%x\n",
 		__func__, bitlen, (u32)dout, (u32)din);
@@ -239,7 +240,7 @@ int spi_xchg_single(struct spi_slave *slave, unsigned int bitlen,
 #ifdef MXC_ECSPI
 	reg_write(&regs->cfg, mxcs->cfg_reg);
 #endif
-
+	debug("%s: ctrl = 0x%08x, config = 0x%08x\n", __func__, regs->ctrl, regs->cfg);
 	/* Clear interrupt register */
 	reg_write(&regs->stat, MXC_CSPICTRL_TC | MXC_CSPICTRL_RXOVF);
 
@@ -288,9 +289,11 @@ int spi_xchg_single(struct spi_slave *slave, unsigned int bitlen,
 		MXC_CSPICTRL_EN | MXC_CSPICTRL_XCH);
 
 	/* Wait until the TC (Transfer completed) bit is set */
-	while ((reg_read(&regs->stat) & MXC_CSPICTRL_TC) == 0)
-		;
 
+	while ((reg_read(&regs->stat) & MXC_CSPICTRL_TC) == 0 && to--);
+
+	if (to <= 0)
+		return -ETIMEDOUT;
 	/* Transfer completed, clear any pending request */
 	reg_write(&regs->stat, MXC_CSPICTRL_TC | MXC_CSPICTRL_RXOVF);
 

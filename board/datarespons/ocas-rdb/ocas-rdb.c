@@ -153,17 +153,7 @@ iomux_v3_cfg_t const ecspi1_pads[] =
     MX6_PAD_EIM_D16__ECSPI1_SCLK | MUX_PAD_CTRL(SPI_PAD_CTRL),
 };
 
-#if 0
-iomux_v3_cfg_t const ecspi2_pads[] =
-{
-/* FPGA Configuration */
-	MX6_PAD_DISP0_DAT18__GPIO_5_12   | MUX_PAD_CTRL(SPI_PAD_CTRL_UP),
-	MX6_PAD_DISP0_DAT15__ECSPI2_SS1  | MUX_PAD_CTRL(SPI_PAD_CTRL),
-	MX6_PAD_DISP0_DAT17__ECSPI2_MISO | MUX_PAD_CTRL(SPI_PAD_CTRL),
-	MX6_PAD_DISP0_DAT16__ECSPI2_MOSI | MUX_PAD_CTRL(SPI_PAD_CTRL),
-	MX6_PAD_DISP0_DAT19__ECSPI2_SCLK | MUX_PAD_CTRL(SPI_PAD_CTRL),
-};
-#else
+#ifdef BIT_BANG_FPGA
 
 iomux_v3_cfg_t const ecspi2_pads[] =
 {
@@ -173,6 +163,16 @@ iomux_v3_cfg_t const ecspi2_pads[] =
 	MX6_PAD_DISP0_DAT17__ECSPI2_MISO | MUX_PAD_CTRL(SPI_PAD_CTRL),
 	MX6_PAD_DISP0_DAT16__GPIO_5_10 | MUX_PAD_CTRL(SPI_PAD_CTRL),
 	MX6_PAD_DISP0_DAT19__GPIO_5_13 | MUX_PAD_CTRL(SPI_PAD_CTRL),
+};
+#else
+iomux_v3_cfg_t const ecspi2_pads[] =
+{
+/* FPGA Configuration */
+	MX6_PAD_DISP0_DAT18__ECSPI2_SS0  | MUX_PAD_CTRL(SPI_PAD_CTRL_UP),
+	MX6_PAD_DISP0_DAT15__ECSPI2_SS1  | MUX_PAD_CTRL(SPI_PAD_CTRL),
+	MX6_PAD_DISP0_DAT17__ECSPI2_MISO | MUX_PAD_CTRL(SPI_PAD_CTRL),
+	MX6_PAD_DISP0_DAT16__ECSPI2_MOSI | MUX_PAD_CTRL(SPI_PAD_CTRL),
+	MX6_PAD_DISP0_DAT19__ECSPI2_SCLK | MUX_PAD_CTRL(SPI_PAD_CTRL),
 };
 #endif
 
@@ -323,7 +323,7 @@ int board_eth_init(bd_t *bis)
 
 
 	if (!ret) {
-		printf("%s: No environment MAC for FEC\n", __func__);
+		printf("%s: No environment MAC for FEC, please set ethaddr\n", __func__);
 		return -EINVAL;
 	}
 
@@ -357,6 +357,9 @@ int board_early_init_f(void)
 
 	setup_iomux_uart();
 
+	u32 ccm_ccgr1 = readl(CCM_CCGR1);
+	ccm_ccgr1 |= MXC_CCM_CCGR1_ECSPI1S_MASK | MXC_CCM_CCGR1_ECSPI2S_MASK;
+	writel(ccm_ccgr1, CCM_CCGR1);
 	/* Bring up basic power for serial debug etc	*/
 	gpio_direction_output(GPIO_NET_12V_EN, 1);
 	gpio_direction_output(GPIO_NET_3V35_EN, 1);
@@ -374,10 +377,11 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_ADM_BUS_PMB_RX_EN, 1);
 
 	gpio_direction_output(GPIO_PCIE_RESETn, 1);
-	gpio_direction_output(GPIO_FPGA_CS_N, 0);
+
 	gpio_direction_output(GPIO_FPGA_CONFIGn, 1);
 	gpio_direction_input(GPIO_FPGA_STATUSn);
 	gpio_direction_input(GPIO_FPGA_DONE);
+	gpio_direction_output(GPIO_FPGA_CS_N, 1);
 
 	return 0;
 }
@@ -453,6 +457,7 @@ int board_late_init(void)
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
 #endif
+
 	ocas_fpga_init();
 	return 0;
 }
