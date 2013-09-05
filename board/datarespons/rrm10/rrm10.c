@@ -460,7 +460,7 @@ int board_eth_init(bd_t *bis)
 	if (!bus)
 		return 0;
 	/* scan phy 4,5,6,7 */
-	phydev = phy_find_by_mask(bus, (0xf << 4), PHY_INTERFACE_MODE_RGMII);
+	phydev = phy_find_by_mask(bus, (0xf << 1), PHY_INTERFACE_MODE_RGMII);
 	if (!phydev) {
 		free(bus);
 		return 0;
