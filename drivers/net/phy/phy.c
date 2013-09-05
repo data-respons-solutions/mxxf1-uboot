@@ -574,7 +574,6 @@ static int get_phy_id(struct mii_dev *bus, int addr, int devad, u32 *phy_id)
 		return -EIO;
 
 	*phy_id |= (phy_reg & 0xffff);
-	printf("%s: addr = %d, devad = %d id = 0x%8x\n", __func__, addr, devad, *phy_id);
 	return 0;
 }
 
