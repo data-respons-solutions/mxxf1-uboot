@@ -94,6 +94,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define GPIO_USBP1_EN	IMX_GPIO_NR(2, 3)
 #define GPIO_USBP2_EN	IMX_GPIO_NR(2, 7)
 #define GPIO_USBP3_EN	IMX_GPIO_NR(6, 9)
+#define GPIO_LVDS_ROTATE IMX_GPIO_NR(7, 11)
 
 
 int rrm10_eeprom_read (unsigned dev_addr, unsigned offset, uchar *buffer, unsigned cnt);
@@ -178,6 +179,7 @@ iomux_v3_cfg_t const extra_early_pads[] = {
 
 	MX6_PAD_EIM_D23__GPIO_3_23			| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* LAN2_DEV_OFF#	*/
 	MX6_PAD_EIM_D24__GPIO_3_24			| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* LAN2_SMB_ALRT#	*/
+	MX6_PAD_GPIO_16__GPIO_7_11			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* LVDS_ROTATE		*/
 
 };
 
@@ -531,11 +533,7 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_BUZ_INT_EN, 0);
 	gpio_direction_output(GPIO_BUZ_EXT_EN, 0);
 
-	gpio_direction_output(GPIO_USBP0_EN, 1);
-	gpio_direction_output(GPIO_USBP1_EN, 1);
-	gpio_direction_output(GPIO_USBP2_EN, 1);
-	gpio_direction_output(GPIO_USBP3_EN, 1);
-	gpio_direction_output(GPIO_AUX_5V, 1);
+	gpio_direction_output(GPIO_LVDS_ROTATE, 1);
 	//udelay(1000);
 #ifdef CONFIG_MXC_SPI
 	gpio_direction_output(CONFIG_SF_DEFAULT_CS, 1);
@@ -601,6 +599,16 @@ int board_init(void)
 		return ret;
 	}
 #endif
+
+	gpio_direction_output(GPIO_USBP0_EN, 1);
+	mdelay(1);
+	gpio_direction_output(GPIO_USBP1_EN, 1);
+	mdelay(1);
+	gpio_direction_output(GPIO_USBP2_EN, 1);
+	mdelay(1);
+	gpio_direction_output(GPIO_USBP3_EN, 1);
+	mdelay(1);
+	gpio_direction_output(GPIO_AUX_5V, 1);
 	printf("%s: OK\n", __func__);
 	return 0;
 }
@@ -613,6 +621,8 @@ static const struct boot_mode board_boot_modes[] = {
 	{"emmc", MAKE_CFGVAL(0x40, 0x38, 0x00, 0x00)},
 	{NULL,	 0},
 };
+
+
 #endif
 
 int board_late_init(void)
