@@ -20,7 +20,7 @@
 #define CONFIG_MACH_TYPE	4444
 #define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONFIG_CONSOLE_DEV		"ttymxc0"
-#define CONFIG_MMCROOT			"/dev/mmcblk0p2"
+#define CONFIG_MMCROOT			"/dev/mmcblk0p1"
 #define CONFIG_DEFAULT_FDT_FILE	"rrm10.dtb"
 #define PHYS_SDRAM_SIZE		(1u * 1024 * 1024 * 1024)
 
@@ -226,12 +226,12 @@
 	"fdt_high=0xffffffff\0"	  \
 	"initrd_high=0xffffffff\0" \
 	"mmcdev=1\0" \
-	"mmcpart=2\0" \
+	"mmcpart=1\0" \
 	"mmcroot=" CONFIG_MMCROOT " rootwait rw rootfstype=ext4\0" \
 	"mmcargs=setenv bootargs console=${console},${baudrate} " \
 		"root=${mmcroot} fec_mac=${ethaddr}\0" \
 	"usbdev=0\0" \
-	"usbpart=2\0" \
+	"usbpart=1\0" \
 	"usbroot=/dev/sdb2 rootwait rw rootfstype=ext4\0" \
 	"usbargs=setenv bootargs console=${console},${baudrate} root=${usbroot} fec_mac=${ethaddr} \0" \
 	"usbload=usb start; run usbargs; sleep 2; ext4load usb ${usbdev}:${usbpart} ${loadaddr} ${uimage}; bootm ${loadaddr}\0" \
