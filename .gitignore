@@ -91,3 +91,8 @@ GTAGS
 
 # spl ais files
 /spl/*.ais
+
+# Eclipse
+/.project
+/.cproject
+/.settings/*
