@@ -383,7 +383,7 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_FPGA_CONFIGn, 1);
 	gpio_direction_input(GPIO_FPGA_STATUSn);
 	gpio_direction_input(GPIO_FPGA_DONE);
-	gpio_direction_output(GPIO_FPGA_CS_N, 1);
+	gpio_direction_output(GPIO_FPGA_CS_N, 0);
 
 	return 0;
 }
@@ -440,7 +440,6 @@ int board_init(void)
 	}
 #endif
 
-	ocas_fpga_init();
 	printf("%s: OK\n", __func__);
 	return 0;
 }
@@ -460,7 +459,9 @@ int board_late_init(void)
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
 #endif
-
+	gpio_set_value(GPIO_FPGA_CS_N, 1);
+	gpio_set_value(GPIO_FPGA_CONFIGn, 1);
+	printf("%s: FPGA_SPI_CS is %d, CONFIG_n = %d\n", __func__, gpio_get_value(GPIO_FPGA_CS_N), gpio_get_value(GPIO_FPGA_CONFIGn));
 	ocas_fpga_init();
 	return 0;
 }

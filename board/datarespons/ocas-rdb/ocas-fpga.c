@@ -75,7 +75,7 @@ static int fpga_config_fn(int assert_config, int flush, int cookie)
 	} else {
 		gpio_set_value(GPIO_FPGA_CONFIGn, 1);
 	}
-
+	printf("%s: CONFIG PIN is %d\n", __func__, gpio_get_value(GPIO_FPGA_CONFIGn));
 	return FPGA_SUCCESS;
 }
 
@@ -93,7 +93,9 @@ static int fpga_status_fn(int cookie)
 /* Returns the state of CONF_DONE Pin */
 static int fpga_done_fn(int cookie)
 {
-	return gpio_get_value(GPIO_FPGA_DONE);
+	int s = gpio_get_value(GPIO_FPGA_DONE);
+	printf("%s: FPGA_DONE = %d\n", __func__, s);
+	return s;
 
 }
 
@@ -181,7 +183,7 @@ static int fpga_write_fn(const void *buf, size_t len, int flush, int cookie)
 {
 #define SPI2_BUS 1
 #define SPI2_CS0_FPGA_CONFIG 0
-#define SPI2_BUS_FREQ	30000000
+#define SPI2_BUS_FREQ	15000000
 #define BIT_LENGTH	8
 	const int c_bsize = 256;
 	uint8_t *ptr = (uint8_t*)buf;
@@ -238,19 +240,29 @@ static int fpga_write_fn(const void *buf, size_t len, int flush, int cookie)
 	spi_release_bus(spi_slave);
 	spi_free_slave(spi_slave);
 
+	if (ret == 0) {
+		printf("FPGA prog OK, resetting PCIe\n");
+		gpio_set_value(GPIO_PCIE_RESETn, 0);
+		mdelay(2);
+		gpio_set_value(GPIO_PCIE_RESETn, 1);
+
+	}
 	return ret == 0 ? FPGA_SUCCESS : FPGA_FAIL;
 }
 
 /* called, when programming is aborted */
 static int fpga_abort_fn(int cookie)
 {
-	return FPGA_SUCCESS;
+	return fpga_abort_fn(cookie);
+
 }
 
 /* called, when programming was succesful */
 static int fpga_post_fn(int cookie)
 {
-	return fpga_abort_fn(cookie);
+	gpio_set_value(GPIO_FPGA_CONFIGn, 1);
+
+	return FPGA_SUCCESS;
 }
 
 /* Note that these are pointers to code that is in Flash.  They will be
