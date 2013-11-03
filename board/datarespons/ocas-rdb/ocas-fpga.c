@@ -75,7 +75,7 @@ static int fpga_config_fn(int assert_config, int flush, int cookie)
 	} else {
 		gpio_set_value(GPIO_FPGA_CONFIGn, 1);
 	}
-	printf("%s: CONFIG PIN is %d\n", __func__, gpio_get_value(GPIO_FPGA_CONFIGn));
+
 	return FPGA_SUCCESS;
 }
 
@@ -90,14 +90,7 @@ static int fpga_status_fn(int cookie)
 	return 1;
 }
 
-/* Returns the state of CONF_DONE Pin */
-static int fpga_done_fn(int cookie)
-{
-	int s = gpio_get_value(GPIO_FPGA_DONE);
-	printf("%s: FPGA_DONE = %d\n", __func__, s);
-	return s;
 
-}
 
 static int fpga_write_bitbang(const void *buf, size_t len, int flush, int cookie)
 {
@@ -182,8 +175,8 @@ uint32_t bitrev32(uint32_t x)
 static int fpga_write_fn(const void *buf, size_t len, int flush, int cookie)
 {
 #define SPI2_BUS 1
-#define SPI2_CS0_FPGA_CONFIG 0
-#define SPI2_BUS_FREQ	15000000
+#define SPI2_CS1_FPGA_CONFIG 1
+#define SPI2_BUS_FREQ	30000000
 #define BIT_LENGTH	8
 	const int c_bsize = 256;
 	uint8_t *ptr = (uint8_t*)buf;
@@ -192,7 +185,7 @@ static int fpga_write_fn(const void *buf, size_t len, int flush, int cookie)
 	int ret = 0;
 	unsigned long flags = 0;
 	int n;
-	unsigned config = SPI2_CS0_FPGA_CONFIG;
+	unsigned config = SPI2_CS1_FPGA_CONFIG;
 	int blocks = len/c_bsize;
 	int rem = len % c_bsize;
 	int bcnt;
@@ -240,27 +233,37 @@ static int fpga_write_fn(const void *buf, size_t len, int flush, int cookie)
 	spi_release_bus(spi_slave);
 	spi_free_slave(spi_slave);
 
-	if (ret == 0) {
-		printf("FPGA prog OK, resetting PCIe\n");
-		gpio_set_value(GPIO_PCIE_RESETn, 0);
-		mdelay(2);
-		gpio_set_value(GPIO_PCIE_RESETn, 1);
-
-	}
 	return ret == 0 ? FPGA_SUCCESS : FPGA_FAIL;
+}
+
+/* Returns the state of CONF_DONE Pin */
+static int fpga_done_fn(int cookie)
+{
+
+	return gpio_get_value(GPIO_FPGA_DONE);
+
 }
 
 /* called, when programming is aborted */
 static int fpga_abort_fn(int cookie)
 {
-	return fpga_abort_fn(cookie);
-
+	return 0;
 }
 
 /* called, when programming was succesful */
 static int fpga_post_fn(int cookie)
 {
-	gpio_set_value(GPIO_FPGA_CONFIGn, 1);
+	u8 buffer[2];
+	buffer[0] = 0;
+	int done = gpio_get_value(GPIO_FPGA_DONE);
+	// Write an extra byte since two DCLKs are required after CONF_DONE
+	if (done) {
+		fpga_write_fn(&buffer, 1, 1, 0);
+		printf("%s: wrote an extra byte to toggle clock\n", __func__);
+	}
+	else
+		printf("%s: ERROR - CONF_DONE low\n", __func__);
+
 
 	return FPGA_SUCCESS;
 }
@@ -269,17 +272,17 @@ static int fpga_post_fn(int cookie)
  * relocated at runtime.
  */
 Altera_CYC2_Passive_Serial_fns fpga_fns = {
-	fpga_pre_fn,
-	fpga_config_fn,
-	fpga_status_fn,
-	fpga_done_fn,
+	.pre = fpga_pre_fn,
+	.config = fpga_config_fn,
+	.status = fpga_status_fn,
+	.done = fpga_done_fn,
 #ifdef BIT_BANG_FPGA
-	fpga_write_bitbang,
+	.write = fpga_write_bitbang,
 #else
-	fpga_write_fn,
+	.write = fpga_write_fn,
 #endif
-	fpga_abort_fn,
-	fpga_post_fn
+	.abort = fpga_abort_fn,
+	.post = fpga_post_fn
 };
 
 Altera_desc fpga[CONFIG_FPGA_COUNT] = {

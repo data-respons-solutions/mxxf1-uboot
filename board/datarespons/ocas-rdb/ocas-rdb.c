@@ -170,7 +170,7 @@ iomux_v3_cfg_t const ecspi2_pads[] =
 iomux_v3_cfg_t const ecspi2_pads[] =
 {
 /* FPGA Configuration */
-	MX6_PAD_DISP0_DAT18__ECSPI2_SS0  | MUX_PAD_CTRL(SPI_PAD_CTRL_UP),
+	MX6_PAD_DISP0_DAT18__GPIO_5_12   | MUX_PAD_CTRL(SPI_PAD_CTRL_UP),
 	MX6_PAD_DISP0_DAT15__ECSPI2_SS1  | MUX_PAD_CTRL(SPI_PAD_CTRL),
 	MX6_PAD_DISP0_DAT17__ECSPI2_MISO | MUX_PAD_CTRL(SPI_PAD_CTRL),
 	MX6_PAD_DISP0_DAT16__ECSPI2_MOSI | MUX_PAD_CTRL(SPI_PAD_CTRL),
@@ -383,7 +383,8 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_FPGA_CONFIGn, 1);
 	gpio_direction_input(GPIO_FPGA_STATUSn);
 	gpio_direction_input(GPIO_FPGA_DONE);
-	gpio_direction_output(GPIO_FPGA_CS_N, 0);
+	//gpio_direction_output(GPIO_FPGA_CS_N, 1);
+	gpio_direction_output(GPIO_FPGA_CE_N, 0);
 
 	return 0;
 }
@@ -459,9 +460,7 @@ int board_late_init(void)
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
 #endif
-	gpio_set_value(GPIO_FPGA_CS_N, 1);
-	gpio_set_value(GPIO_FPGA_CONFIGn, 1);
-	printf("%s: FPGA_SPI_CS is %d, CONFIG_n = %d\n", __func__, gpio_get_value(GPIO_FPGA_CS_N), gpio_get_value(GPIO_FPGA_CONFIGn));
+
 	ocas_fpga_init();
 	return 0;
 }
