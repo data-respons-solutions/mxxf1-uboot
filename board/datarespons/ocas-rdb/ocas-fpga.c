@@ -83,10 +83,10 @@ static int fpga_config_fn(int assert_config, int flush, int cookie)
 static int fpga_status_fn(int cookie)
 {
 	if (!gpio_get_value(GPIO_FPGA_STATUSn)) {
-		printf("STATUS = LOW\n");
+		printf("%s: STATUS = 0\n", __func__);
 		return 0;
 	}
-	printf("STATUS = HIGH\n");
+	printf("%s: STATUS = 1\n", __func__);
 	return 1;
 }
 
@@ -264,6 +264,10 @@ static int fpga_post_fn(int cookie)
 	else
 		printf("%s: ERROR - CONF_DONE low\n", __func__);
 
+	if (gpio_get_value(GPIO_FPGA_STATUSn) == 0) {
+		printf("%s: STATUSn low after prog!!! failed\n", __func__);
+		return FPGA_FAIL;
+	}
 
 	return FPGA_SUCCESS;
 }
