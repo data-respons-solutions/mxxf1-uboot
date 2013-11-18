@@ -186,8 +186,9 @@ static int fpga_write_fn(const void *buf, size_t len, int flush, int cookie)
 	unsigned long flags = 0;
 	int n;
 	unsigned config = SPI2_CS1_FPGA_CONFIG;
-	int blocks = len/c_bsize;
-	int rem = len % c_bsize;
+	int paddedLen = len+1;		/* Need some clocks after programming */
+	int blocks = paddedLen/c_bsize;
+	int rem = paddedLen % c_bsize;
 	int bcnt;
 
 #ifdef BIT_BANG_FPGA
@@ -253,17 +254,6 @@ static int fpga_abort_fn(int cookie)
 /* called, when programming was succesful */
 static int fpga_post_fn(int cookie)
 {
-	u8 buffer[2];
-	buffer[0] = 0;
-	int done = gpio_get_value(GPIO_FPGA_DONE);
-	// Write an extra byte since two DCLKs are required after CONF_DONE
-	if (done) {
-		fpga_write_fn(&buffer, 1, 1, 0);
-		printf("%s: wrote an extra byte to toggle clock\n", __func__);
-	}
-	else
-		printf("%s: ERROR - CONF_DONE low\n", __func__);
-
 	if (gpio_get_value(GPIO_FPGA_STATUSn) == 0) {
 		printf("%s: STATUSn low after prog!!! failed\n", __func__);
 		return FPGA_FAIL;
