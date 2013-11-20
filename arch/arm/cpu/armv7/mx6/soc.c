@@ -141,7 +141,9 @@ static void imx_set_wdog_powerdown(bool enable)
 
 	/* Write to the PDE (Power Down Enable) bit */
 	writew(enable, &wdog1->wmcr);
+#ifndef CONFIG_IMX_WATCHDOG_LEAVE_POR_ON
 	writew(enable, &wdog2->wmcr);
+#endif
 }
 
 int arch_cpu_init(void)
