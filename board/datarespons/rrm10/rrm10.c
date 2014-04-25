@@ -40,6 +40,7 @@
 #include <ipu_pixfmt.h>
 #include <asm/arch/crm_regs.h>
 #include <watchdog.h>
+#include <usb.h>
 
 #define ANATOP_MISC1_CLK1_OBEN (1 << 10)
 #define ANATOP_MISC1_CLK1_IBEN (1 << 12)
@@ -658,11 +659,9 @@ int board_init(void)
 	writel(ANATOP_MISC1_CLK1_OBEN, &anatop->ana_misc1_set);
 	dimm_dn_status = gpio_get_value(GPIO_DIMM_DN);
 
-	if (dimm_dn_status == 0) {
-		gpio_direction_output(GPIO_LCD_EN, 1);
-		gpio_direction_output(GPIO_BL_EN, 1);
-		gpio_direction_output(GPIO_BL_PWM, 1);
-	}
+	gpio_direction_output(GPIO_LCD_EN, 1);
+	gpio_direction_output(GPIO_BL_EN, 1);
+	gpio_direction_output(GPIO_BL_PWM, 1);
 #if defined(CONFIG_VIDEO_IPUV3)
 	setup_display();
 #endif
@@ -680,24 +679,34 @@ static const struct boot_mode board_boot_modes[] = {
 };
 #endif
 
-
 int board_late_init(void)
 {
-
-
+	int res;
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
 #endif
-
-
-
 #ifdef CONFIG_IMX_WATCHDOG
 	hw_watchdog_init();
 #endif
-	if (dimm_dn_status == 0) {
-		setenv("stdout", "vga");
-		setenv("stderr", "vga");
+
+#if defined(CONFIG_VIDEO_IPUV3)
+	res = usb_init();
+	if (res) {
+		printf("%s: usb_init failed with %d\n", __func__, res);
+		goto finish;
 	}
+	if (drv_usb_kbd_init() == 1)
+	{
+		printf("%s: Reassigned input to USB Keyboard\n", __func__);
+		setenv("stdin", "usbkbd");
+	}
+	else
+		printf("%s: No USB Keyboard - input remains serial\n", __func__);
+finish:
+
+	setenv("stdout", "vga");
+	setenv("stderr", "vga");
+#endif
 	return 0;
 }
 

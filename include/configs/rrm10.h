@@ -308,7 +308,7 @@
 		"fi; \0" \
 
 #define CONFIG_BOOTCOMMAND \
-	"if usb start && usb storage; then " \
+	"if usb storage; then " \
 		"run setusb; echo booting from USB ...;" \
 	"else " \
 		"mmc dev 1; " \
