@@ -11,6 +11,7 @@
 #include <asm/u-boot.h>
 #include <mmc.h>
 #include <fat.h>
+#include <ext4fs.h>
 #include <version.h>
 #include <image.h>
 
@@ -26,9 +27,12 @@ static int mmc_load_image_raw(struct mmc *mmc, unsigned long sector)
 						sizeof(struct image_header));
 
 	/* read image header to find the image size & load address */
-	err = mmc->block_dev.block_read(0, sector, 1, header);
-	if (err == 0)
+	err = mmc->block_dev.block_read(mmc->block_dev.dev, sector, 1, header);
+	if (err == 0) {
+		printf("%s: Could not read image header, block = 0x%lx\n", __func__, sector);
 		goto end;
+	}
+
 
 	if (image_get_magic(header) != IH_MAGIC)
 		return -1;
@@ -40,14 +44,12 @@ static int mmc_load_image_raw(struct mmc *mmc, unsigned long sector)
 				mmc->read_bl_len;
 
 	/* Read the header too to avoid extra memcpy */
-	err = mmc->block_dev.block_read(0, sector, image_size_sectors,
+	err = mmc->block_dev.block_read(mmc->block_dev.dev, sector, image_size_sectors,
 					(void *)spl_image.load_addr);
 
 end:
-#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 	if (err == 0)
 		printf("spl: mmc blk read err - %lu\n", err);
-#endif
 
 	return (err == 0);
 }
@@ -59,9 +61,7 @@ static int mmc_load_image_raw_os(struct mmc *mmc)
 				       CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR,
 				       CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTORS,
 				       (void *)CONFIG_SYS_SPL_ARGS_ADDR)) {
-#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 		printf("mmc args blk read error\n");
-#endif
 		return -1;
 	}
 
@@ -87,15 +87,15 @@ static int mmc_load_image_fat(struct mmc *mmc, const char *filename)
 	err = file_fat_read(filename, (u8 *)spl_image.load_addr, 0);
 
 end:
-#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
-	if (err <= 0)
+/*	if (err <= 0)
 		printf("spl: error reading image %s, err - %d\n",
-		       filename, err);
-#endif
+		       filename, err);*/
 
 	return (err <= 0);
 }
+#endif
 
+#ifdef CONFIG_SPL_FAT_SUPPORT
 #ifdef CONFIG_SPL_OS_BOOT
 static int mmc_load_image_fat_os(struct mmc *mmc)
 {
@@ -104,76 +104,125 @@ static int mmc_load_image_fat_os(struct mmc *mmc)
 	err = file_fat_read(CONFIG_SPL_FAT_LOAD_ARGS_NAME,
 			    (void *)CONFIG_SYS_SPL_ARGS_ADDR, 0);
 	if (err <= 0) {
-#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
-		printf("spl: error reading image %s, err - %d\n",
-		       CONFIG_SPL_FAT_LOAD_ARGS_NAME, err);
-#endif
+		/*printf("spl: error reading image %s, err - %d\n",
+		       CONFIG_SPL_FAT_LOAD_ARGS_NAME, err);*/
 		return -1;
 	}
 
 	return mmc_load_image_fat(mmc, CONFIG_SPL_FAT_LOAD_KERNEL_NAME);
 }
 #endif
-
 #endif
 
+#ifdef CONFIG_SPL_EXT_SUPPORT
+static int mmc_load_image_ext(struct mmc *mmc, const char *filename)
+{
+	int err;
+	struct image_header *header;
+
+	header = (struct image_header *)(CONFIG_SYS_TEXT_BASE -
+						sizeof(struct image_header));
+	
+	err = ext4_read_file(filename, header, 0, sizeof(struct image_header));
+	if (err <= 0)
+		goto end;
+
+	spl_parse_image_header(header);
+
+	err = ext4_read_file(filename, (u8 *)spl_image.load_addr, 0, 0);
+
+end:
+	if (err <= 0)
+		printf("spl: error reading image %s, err - %d\n",
+		       filename, err);
+	else
+		printf("loading %s from MMC EXT...\n", filename);	
+
+	return (err <= 0);
+}
+
+#ifdef CONFIG_SPL_OS_BOOT
+static int mmc_load_image_ext_os(struct mmc *mmc)
+{
+	int err;
+
+	err = file_fat_read(CONFIG_SPL_FAT_LOAD_ARGS_NAME,
+			    (void *)CONFIG_SYS_SPL_ARGS_ADDR, 0);
+	if (err <= 0) {
+		printf("spl: error reading image %s, err - %d\n",
+		       CONFIG_SPL_FAT_LOAD_ARGS_NAME, err);
+		return -1;
+	}
+
+	return mmc_load_image_ext(mmc, CONFIG_SPL_FAT_LOAD_KERNEL_NAME);
+}
+#endif
+#endif 
+
+#ifndef CONFIG_SPL_MMC_NUM
+#define CONFIG_SPL_MMC_NUM 0
+#endif
 void spl_mmc_load_image(void)
 {
 	struct mmc *mmc;
 	int err;
-	u32 boot_mode;
 
 	mmc_initialize(gd->bd);
 	/* We register only one device. So, the dev id is always 0 */
-	mmc = find_mmc_device(0);
+	mmc = find_mmc_device(CONFIG_SPL_MMC_NUM);
 	if (!mmc) {
-#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 		puts("spl: mmc device not found!!\n");
-#endif
 		hang();
 	}
 
 	err = mmc_init(mmc);
 	if (err) {
-#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 		printf("spl: mmc init failed: err - %d\n", err);
-#endif
 		hang();
 	}
 
-	boot_mode = spl_boot_mode();
-	if (boot_mode == MMCSD_MODE_RAW) {
-		debug("boot mode - RAW\n");
+	err = 1;
+
+#ifdef CONFIG_SPL_FAT_SUPPORT
+	/* FAT filesystem */
+	err = fat_register_device(&mmc->block_dev,
+			  CONFIG_SYS_MMC_SD_FAT_BOOT_PARTITION);
+	/*if (err) {
+		printf("spl: fat register err - %d\n", err);
+	}*/
+#ifdef CONFIG_SPL_OS_BOOT
+	if (spl_start_uboot() || mmc_load_image_fat_os(mmc))
+#endif
+	err = mmc_load_image_fat(mmc, CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME);
+#endif
+
+#ifdef CONFIG_SPL_EXT_SUPPORT
+	/* EXT filesystem */
+	if (err) {
+		printf("Load image from EXT...\n");
+		disk_partition_t info;
+		if (get_partition_info(&mmc->block_dev, CONFIG_SYS_MMC_SD_FAT_BOOT_PARTITION, &info)) {
+			printf("Cannot find partition %d\n", CONFIG_SYS_MMC_SD_FAT_BOOT_PARTITION);
+		}
+		if (ext4fs_probe(&mmc->block_dev, &info)) {
+			printf("ext4fs probe failed \n");
+		}
+#ifdef CONFIG_SPL_OS_BOOT
+		if (spl_start_uboot() || mmc_load_image_ext_os(mmc))
+#endif
+		err = mmc_load_image_ext(mmc, CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME);
+	}
+#endif
+
+	if (err) {
+		printf("Load image from RAW...\n");
 #ifdef CONFIG_SPL_OS_BOOT
 		if (spl_start_uboot() || mmc_load_image_raw_os(mmc))
 #endif
-		err = mmc_load_image_raw(mmc,
-					 CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR);
-#ifdef CONFIG_SPL_FAT_SUPPORT
-	} else if (boot_mode == MMCSD_MODE_FAT) {
-		debug("boot mode - FAT\n");
-
-		err = fat_register_device(&mmc->block_dev,
-					  CONFIG_SYS_MMC_SD_FAT_BOOT_PARTITION);
+		err = mmc_load_image_raw(mmc, CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR);
 		if (err) {
-#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
-			printf("spl: fat register err - %d\n", err);
-#endif
+			printf("spl: wrong MMC boot mode\n");
 			hang();
 		}
-
-#ifdef CONFIG_SPL_OS_BOOT
-		if (spl_start_uboot() || mmc_load_image_fat_os(mmc))
-#endif
-		err = mmc_load_image_fat(mmc, CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME);
-#endif
-	} else {
-#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
-		puts("spl: wrong MMC boot mode\n");
-#endif
-		hang();
 	}
-
-	if (err)
-		hang();
 }
