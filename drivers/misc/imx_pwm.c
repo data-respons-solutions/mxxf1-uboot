@@ -1,0 +1,144 @@
+/*
+ * Porting to u-boot:
+ * Linux IMX PWM driver
+ *
+ * Copyright (C) 2011 Freescale Semiconductor, Inc.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ */
+
+#include <linux/types.h>
+#include <asm/io.h>
+#include <asm/imx_pwm.h>
+#include <asm/arch/clock.h>
+#include <asm/errno.h>
+#include <common.h>
+#include <div64.h>
+
+#define MX_PWMCR                 0x00    /* PWM Control Register */
+#define MX_PWMSAR                0x0C    /* PWM Sample Register */
+#define MX_PWMPR                 0x10    /* PWM Period Register */
+#define MX_PWMCR_PRESCALER(x)    (((x - 1) & 0xFFF) << 4)
+#define MX_PWMCR_CLKSRC_IPG_HIGH (2 << 16)
+#define MX_PWMCR_CLKSRC_IPG      (1 << 16)
+#define MX_PWMCR_EN              (1 << 0)
+
+#define MX_PWMCR_STOPEN		(1 << 25)
+#define MX_PWMCR_DOZEEN		(1 << 24)
+#define MX_PWMCR_WAITEN		(1 << 23)
+#define MX_PWMCR_DBGEN		(1 << 22)
+#define MX_PWMCR_CLKSRC_IPG	(1 << 16)
+#define MX_PWMCR_CLKSRC_IPG_32k	(3 << 16)
+
+#define MAX_PWM 4
+
+static struct pwm_device pwms[MAX_PWM] =
+{
+	{
+		.mmio_base = PWM1_BASE_ADDR,
+		.duty_ns = 25000,
+		.period_ns = 50000,
+		.pwmo_invert = 0,
+
+	},
+	{
+		.mmio_base = PWM2_BASE_ADDR,
+		.duty_ns = 25000,
+		.period_ns = 50000,
+		.pwmo_invert = 0,
+	},
+	{
+		.mmio_base = PWM3_BASE_ADDR,
+		.duty_ns = 25000,
+		.period_ns = 50000,
+		.pwmo_invert = 0,
+	},
+	{
+		.mmio_base = PWM4_BASE_ADDR,
+		.duty_ns = 25000,
+		.period_ns = 50000,
+		.pwmo_invert = 0,
+	},
+};
+
+
+
+int imx_pwm_config(int id, int duty_ns, int period_ns)
+{
+	unsigned long long c;
+	unsigned long period_cycles, duty_cycles, prescale;
+	u32 cr;
+
+	if (id < 0 || id >= MAX_PWM)
+		return -ENODEV;
+
+	if (period_ns == 0 || duty_ns > period_ns)
+		return -1;
+
+	if (pwms[id].pwmo_invert)
+		duty_ns = period_ns - duty_ns;
+
+	pwms[id].duty_ns = duty_ns;
+	pwms[id].period_ns = period_ns;
+
+	c = mxc_get_clock(MXC_IPG_PERCLK);
+	c = c * period_ns;
+	do_div(c, 1000000000);
+	period_cycles = c;
+
+	prescale = period_cycles / 0x10000 + 1;
+
+	period_cycles /= prescale;
+	c = (unsigned long long)period_cycles * duty_ns;
+	do_div(c, period_ns);
+	duty_cycles = c;
+
+	writel(duty_cycles, pwms[id].mmio_base + MX_PWMSAR);
+	writel(period_cycles, pwms[id].mmio_base + MX_PWMPR);
+
+	cr = MX_PWMCR_PRESCALER(prescale) |
+		MX_PWMCR_STOPEN | MX_PWMCR_DOZEEN |
+		MX_PWMCR_WAITEN | MX_PWMCR_DBGEN;
+
+	cr |= MX_PWMCR_CLKSRC_IPG_HIGH;
+
+	writel(cr, pwms[id].mmio_base + MX_PWMCR);
+
+	return 0;
+}
+
+int imx_pwm_enable(int id)
+{
+	unsigned long reg;
+	int rc = 0;
+	if (id < 0 || id >= MAX_PWM)
+		return -ENODEV;
+
+	reg = readl(pwms[id].mmio_base + MX_PWMCR);
+	reg |= MX_PWMCR_EN;
+	writel(reg, pwms[id].mmio_base + MX_PWMCR);
+
+	return rc;
+}
+
+int imx_pwm_disable(int id)
+{
+	if (id < 0 || id >= MAX_PWM)
+			return -ENODEV;
+	writel(0, pwms[id].mmio_base + MX_PWMCR);
+
+	return 0;
+}
