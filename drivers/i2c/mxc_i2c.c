@@ -297,8 +297,8 @@ static int i2c_init_transfer(struct mxc_i2c_regs *i2c_regs,
 		if (ret == -ENODEV)
 			return ret;
 
-		printf("%s: failed for chip 0x%x retry=%d\n", __func__, chip,
-				retry);
+		printf("%s: failed for chip 0x%x retry=%d, err=%d\n", __func__, chip,
+				retry, ret);
 		if (ret != -ERESTART)
 			/* Disable controller */
 			writeb(I2CR_IDIS, &i2c_regs->i2cr);
