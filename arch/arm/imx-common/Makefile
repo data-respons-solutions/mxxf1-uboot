@@ -18,6 +18,13 @@ ifeq ($(SOC),$(filter $(SOC),mx5 mx6))
 COBJS-y	+= timer.o cpu.o speed.o
 COBJS-$(CONFIG_I2C_MXC) += i2c-mxv7.o
 endif
+
+ifdef CONFIG_SPL
+ifeq ($(SOC),$(filter $(SOC),mx6))
+COBJS-$(CONFIG_MX6_DDRTUNE) += mx6_ddrtune.o
+endif
+endif
+
 ifeq ($(SOC),$(filter $(SOC),mx6 mxs))
 COBJS-y	+= misc.o
 endif
