@@ -82,10 +82,12 @@ LIBS-$(CONFIG_SPL_LIBDISK_SUPPORT) += disk/libdisk.o
 LIBS-$(CONFIG_SPL_I2C_SUPPORT) += drivers/i2c/libi2c.o
 LIBS-$(CONFIG_SPL_GPIO_SUPPORT) += drivers/gpio/libgpio.o
 LIBS-$(CONFIG_SPL_MMC_SUPPORT) += drivers/mmc/libmmc.o
+LIBS-$(CONFIG_SPL_SATA_SUPPORT) += drivers/block/libblock.o
 LIBS-$(CONFIG_SPL_SERIAL_SUPPORT) += drivers/serial/libserial.o
 LIBS-$(CONFIG_SPL_SPI_FLASH_SUPPORT) += drivers/mtd/spi/libspi_flash.o
 LIBS-$(CONFIG_SPL_SPI_SUPPORT) += drivers/spi/libspi.o
 LIBS-$(CONFIG_SPL_FAT_SUPPORT) += fs/fat/libfat.o
+LIBS-$(CONFIG_SPL_EXT_SUPPORT) += fs/ext4/libext4fs.o
 LIBS-$(CONFIG_SPL_LIBGENERIC_SUPPORT) += lib/libgeneric.o
 LIBS-$(CONFIG_SPL_POWER_SUPPORT) += drivers/power/libpower.o \
 	drivers/power/pmic/libpmic.o
@@ -100,6 +102,7 @@ LIBS-$(CONFIG_SPL_USBETH_SUPPORT) += drivers/net/phy/libphy.o
 LIBS-$(CONFIG_SPL_MUSB_NEW_SUPPORT) += drivers/usb/musb-new/libusb_musb-new.o
 LIBS-$(CONFIG_SPL_USBETH_SUPPORT) += drivers/usb/gadget/libusb_gadget.o
 LIBS-$(CONFIG_SPL_WATCHDOG_SUPPORT) += drivers/watchdog/libwatchdog.o
+LIBS-$(CONFIG_SPL_PWM_SUPPORT) += drivers/misc/libmisc.o
 
 ifneq ($(CONFIG_OMAP_COMMON),)
 LIBS-y += $(CPUDIR)/omap-common/libomap-common.o
