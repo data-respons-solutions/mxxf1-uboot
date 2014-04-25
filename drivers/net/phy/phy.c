@@ -479,7 +479,9 @@ int phy_init(void)
 #ifdef CONFIG_PHY_VITESSE
 	phy_vitesse_init();
 #endif
-
+#ifdef CONFIG_PHY_MICREL_KSZ8863
+	phy_micrel8863_init();
+#endif
 	return 0;
 }
 

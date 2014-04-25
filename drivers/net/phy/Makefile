@@ -28,6 +28,7 @@ COBJS-$(CONFIG_PHY_REALTEK) += realtek.o
 COBJS-$(CONFIG_PHY_SMSC) += smsc.o
 COBJS-$(CONFIG_PHY_TERANETICS) += teranetics.o
 COBJS-$(CONFIG_PHY_VITESSE) += vitesse.o
+COBJS-$(CONFIG_PHY_MICREL_KSZ8863) += micrel_ksz8863.o
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)
