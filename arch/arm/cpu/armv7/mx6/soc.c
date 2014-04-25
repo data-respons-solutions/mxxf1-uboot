@@ -121,14 +121,49 @@ void set_vddsoc(u32 mv)
 	writel(reg, &anatop->reg_core);
 }
 
+void reset_ldo()
+{
+	const u32 SET_MASK =(0x1f << 18) | (0x1f << 9) | 0x1f;
+	const u32 RESET_MASK =(0x10 << 18) | (0x10 << 9) | 0x10;
+	struct anatop_regs *anatop = (struct anatop_regs *)ANATOP_BASE_ADDR;
+	u32 reg = readl(&anatop->reg_core);
+
+	reg = (reg & ~SET_MASK) | RESET_MASK;
+	writel(reg, &anatop->reg_core);
+}
+
+void set_ldo_bypass(int set)
+{
+	const u32 SET_MASK =(0x1f << 18) | (0x1f << 9) | 0x1f;
+	struct anatop_regs *anatop = (struct anatop_regs *)ANATOP_BASE_ADDR;
+	u32 reg = readl(&anatop->reg_core);
+
+	if (set)
+	{
+		reg = reg | SET_MASK;
+		writel(reg, &anatop->reg_core);
+	}
+	else
+		reset_ldo();
+}
+
 static void imx_set_wdog_powerdown(bool enable)
 {
 	struct wdog_regs *wdog1 = (struct wdog_regs *)WDOG1_BASE_ADDR;
 	struct wdog_regs *wdog2 = (struct wdog_regs *)WDOG2_BASE_ADDR;
 
 	/* Write to the PDE (Power Down Enable) bit */
+#ifdef CONFIG_IMX_WATCHDOG
+#ifdef CONFIG_IMX_WATCHDOG_USE_WD2
+	writew(0, &wdog1->wmcr);
+#else
+	writew(0, &wdog2->wmcr);
+#endif
+
+#else
 	writew(enable, &wdog1->wmcr);
 	writew(enable, &wdog2->wmcr);
+#endif
 }
 
 int arch_cpu_init(void)
