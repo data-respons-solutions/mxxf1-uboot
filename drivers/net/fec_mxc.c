@@ -420,7 +420,7 @@ static void fec_reg_setup(struct fec_priv *fec)
 static int fec_open(struct eth_device *edev)
 {
 	struct fec_priv *fec = (struct fec_priv *)edev->priv;
-	int speed;
+	int speed = _100BASET;
 	uint32_t addr, size;
 	int i;
 
@@ -484,15 +484,17 @@ static int fec_open(struct eth_device *edev)
 
 #ifdef CONFIG_PHYLIB
 	{
-		/* Start up the PHY */
-		int ret = phy_startup(fec->phydev);
+		if (fec->phydev) {
+			/* Start up the PHY */
+			int ret = phy_startup(fec->phydev);
 
-		if (ret) {
-			printf("Could not initialize PHY %s\n",
-			       fec->phydev->dev->name);
-			return ret;
+			if (ret) {
+				printf("Could not initialize PHY %s\n",
+					   fec->phydev->dev->name);
+				return ret;
+			}
+			speed = fec->phydev->speed;
 		}
-		speed = fec->phydev->speed;
 	}
 #else
 	miiphy_wait_aneg(edev);
@@ -572,12 +574,11 @@ static int fec_init(struct eth_device *dev, bd_t* bd)
 		flush_dcache_range((unsigned)fec->rbd_base,
 				   (unsigned)fec->rbd_base + size);
 	}
-
 	fec_reg_setup(fec);
-
+#ifndef CONFIG_FEC_MXC_NOPHY
 	if (fec->xcv_type != SEVENWIRE)
 		fec_mii_setspeed(fec->bus->priv);
-
+#endif
 	/*
 	 * Set Opcode/Pause Duration Register
 	 */
@@ -1017,6 +1018,84 @@ struct mii_dev *fec_get_miibus(uint32_t base_addr, int dev_id)
 	fec_mii_setspeed(eth);
 	return bus;
 }
+
+#ifdef CONFIG_FEC_MXC_NOPHY
+int fec_probe_nophy(bd_t *bd, int dev_id, uint32_t base_addr)
+{
+	struct eth_device *edev;
+	struct fec_priv *fec;
+	unsigned char ethaddr[6];
+	uint32_t start;
+	int ret = 0;
+	/* create and fill edev struct */
+	edev = (struct eth_device *)malloc(sizeof(struct eth_device));
+	if (!edev) {
+		puts("fec_mxc: not enough malloc memory for eth_device\n");
+		ret = -ENOMEM;
+		goto err1;
+	}
+
+	fec = (struct fec_priv *)malloc(sizeof(struct fec_priv));
+	if (!fec) {
+		puts("fec_mxc: not enough malloc memory for fec_priv\n");
+		ret = -ENOMEM;
+		goto err2;
+	}
+
+	memset(edev, 0, sizeof(*edev));
+	memset(fec, 0, sizeof(*fec));
+
+	edev->priv = fec;
+	edev->init = fec_init;
+	edev->send = fec_send;
+	edev->recv = fec_recv;
+	edev->halt = fec_halt;
+	edev->write_hwaddr = fec_set_hwaddr;
+
+	fec->eth = (struct ethernet_regs *)base_addr;
+	fec->bd = bd;
+
+	fec->xcv_type = CONFIG_FEC_XCV_TYPE;
+
+	/* Reset chip. */
+	writel(readl(&fec->eth->ecntrl) | FEC_ECNTRL_RESET, &fec->eth->ecntrl);
+	start = get_timer(0);
+	while (readl(&fec->eth->ecntrl) & FEC_ECNTRL_RESET) {
+		if (get_timer(start) > (CONFIG_SYS_HZ * 5)) {
+			printf("FEC MXC: Timeout reseting chip\n");
+			goto err3;
+		}
+		udelay(10);
+	}
+	fec->bus = fec_get_miibus(base_addr, dev_id);
+	fec_reg_setup(fec);
+	fec_set_dev_name(edev->name, dev_id);
+	fec->dev_id = (dev_id == -1) ? 0 : dev_id;
+
+#ifdef CONFIG_PHYLIB
+	fec->phydev = 0;
+#else
+	fec->phy_id = 0;
+#endif
+	eth_register(edev);
+
+	if (fec_get_hwaddr(edev, dev_id, ethaddr) == 0) {
+		debug("got MAC%d address from fuse: %pM\n", dev_id, ethaddr);
+		memcpy(edev->enetaddr, ethaddr, 6);
+		if (!getenv("ethaddr"))
+			eth_setenv_enetaddr("ethaddr", ethaddr);
+	}
+	return ret;
+err3:
+	free(fec);
+err2:
+	free(edev);
+err1:
+	return ret;
+}
+#endif
+
+
 
 int fecmxc_initialize_multi(bd_t *bd, int dev_id, int phy_id, uint32_t addr)
 {

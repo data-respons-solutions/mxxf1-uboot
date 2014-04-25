@@ -222,6 +222,7 @@ int phy_realtek_init(void);
 int phy_smsc_init(void);
 int phy_teranetics_init(void);
 int phy_vitesse_init(void);
+int phy_micrel8863_init(void);
 
 /* PHY UIDs for various PHYs that are referenced in external code */
 #define PHY_UID_TN2020	0x00a19410
