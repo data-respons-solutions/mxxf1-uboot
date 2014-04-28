@@ -21,7 +21,6 @@
  * HUB "Driver"
  * Probes device for being a hub and configurate it
  */
-
 #include <common.h>
 #include <command.h>
 #include <asm/processor.h>
@@ -187,7 +186,7 @@ int hub_port_reset(struct usb_device *dev, int port,
 	ALLOC_CACHE_ALIGN_BUFFER(struct usb_port_status, portsts, 1);
 	unsigned short portstatus, portchange;
 
-	debug("hub_port_reset: resetting port %d...\n", port);
+	debug("hub_port_reset: resetting port %d...\n", port+1);
 	for (tries = 0; tries < MAX_TRIES; tries++) {
 
 		usb_set_port_feature(dev, port + 1, USB_PORT_FEAT_RESET);
@@ -210,14 +209,8 @@ int hub_port_reset(struct usb_device *dev, int port,
 		      (portstatus & USB_PORT_STAT_CONNECTION) ? 1 : 0,
 		      (portstatus & USB_PORT_STAT_ENABLE) ? 1 : 0);
 
-		if ((portchange & USB_PORT_STAT_C_CONNECTION) ||
-		    !(portstatus & USB_PORT_STAT_CONNECTION))
-			return -1;
-
-		if (portstatus & USB_PORT_STAT_ENABLE)
+		if (!(portstatus & USB_PORT_STAT_RESET))
 			break;
-
-		mdelay(200);
 	}
 
 	if (tries == MAX_TRIES) {
@@ -226,6 +219,8 @@ int hub_port_reset(struct usb_device *dev, int port,
 		debug("Maybe the USB cable is bad?\n");
 		return -1;
 	}
+	if 	(!(portstatus & USB_PORT_STAT_CONNECTION))
+		return -1;
 
 	usb_clear_port_feature(dev, port + 1, USB_PORT_FEAT_C_RESET);
 	*portstat = portstatus;
