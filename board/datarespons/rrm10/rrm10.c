@@ -679,9 +679,12 @@ static const struct boot_mode board_boot_modes[] = {
 };
 #endif
 
+static char * const usbcmd[] = {"usb", "start"};
 int board_late_init(void)
 {
 	int res;
+	int rep;
+	ulong ticks;
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
 #endif
@@ -689,21 +692,8 @@ int board_late_init(void)
 	hw_watchdog_init();
 #endif
 
+	cmd_process(0, 2, usbcmd, &rep, &ticks);
 #if defined(CONFIG_VIDEO_IPUV3)
-	res = usb_init();
-	if (res) {
-		printf("%s: usb_init failed with %d\n", __func__, res);
-		goto finish;
-	}
-	if (drv_usb_kbd_init() == 1)
-	{
-		printf("%s: Reassigned input to USB Keyboard\n", __func__);
-		setenv("stdin", "usbkbd");
-	}
-	else
-		printf("%s: No USB Keyboard - input remains serial\n", __func__);
-finish:
-
 	setenv("stdout", "vga");
 	setenv("stderr", "vga");
 #endif

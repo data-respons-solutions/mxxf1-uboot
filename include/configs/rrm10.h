@@ -119,9 +119,9 @@
 #define CONFIG_VGA_AS_SINGLE_DEVICE
 #define CONFIG_SYS_CONSOLE_IS_IN_ENV
 #define CONFIG_SYS_CONSOLE_OVERWRITE_ROUTINE
-#define CONFIG_CONSOLE_MUX
+/* #define CONFIG_CONSOLE_MUX */
 #define CONFIG_CFB_CONSOLE_ANSI
-#define CONFIG_SYS_USB_EVENT_POLL
+#define CONFIG_SYS_USB_EVENT_POLL_VIA_CONTROL_EP
 #define CONFIG_VIDEO_BMP_RLE8
 #define CONFIG_SPLASH_SCREEN
 #define CONFIG_SPLASH_SCREEN_ALIGN
@@ -236,6 +236,7 @@
 #define CONFIG_MXC_USB_PORTSC	(PORT_PTS_UTMI | PORT_PTS_PTW)
 #define CONFIG_MXC_USB_FLAGS	0
 #define CONFIG_USB_KEYBOARD
+#define CONFIG_USB_HUB_MIN_POWER_ON_DELAY 300
 
 
 #define CONFIG_CONS_INDEX              1
@@ -251,6 +252,7 @@
 #define CONFIG_BOOTDELAY               4
 
 #define CONFIG_LOADADDR                0x12000000
+
 #define CONFIG_SYS_TEXT_BASE           0x17800000
 
 #define CONFIG_ENV_SIZE			(64 * 1024)
@@ -281,10 +283,12 @@
 	"fdt_addr=0x11000000\0" \
 	"boot_fdt=try\0" \
 	"ip_dyn=try\0" \
+	"stdin=usbkbd\0" \
 	"console=" CONFIG_CONSOLE_DEV "\0" \
 	"fdt_high=0xffffffff\0"	  \
 	"initrd_high=0xffffffff\0" \
-	"setargs=setenv bootargs console=${console},${baudrate} root=${rootdev} rootwait rw rootfstype=ext4 fec_mac=${ethaddr} console=tty1 vt.global_cursor_default=0 \0" \
+	"setargstty=setenv bootargs console=${console},${baudrate} root=${rootdev} rootwait rw rootfstype=ext4 fec_mac=${ethaddr} console=tty1 vt.global_cursor_default=0 \0" \
+	"setargs=setenv bootargs console=${console},${baudrate} root=${rootdev} rootwait rw rootfstype=ext4 fec_mac=${ethaddr}\0" \
 	"bootdev=0\0" \
 	"bootpart=1\0" \
 	"bootfrom=mmc\0" \
@@ -293,19 +297,11 @@
 	"setmmc=setenv bootfrom mmc; setenv bootdev 0; setenv bootpart 1; setenv rootdev /dev/mmcblk0p1; echo Setting boot to mmc; \0 " \
 	"setusb=setenv bootfrom usb; setenv bootdev 0; setenv bootpart 1; setenv rootdev /dev/sda1; echo Setting boot to usb; \0 " \
 	"setsata=setenv bootfrom sata; setenv bootdev 0; setenv bootpart 1; setenv rootdev /dev/sda1; echo Setting boot to sata; \0 " \
-	"loaduboot=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/u-boot.imx; \0" \
+	"loaduboot=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/u-boot.img; \0" \
+	"loadspl=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/SPL; \0" \
 	"loadimage=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} ${zimage}; \0" \
 	"loadfdt=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file}; \0" \
 	"bootscript=run setargs; run loadimage; run loadfdt; bootz ${loadaddr} - ${fdt_addr}; \0" \
-	"flash_uboot=if usb start && usb storage; then "\
-			"run setusb; " \
-			"if run loaduboot; then " \
-				"echo WARNING: Flashing u-boot; sf probe; sf erase 0 0xd0000; sf write ${loadaddr} 0x400 ${filesize};" \
-				"echo DONE, resetting; reset; " \
-			"else " \
-				"echo No u-boot.imx in /boot;" \
-			"fi;" \
-		"fi; \0" \
 
 #define CONFIG_BOOTCOMMAND \
 	"if usb storage; then " \
