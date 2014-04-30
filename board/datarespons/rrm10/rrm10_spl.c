@@ -470,7 +470,7 @@ static int rrm_pmic_set(pf100_regs reg, int mV)
 }
 #define GPIO_LCD_EN	IMX_GPIO_NR(6, 15)
 #define GPIO_BL_EN	IMX_GPIO_NR(1, 2)
-#define GPIO_BL_PWM	IMX_GPIO_NR(1, 9)
+/* #define GPIO_BL_PWM	IMX_GPIO_NR(1, 9) */
 
 void board_init_f(ulong dummy)
 {	
@@ -501,23 +501,29 @@ void board_init_f(ulong dummy)
 	}
 	err = imx_pwm_config(2, per/2, per);
 	if (err)
-		printf("%s: imx_pwm_config ERROR\n", __func__);
+		printf("%s: imx_pwm_config for buzzer ERROR\n", __func__);
+	err = imx_pwm_config(0, 2500000, 5000000);
+
+	if (err)
+		printf("%s: imx_pwm_config for backlight ERROR\n", __func__);
+
 	err = mx6_ddr_init(CONFIG_SYS_MEMTEST_START);
 
 	if (err) {
+		imx_pwm_enable(0);
 		gpio_set_value(GPIO_LCD_EN, 1);
-		gpio_set_value(GPIO_BL_EN, 1);
+
 		printf("DDR3 calibration error - hang\n");
 		for (n=0; n < 3; n++) {
-			gpio_set_value(GPIO_BL_PWM, 1);
+			gpio_set_value(GPIO_BL_EN, 1);
 			imx_pwm_enable(2);
 			udelay(2000000);
-			gpio_set_value(GPIO_BL_PWM, 0);
+			gpio_set_value(GPIO_BL_EN, 0);
 			imx_pwm_disable(2);
 			udelay(1000000);
 		}
 		gpio_set_value(GPIO_LCD_EN, 0);
-		gpio_set_value(GPIO_BL_EN, 0);
+		imx_pwm_disable(0);
 		while(1);
 
 	}

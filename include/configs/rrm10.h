@@ -287,7 +287,7 @@
 	"console=" CONFIG_CONSOLE_DEV "\0" \
 	"fdt_high=0xffffffff\0"	  \
 	"initrd_high=0xffffffff\0" \
-	"setargstty=setenv bootargs console=${console},${baudrate} root=${rootdev} rootwait rw rootfstype=ext4 fec_mac=${ethaddr} console=tty1 vt.global_cursor_default=0 \0" \
+	"setargstty=setenv bootargs console=${console},${baudrate} root=${rootdev} rootwait rw rootfstype=ext4 fec_mac=${ethaddr} consoleblank=0 console=tty1 vt.global_cursor_default=0 \0" \
 	"setargs=setenv bootargs console=${console},${baudrate} root=${rootdev} rootwait rw rootfstype=ext4 fec_mac=${ethaddr}\0" \
 	"bootdev=0\0" \
 	"bootpart=1\0" \
@@ -299,9 +299,11 @@
 	"setsata=setenv bootfrom sata; setenv bootdev 0; setenv bootpart 1; setenv rootdev /dev/sda1; echo Setting boot to sata; \0 " \
 	"loaduboot=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/u-boot.img; \0" \
 	"loadspl=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/SPL; \0" \
+	"flashspl=if run loadspl; then sf erase 0 10000; sf write ${loadaddr} 400 ${filesize}; fi; \0" \
+	"flashuboot=if run loaduboot; then sf erase 40000 90000; sf write ${loadaddr} 40000 ${filesize}; fi; \0" \
 	"loadimage=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} ${zimage}; \0" \
 	"loadfdt=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file}; \0" \
-	"bootscript=run setargs; run loadimage; run loadfdt; bootz ${loadaddr} - ${fdt_addr}; \0" \
+	"bootscript=run setargstty; run loadimage; run loadfdt; bootz ${loadaddr} - ${fdt_addr}; \0" \
 
 #define CONFIG_BOOTCOMMAND \
 	"if usb storage; then " \

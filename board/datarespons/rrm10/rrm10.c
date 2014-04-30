@@ -41,15 +41,16 @@
 #include <asm/arch/crm_regs.h>
 #include <watchdog.h>
 #include <usb.h>
+#include <asm/imx_pwm.h>
 
 #define ANATOP_MISC1_CLK1_OBEN (1 << 10)
 #define ANATOP_MISC1_CLK1_IBEN (1 << 12)
 
 void hw_watchdog_init(void);
 
-
-
 DECLARE_GLOBAL_DATA_PTR;
+
+static int panel_version=0;
 
 #define UART_PAD_CTRL  (PAD_CTL_PKE | PAD_CTL_PUE |            \
 	PAD_CTL_PUS_100K_UP | PAD_CTL_SPEED_MED |               \
@@ -102,7 +103,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define GPIO_CAP_TOUCH_PWR	IMX_GPIO_NR(1, 4)
 #define GPIO_LCD_EN	IMX_GPIO_NR(6, 15)
 #define GPIO_BL_EN	IMX_GPIO_NR(1, 2)
-#define GPIO_BL_PWM	IMX_GPIO_NR(1, 9)
+/* #define GPIO_BL_PWM	IMX_GPIO_NR(1, 9) */
 #define GPIO_FAN_EN IMX_GPIO_NR(1, 18)
 #define GPIO_BUZ_INT_EN IMX_GPIO_NR(1, 17)
 #define GPIO_BUZ_EXT_EN IMX_GPIO_NR(1, 19)
@@ -120,7 +121,6 @@ DECLARE_GLOBAL_DATA_PTR;
 
 int rrm10_eeprom_read (unsigned dev_addr, unsigned offset, uchar *buffer, unsigned cnt);
 static void setup_display(void);
-
 
 
 static unsigned char eeprom_content[2048];
@@ -178,7 +178,7 @@ iomux_v3_cfg_t const extra_nvcc_gpio_pads[] = {
 	MX6_PAD_GPIO_7__CAN1_TXCAN			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* CAN1_TX	*/
 
 	MX6_PAD_GPIO_8__CAN1_RXCAN			| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* CAN1_RX		*/
-	MX6_PAD_GPIO_9__GPIO_1_9			| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL),	/* BL_PWM		*/
+	MX6_PAD_GPIO_9__PWM1_PWMO			| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL),	/* BL_PWM		*/
 	MX6_PAD_GPIO_17__GPIO_7_12			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL),	/* PCIE_RST	*/
 	MX6_PAD_GPIO_18__GPIO_7_13			| MUX_PAD_CTRL(PAD_CTL_HYS | PAD_CTL_PUE | PAD_CTL_PUS_100K_DOWN),	/* PMIC_INT_B	*/
 
@@ -454,6 +454,7 @@ static int eeprom_i2c_init(void)
 		{
 			printf("%s: I2C EEPROM at 0x%x - PANEL version\n", __func__, eeprom_addr);
 			setenv("ftd_file", "/boot/rrm10.dtb");
+			panel_version = 1;
 		}
 	}
 	if (ret)
@@ -493,7 +494,7 @@ int board_eth_init(bd_t *bis)
 	uchar mac_addr[6];
 
 	setup_iomux_enet();
-	eeprom_i2c_init();
+
 
 #ifdef CONFIG_FEC_MXC
 	bus = fec_get_miibus(base, -1);
@@ -566,7 +567,7 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_CAP_TOUCH_PWR, 1);
 	gpio_direction_output(GPIO_LCD_EN, 0);
 	gpio_direction_output(GPIO_BL_EN, 0);
-	gpio_direction_output(GPIO_BL_PWM, 0);
+	/* gpio_direction_output(GPIO_BL_PWM, 0); */
 	gpio_direction_output(GPIO_FAN_EN, 0);
 #ifndef CONFIG_SPL_BUILD
 	gpio_direction_output(GPIO_BUZ_INT_EN, 0);
@@ -657,15 +658,9 @@ int board_init(void)
 
 	writel(ANATOP_MISC1_CLK1_IBEN, &anatop->ana_misc1_clr);
 	writel(ANATOP_MISC1_CLK1_OBEN, &anatop->ana_misc1_set);
-	dimm_dn_status = gpio_get_value(GPIO_DIMM_DN);
-
-	gpio_direction_output(GPIO_LCD_EN, 1);
-	gpio_direction_output(GPIO_BL_EN, 1);
-	gpio_direction_output(GPIO_BL_PWM, 1);
 #if defined(CONFIG_VIDEO_IPUV3)
 	setup_display();
 #endif
-
 	return 0;
 }
 
@@ -682,9 +677,21 @@ static const struct boot_mode board_boot_modes[] = {
 static char * const usbcmd[] = {"usb", "start"};
 int board_late_init(void)
 {
-	int res;
 	int rep;
 	ulong ticks;
+
+	dimm_dn_status = gpio_get_value(GPIO_DIMM_DN);
+	eeprom_i2c_init();
+	if (panel_version)
+	{
+
+		imx_pwm_config(0, 2500000, 5000000);
+		gpio_direction_output(GPIO_LCD_EN, 1);
+		gpio_direction_output(GPIO_BL_EN, 1);
+		mdelay(2);
+		imx_pwm_enable(0);
+	/* gpio_direction_output(GPIO_BL_PWM, 1); */
+	}
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
 #endif
@@ -694,8 +701,17 @@ int board_late_init(void)
 
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
 #if defined(CONFIG_VIDEO_IPUV3)
-	setenv("stdout", "vga");
-	setenv("stderr", "vga");
+	if (panel_version)
+	{
+		setenv("stdout", "vga");
+		setenv("stderr", "vga");
+	}
+	else
+	{
+		setenv("stdin", "serial");
+		setenv("stdout", "serial");
+		setenv("stderr", "serial");
+	}
 #endif
 	return 0;
 }
