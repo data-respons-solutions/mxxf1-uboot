@@ -522,10 +522,11 @@ int drv_usb_kbd_init(void)
 		if (error)
 			return error;
 #else
+#if 0
 		/* Check if this is the standard input device. */
 		if (strcmp(stdinname, DEVNAME))
 			return 1;
-
+#endif
 		/* Reassign the console */
 		if (overwrite_console())
 			return 1;
@@ -534,7 +535,7 @@ int drv_usb_kbd_init(void)
 		if (error)
 			return error;
 #endif
-
+		setenv("hasusbkbd", "yes");
 		return 1;
 	}
 
