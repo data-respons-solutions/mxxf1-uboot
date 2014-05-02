@@ -283,7 +283,7 @@
 	"fdt_addr=0x11000000\0" \
 	"boot_fdt=try\0" \
 	"ip_dyn=try\0" \
-	"stdin=usbkbd\0" \
+	"hasusbkbd=no\0" \
 	"console=" CONFIG_CONSOLE_DEV "\0" \
 	"fdt_high=0xffffffff\0"	  \
 	"initrd_high=0xffffffff\0" \

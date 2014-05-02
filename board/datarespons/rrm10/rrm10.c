@@ -51,6 +51,7 @@ void hw_watchdog_init(void);
 DECLARE_GLOBAL_DATA_PTR;
 
 static int panel_version=0;
+static int eeprom_addr;
 
 #define UART_PAD_CTRL  (PAD_CTL_PKE | PAD_CTL_PUE |            \
 	PAD_CTL_PUS_100K_UP | PAD_CTL_SPEED_MED |               \
@@ -124,7 +125,6 @@ static void setup_display(void);
 
 
 static unsigned char eeprom_content[2048];
-static int dimm_dn_status;
 
 int dram_init(void)
 {
@@ -432,36 +432,9 @@ int board_phy_config(struct phy_device *phydev)
 }
 
 
-static int eeprom_i2c_init(void)
+static int get_mac_addr(void)
 {
 	int ret;
-	int eeprom_addr = CONFIG_EEPROM_ADDR2;
-	i2c_set_bus_num(CONFIG_EEPROM_ON_BUS);
-	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
-
-	i2c_set_bus_speed(CONFIG_SYS_I2C_SPEED);
-	ret = i2c_probe(eeprom_addr);
-	if (ret == 0)
-	{
-		printf("%s: I2C EEPROM at 0x%x - DIN RAIL version\n", __func__, eeprom_addr);
-		setenv("fdt_file", "/boot/rrm10-hdmi.dtb");
-	}
-	else
-	{
-		eeprom_addr = CONFIG_EEPROM_ADDR;
-		ret = i2c_probe(eeprom_addr);
-		if (ret == 0)
-		{
-			printf("%s: I2C EEPROM at 0x%x - PANEL version\n", __func__, eeprom_addr);
-			setenv("ftd_file", "/boot/rrm10.dtb");
-			panel_version = 1;
-		}
-	}
-	if (ret)
-	{
-		printf("%s: No I2C EEPROM\n", __func__);
-		return ret;
-	}
 	ret = rrm10_eeprom_read(eeprom_addr, 0, eeprom_content, sizeof(eeprom_content) );
 	if (ret < 0)
 	{
@@ -519,7 +492,7 @@ int board_eth_init(bd_t *bis)
 		printf("%s: Could not get FEC\n", __func__);
 		return -EINVAL;
 	}
-
+	get_mac_addr();
 	ret = eth_getenv_enetaddr("ethaddr", mac_addr);
 
 
@@ -618,7 +591,61 @@ int setup_sata(void)
 }
 #endif
 
+static int check_version(void)
+{
+	int ret;
+	eeprom_addr = CONFIG_EEPROM_ADDR2;
+	i2c_set_bus_num(CONFIG_EEPROM_ON_BUS);
+	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 
+	i2c_set_bus_speed(CONFIG_SYS_I2C_SPEED);
+	ret = i2c_probe(eeprom_addr);
+	if (ret == 0)
+	{
+		printf("%s: I2C EEPROM at 0x%x - DIN RAIL version\n", __func__, eeprom_addr);
+
+	}
+	else
+	{
+		eeprom_addr = CONFIG_EEPROM_ADDR;
+		ret = i2c_probe(eeprom_addr);
+		if (ret == 0)
+		{
+			printf("%s: I2C EEPROM at 0x%x - PANEL version\n", __func__, eeprom_addr);
+
+			panel_version = 1;
+		}
+	}
+	if (ret)
+	{
+		printf("%s: No I2C EEPROM\n", __func__);
+		return ret;
+	}
+
+	return 0;
+}
+
+static int update_env(int is_panel)
+{
+	if (is_panel)
+	{
+
+		imx_pwm_config(0, 2500000, 5000000);
+		gpio_direction_output(GPIO_LCD_EN, 1);
+		gpio_direction_output(GPIO_BL_EN, 1);
+		mdelay(2);
+		imx_pwm_enable(0);
+		setenv("ftd_file", "/boot/rrm10.dtb");
+	/* gpio_direction_output(GPIO_BL_PWM, 1); */
+	}
+	else
+	{
+		setenv("fdt_file", "/boot/rrm10-hdmi.dtb");
+		setenv("panel", "HDMI");
+	}
+
+	return 0;
+}
 
 int board_init(void)
 {
@@ -658,9 +685,13 @@ int board_init(void)
 
 	writel(ANATOP_MISC1_CLK1_IBEN, &anatop->ana_misc1_clr);
 	writel(ANATOP_MISC1_CLK1_OBEN, &anatop->ana_misc1_set);
-#if defined(CONFIG_VIDEO_IPUV3)
+	check_version();
+	if (panel_version)
+		setenv("panel", "RRM10-XGA");
+	else
+		setenv("panel", "HDMI");
+
 	setup_display();
-#endif
 	return 0;
 }
 
@@ -679,19 +710,11 @@ int board_late_init(void)
 {
 	int rep;
 	ulong ticks;
+	char *kbd;
 
-	dimm_dn_status = gpio_get_value(GPIO_DIMM_DN);
-	eeprom_i2c_init();
-	if (panel_version)
-	{
+	cmd_process(0, 2, usbcmd, &rep, &ticks);
+	update_env(panel_version);
 
-		imx_pwm_config(0, 2500000, 5000000);
-		gpio_direction_output(GPIO_LCD_EN, 1);
-		gpio_direction_output(GPIO_BL_EN, 1);
-		mdelay(2);
-		imx_pwm_enable(0);
-	/* gpio_direction_output(GPIO_BL_PWM, 1); */
-	}
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
 #endif
@@ -699,20 +722,12 @@ int board_late_init(void)
 	hw_watchdog_init();
 #endif
 
-	cmd_process(0, 2, usbcmd, &rep, &ticks);
-#if defined(CONFIG_VIDEO_IPUV3)
-	if (panel_version)
+	kbd=getenv("hasusbkbd");
+	if (kbd && (strcmp(kbd, "yes") == 0))
 	{
 		setenv("stdout", "vga");
 		setenv("stderr", "vga");
 	}
-	else
-	{
-		setenv("stdin", "serial");
-		setenv("stdout", "serial");
-		setenv("stderr", "serial");
-	}
-#endif
 	return 0;
 }
 
@@ -731,6 +746,7 @@ int checkboard(void)
  */
 int overwrite_console(void)
 {
+
 	return 0;
 }
 
@@ -772,15 +788,15 @@ static struct display_info_t const displays[] = {{
 	.mode	= {
 		.name           = "HDMI",
 		.refresh        = 60,
-		.xres           = 1024,
-		.yres           = 768,
-		.pixclock       = 15385,
-		.left_margin    = 220,
-		.right_margin   = 40,
-		.upper_margin   = 21,
-		.lower_margin   = 7,
-		.hsync_len      = 60,
-		.vsync_len      = 10,
+		.xres           = 1280,
+		.yres           = 720,
+		.pixclock       = 15686,
+		.left_margin    = 48,
+		.right_margin   = 32,
+		.upper_margin   = 3,
+		.lower_margin   = 5,
+		.hsync_len      = 80,
+		.vsync_len      = 13,
 		.sync           = FB_SYNC_EXT,
 		.vmode          = FB_VMODE_NONINTERLACED
 } }, {
@@ -807,47 +823,18 @@ static struct display_info_t const displays[] = {{
 
 int board_video_skip(void)
 {
-	int i;
 	int ret;
-	char const *panel = getenv("panel");
-	if (!panel) {
-		for (i = 0; i < ARRAY_SIZE(displays); i++) {
-			struct display_info_t const *dev = displays+i;
-			if (dev->detect && dev->detect(dev)) {
-				panel = dev->mode.name;
-				printf("auto-detected panel %s\n", panel);
-				break;
-			}
-		}
-		if (!panel) {
-			panel = displays[0].mode.name;
-			printf("No panel detected: default to %s\n", panel);
-			i = 0;
-		}
-	} else {
-		for (i = 0; i < ARRAY_SIZE(displays); i++) {
-			printf("%s: Compare[%d] %s with %s\n", __func__, i, panel, displays[i].mode.name);
-			if (!strcmp(panel, displays[i].mode.name))
-				break;
-		}
-	}
-	if (i < ARRAY_SIZE(displays)) {
-		ret = ipuv3_fb_init(&displays[i].mode, 0,
-				    displays[i].pixfmt);
-		if (!ret) {
-			displays[i].enable(displays+i);
-			printf("Display: %s (%ux%u)\n",
-			       displays[i].mode.name,
-			       displays[i].mode.xres,
-			       displays[i].mode.yres);
-		} else
-			printf("LCD %s cannot be configured: %d\n",
-			       displays[i].mode.name, ret);
-	} else {
-		printf("%s: unsupported panel %s\n", __func__, panel);
-		return -EINVAL;
-	}
-
+	ret = ipuv3_fb_init(&displays[panel_version].mode, 0,
+				displays[panel_version].pixfmt);
+	if (!ret) {
+		displays[panel_version].enable(displays+panel_version);
+		printf("Display: %s (%ux%u)\n",
+			   displays[panel_version].mode.name,
+			   displays[panel_version].mode.xres,
+			   displays[panel_version].mode.yres);
+	} else
+		printf("LCD %s cannot be configured: %d\n",
+			   displays[panel_version].mode.name, ret);
 	return 0;
 }
 
