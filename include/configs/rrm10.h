@@ -303,16 +303,15 @@
 	"flashuboot=if run loaduboot; then sf erase 40000 90000; sf write ${loadaddr} 40000 ${filesize}; fi; \0" \
 	"loadimage=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} ${zimage}; \0" \
 	"loadfdt=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file}; \0" \
-	"bootscript=run setargstty; run loadimage; run loadfdt; bootz ${loadaddr} - ${fdt_addr}; \0" \
+	"bootscript=run setargstty; run loadimage loadfdt; bootz ${loadaddr} - ${fdt_addr}; \0" \
+	"check_usb_boot=if usb storage; then run setusb loadfdt; fi;\0" \
 
 #define CONFIG_BOOTCOMMAND \
-	"if usb storage; then " \
-		"run setusb; echo booting from USB ...;" \
+	"mmc dev 1; mmc rescan;" \
+	"if run check_usb_boot; then " \
+		"echo booting from USB ...;" \
 	"else " \
-		"mmc dev 1; " \
-		"if mmc rescan; then " \
-			"run setmmc; echo booting from MMC ...;" \
-		"fi; "\
+		"run setmmc; echo booting from MMC ...;" \
 	"fi; " \
 	"run loadbootscript;" \
 	"run bootscript;"
