@@ -434,27 +434,51 @@ int board_phy_config(struct phy_device *phydev)
 
 static int get_mac_addr(void)
 {
-	int ret;
+	int ret=0;
+	char *base = (char*)&eeprom_content[4];
+	char *at = base;
+	char *at_end = base + sizeof(eeprom_content);
+	int len;
+
 	ret = rrm10_eeprom_read(eeprom_addr, 0, eeprom_content, sizeof(eeprom_content) );
 	if (ret < 0)
 	{
 		printf("%s: eeprom read failure\n", __func__);
 		return -ENODEV;
 	}
-	char *p = strstr((char*)&eeprom_content[4], "FEC_MAC_ADDR=");
-	if (p)
+	while ( at < at_end)
 	{
-		printf("%s: found MAC info %s\n", __func__, p);
-		p += 13;
-		if (strlen(p) > 0)
+		char *p = strstr(at, "FEC_MAC_ADDR=");
+		if (p)
 		{
-			setenv("ethaddr", p);
+			printf("%s: found MAC info %s\n", __func__, p);
+			p += 13;
+			if ((len = strnlen(p, 20)) == 17)
+			{
+				setenv("ethaddr", p);
+			}
+			else
+				printf("%s: Illegal length %d for mac address\n", __func__, len);
+			break;
 		}
+		else
+		{
+			while (at < at_end && *at != '\0')
+				at++;
+			if (at >= at_end)
+			{
+				ret = -EINVAL;
+				break;
+			}
+			else
+				at++;
+		}
+
 	}
-	else
+	if (ret)
 		printf("%s: FEC_MAC_ADDR not present in eeprom\n", __func__);
 
-	return 0;
+	return ret;
 }
 
 int board_eth_init(bd_t *bis)
