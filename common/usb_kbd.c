@@ -31,7 +31,6 @@ int overwrite_console(void)
 /* Keyboard sampling rate */
 #define REPEAT_RATE	(40 / 4)	/* 40msec -> 25cps */
 #define REPEAT_DELAY	10		/* 10 x REPEAT_RATE = 400msec */
-
 #define NUM_LOCK	0x53
 #define CAPS_LOCK	0x39
 #define SCROLL_LOCK	0x47
@@ -122,6 +121,11 @@ void usb_kbd_generic_poll(void)
 
 	/* Get the pointer to USB Keyboard device pointer */
 	dev = stdio_get_by_name(DEVNAME);
+	if (!dev)
+	{
+		printf("%s: No usbkbd in stdio register\n", __func__);
+		return;
+	}
 	usb_kbd_dev = (struct usb_device *)dev->priv;
 	data = usb_kbd_dev->privptr;
 	iface = &usb_kbd_dev->config.if_desc[0];
@@ -337,13 +341,21 @@ static inline void usb_kbd_poll_for_event(struct usb_device *dev)
 
 	usb_kbd_irq_worker(dev);
 #elif	defined(CONFIG_SYS_USB_EVENT_POLL_VIA_CONTROL_EP)
+	int ret;
 	struct usb_interface *iface;
 	struct usb_kbd_pdata *data = dev->privptr;
 	iface = &dev->config.if_desc[0];
-	usb_get_report(dev, iface->desc.bInterfaceNumber,
+	ret = usb_get_report(dev, iface->desc.bInterfaceNumber,
 			1, 0, data->new, sizeof(data->new));
-	if (memcmp(data->old, data->new, sizeof(data->new)))
-		usb_kbd_irq_worker(dev);
+	if (ret > 0)
+	{
+		if (memcmp(data->old, data->new, sizeof(data->new)))
+			usb_kbd_irq_worker(dev);
+	}
+	else
+	{
+		printf("%s: ERROR, usb_get_report returns %d\n", ret);
+	}
 #endif
 }
 
