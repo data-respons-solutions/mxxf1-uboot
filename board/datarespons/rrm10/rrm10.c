@@ -709,6 +709,10 @@ int board_init(void)
 
 	writel(ANATOP_MISC1_CLK1_IBEN, &anatop->ana_misc1_clr);
 	writel(ANATOP_MISC1_CLK1_OBEN, &anatop->ana_misc1_set);
+
+#ifdef CONFIG_IMX_WATCHDOG
+	hw_watchdog_init();
+#endif
 	check_version();
 	if (panel_version)
 		setenv("panel", "RRM10-XGA");
@@ -736,14 +740,13 @@ int board_late_init(void)
 	ulong ticks;
 	char *kbd;
 
+
+
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
 	update_env(panel_version);
 
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
-#endif
-#ifdef CONFIG_IMX_WATCHDOG
-	hw_watchdog_init();
 #endif
 
 	kbd=getenv("hasusbkbd");
