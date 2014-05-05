@@ -47,7 +47,7 @@ void hw_watchdog_init(void)
 {
 	struct watchdog_regs *wdog = (struct watchdog_regs *)USED_BASE_ADDR;
 	u16 timeout;
-
+	u16 reg;
 
 	/*
 	 * The timer watchdog can be set between
@@ -58,9 +58,13 @@ void hw_watchdog_init(void)
 #define CONFIG_WATCHDOG_TIMEOUT_MSECS 128000
 #endif
 	timeout = (CONFIG_WATCHDOG_TIMEOUT_MSECS / 500) - 1;
-	writew(SET_WCR_WT(timeout), &wdog->wcr);
-	writew(WCR_WDZST | WCR_WDBG | WCR_WDE | WCR_WDT | WCR_SRS | WCR_WDA |
-		WCR_WDW | SET_WCR_WT(timeout), &wdog->wcr);
+	reg = WCR_WDZST | WCR_WDBG | WCR_WDA | WCR_WDW | WCR_SRS | SET_WCR_WT(timeout);
+#ifdef CONFIG_IMX_WATCHDOG_ASSERT_WDOG_B
+	reg |= WCR_WDT;
+#endif
+
+	writew(reg,  &wdog->wcr);
+	writew(reg | WCR_WDE,  &wdog->wcr);
 	hw_watchdog_reset();
 
 	/* Shut down POR watchdog counter, we now have control */
