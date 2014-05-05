@@ -697,7 +697,7 @@ int board_init(void)
 	}
 #endif
 	gpio_direction_output(GPIO_USB_H1_EN, 1);
-	mdelay(1);
+	mdelay(10);
 	gpio_direction_output(GPIO_USBP0_EN, 1);
 	mdelay(1);
 	gpio_direction_output(GPIO_USBP1_EN, 1);
@@ -705,7 +705,7 @@ int board_init(void)
 	gpio_direction_output(GPIO_USBP2_EN, 1);
 	mdelay(1);
 	gpio_direction_output(GPIO_USBP3_EN, 1);
-	mdelay(1);
+	mdelay(100);
 
 	writel(ANATOP_MISC1_CLK1_IBEN, &anatop->ana_misc1_clr);
 	writel(ANATOP_MISC1_CLK1_OBEN, &anatop->ana_misc1_set);
@@ -770,8 +770,11 @@ int checkboard(void)
  */
 int overwrite_console(void)
 {
-
-	return 0;
+	char *allow_usb = getenv("allow_usbkbd");
+	if (allow_usb && (strcmp(allow_usb, "yes") == 0))
+		return 0;
+	else
+		return 1;
 }
 
 struct display_info_t {

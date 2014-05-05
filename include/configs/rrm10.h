@@ -236,7 +236,7 @@
 #define CONFIG_MXC_USB_PORTSC	(PORT_PTS_UTMI | PORT_PTS_PTW)
 #define CONFIG_MXC_USB_FLAGS	0
 #define CONFIG_USB_KEYBOARD
-#define CONFIG_USB_HUB_MIN_POWER_ON_DELAY 300
+#define CONFIG_USB_HUB_MIN_POWER_ON_DELAY 800
 
 
 #define CONFIG_CONS_INDEX              1
@@ -284,6 +284,7 @@
 	"boot_fdt=try\0" \
 	"ip_dyn=try\0" \
 	"hasusbkbd=no\0" \
+	"allow_usbkbd=yes\0" \
 	"console=" CONFIG_CONSOLE_DEV "\0" \
 	"fdt_high=0xffffffff\0"	  \
 	"initrd_high=0xffffffff\0" \
