@@ -297,9 +297,11 @@
 	"bootpart=1\0" \
 	"bootfrom=mmc\0" \
 	"rootdev=/dev/mmcblk0p1\0" \
+	"usb_root=/dev/sda1\0" \
+	"has_sata=0\0" \
 	"loadbootscript=if ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/boot.txt; then env import -t ${loadaddr} ${filesize}; fi; \0" \
 	"setmmc=setenv bootfrom mmc; setenv bootdev 0; setenv bootpart 1; setenv rootdev /dev/mmcblk0p1; echo Setting boot to mmc; \0 " \
-	"setusb=setenv bootfrom usb; setenv bootdev 0; setenv bootpart 1; setenv rootdev /dev/sda1; echo Setting boot to usb; \0 " \
+	"setusb=setenv bootfrom usb; setenv bootdev 0; setenv bootpart 1; setenv rootdev ${usb_root}; echo Setting boot to usb; \0 " \
 	"setsata=setenv bootfrom sata; setenv bootdev 0; setenv bootpart 1; setenv rootdev /dev/sda1; echo Setting boot to sata; \0 " \
 	"loaduboot=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/u-boot.img; \0" \
 	"loadspl=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/SPL; \0" \
@@ -309,13 +311,18 @@
 	"loadfdt=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file}; \0" \
 	"bootscript=run setargstty; run loadimage loadfdt; bootz ${loadaddr} - ${fdt_addr}; \0" \
 	"check_usb_boot=if usb storage; then run setusb loadfdt; fi;\0" \
+	"check_sata=if sata init; then setenv usb_root /dev/sdb1; setenv has_sata 1; fi;\0" \
 
 #define CONFIG_BOOTCOMMAND \
-	"mmc dev 1; mmc rescan;" \
+	"mmc dev 1; mmc rescan; run check_sata; " \
 	"if run check_usb_boot; then " \
 		"echo booting from USB ...;" \
 	"else " \
-		"run setmmc; echo booting from MMC ...;" \
+		"if itest ${has_sata} == 1; then " \
+			"if run setsata loadfdt; then echo booting from SATA; else run setmmc; echo SATA failed, trying MMC ...; fi; " \
+		"else " \
+			"run setmmc; echo booting from MMC ...;" \
+		"fi; " \
 	"fi; " \
 	"run loadbootscript;" \
 	"run bootscript;"
