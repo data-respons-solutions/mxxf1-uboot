@@ -252,7 +252,7 @@
 #define CONFIG_CMD_BOOTZ
 #undef CONFIG_CMD_IMLS
 
-#define CONFIG_BOOTDELAY               4
+#define CONFIG_BOOTDELAY               2
 
 #define CONFIG_LOADADDR                0x12000000
 
