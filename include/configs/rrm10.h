@@ -123,7 +123,7 @@
 #define CONFIG_SYS_CONSOLE_OVERWRITE_ROUTINE
 /* #define CONFIG_CONSOLE_MUX */
 #define CONFIG_CFB_CONSOLE_ANSI
-#define CONFIG_SYS_USB_EVENT_POLL_VIA_CONTROL_EP
+#undef  CONFIG_SYS_USB_EVENT_POLL_VIA_CONTROL_EP
 #define CONFIG_VIDEO_BMP_RLE8
 #define CONFIG_SPLASH_SCREEN
 #define CONFIG_SPLASH_SCREEN_ALIGN
@@ -238,7 +238,7 @@
 #define CONFIG_MXC_USB_PORT	1
 #define CONFIG_MXC_USB_PORTSC	(PORT_PTS_UTMI | PORT_PTS_PTW)
 #define CONFIG_MXC_USB_FLAGS	0
-#define CONFIG_USB_KEYBOARD
+#undef CONFIG_USB_KEYBOARD
 #define CONFIG_USB_HUB_MIN_POWER_ON_DELAY 500
 
 
@@ -309,7 +309,7 @@
 	"flashuboot=if run loaduboot; then sf erase 40000 90000; sf write ${loadaddr} 40000 ${filesize}; fi; \0" \
 	"loadimage=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} ${zimage}; \0" \
 	"loadfdt=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file}; \0" \
-	"bootscript=run setargstty; run loadimage loadfdt; bootz ${loadaddr} - ${fdt_addr}; \0" \
+	"bootscript=run setargstty; run loadimage loadfdt; usb stop f; bootz ${loadaddr} - ${fdt_addr}; \0" \
 	"check_usb_boot=if usb storage; then run setusb loadfdt; fi;\0" \
 	"check_sata=if sata init; then setenv usb_root /dev/sdb1; setenv has_sata 1; fi;\0" \
 

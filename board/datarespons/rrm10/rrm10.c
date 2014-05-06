@@ -51,7 +51,9 @@ void hw_watchdog_init(void);
 DECLARE_GLOBAL_DATA_PTR;
 
 static int panel_version=0;
-static int eeprom_addr;
+static int eeprom_addr=0x50;
+static int hdmi_plugged=0;
+
 
 #define UART_PAD_CTRL  (PAD_CTL_PKE | PAD_CTL_PUE |            \
 	PAD_CTL_PUS_100K_UP | PAD_CTL_SPEED_MED |               \
@@ -738,9 +740,11 @@ int board_late_init(void)
 {
 	int rep;
 	ulong ticks;
-	char *kbd;
-
-
+	if (panel_version || hdmi_plugged)
+	{
+		setenv("stdout", "vga");
+		setenv("stderr", "vga");
+	}
 
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
 	update_env(panel_version);
@@ -749,12 +753,6 @@ int board_late_init(void)
 	add_board_boot_modes(board_boot_modes);
 #endif
 
-	kbd=getenv("hasusbkbd");
-	if (kbd && (strcmp(kbd, "yes") == 0))
-	{
-		setenv("stdout", "vga");
-		setenv("stderr", "vga");
-	}
 	return 0;
 }
 
@@ -773,11 +771,7 @@ int checkboard(void)
  */
 int overwrite_console(void)
 {
-	char *allow_usb = getenv("allow_usbkbd");
-	if (allow_usb && (strcmp(allow_usb, "yes") == 0))
-		return 0;
-	else
-		return 1;
+	return 1;
 }
 
 struct display_info_t {
@@ -791,8 +785,13 @@ struct display_info_t {
 
 static int detect_hdmi(struct display_info_t const *dev)
 {
+	int ret;
 	struct hdmi_regs *hdmi	= (struct hdmi_regs *)HDMI_ARB_BASE_ADDR;
-	return readb(&hdmi->phy_stat0) & HDMI_DVI_STAT;
+
+	ret = readb(&hdmi->phy_stat0) & HDMI_DVI_STAT;
+	if (ret)
+		hdmi_plugged = 1;
+	return ret;
 }
 
 static void do_enable_hdmi(struct display_info_t const *dev)
