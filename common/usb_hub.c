@@ -21,6 +21,7 @@
  * HUB "Driver"
  * Probes device for being a hub and configurate it
  */
+
 #include <common.h>
 #include <command.h>
 #include <asm/processor.h>
@@ -28,7 +29,6 @@
 #include <linux/ctype.h>
 #include <asm/byteorder.h>
 #include <asm/unaligned.h>
-#include <asm/errno.h>
 
 #include <usb.h>
 #ifdef CONFIG_4xx
@@ -91,8 +91,8 @@ static void usb_hub_power_on(struct usb_hub_device *hub)
 	struct usb_device *dev;
 	unsigned pgood_delay = hub->desc.bPwrOn2PwrGood * 2;
 	ALLOC_CACHE_ALIGN_BUFFER(struct usb_port_status, portsts, 1);
+	unsigned short portstatus;
 	int ret;
-	u16 portstatus;
 
 	dev = hub->pusb_dev;
 
@@ -101,9 +101,10 @@ static void usb_hub_power_on(struct usb_hub_device *hub)
 	 * Here we Power-cycle the ports: aka,
 	 * turning them off and turning on again.
 	 */
+	debug("enabling power on all ports\n");
 	for (i = 0; i < dev->maxchild; i++) {
 		usb_clear_port_feature(dev, i + 1, USB_PORT_FEAT_POWER);
-		debug("%s: Disable power on port %d returns %lX\n", __func__, i + 1, dev->status);
+		debug("port %d returns %lX\n", i + 1, dev->status);
 	}
 
 	/* Wait at least 2*bPwrOn2PwrGood for PP to change */
@@ -115,7 +116,6 @@ static void usb_hub_power_on(struct usb_hub_device *hub)
 			debug("port %d: get_port_status failed\n", i + 1);
 			continue;
 		}
-		portstatus = le16_to_cpu(portsts->wPortStatus);
 
 		/*
 		 * Check to confirm the state of Port Power:
@@ -126,6 +126,7 @@ static void usb_hub_power_on(struct usb_hub_device *hub)
 		 * EHCI doesn't say anything like this, but no harm in keeping
 		 * this.
 		 */
+		portstatus = le16_to_cpu(portsts->wPortStatus);
 		if (portstatus & (USB_PORT_STAT_POWER << 1)) {
 			debug("port %d: Port power change failed\n", i + 1);
 			continue;
@@ -134,7 +135,7 @@ static void usb_hub_power_on(struct usb_hub_device *hub)
 
 	for (i = 0; i < dev->maxchild; i++) {
 		usb_set_port_feature(dev, i + 1, USB_PORT_FEAT_POWER);
-		debug("%s: Enable power on port %d returns %lX\n", __func__, i + 1, dev->status);
+		debug("port %d returns %lX\n", i + 1, dev->status);
 	}
 
 	/* Wait for power to become stable */
@@ -179,90 +180,24 @@ static inline char *portspeed(int portstatus)
 	return speed_str;
 }
 
-#define HUB_ROOT_RESET_TIME	50	/* times are in msec */
-#define HUB_SHORT_RESET_TIME	10
-#define HUB_BH_RESET_TIME	50
-#define HUB_LONG_RESET_TIME	200
-#define HUB_RESET_TIMEOUT	800
-
-static int hub_port_wait_reset(struct usb_device *dev, int port, int delay)
-{
-	int delay_time, ret;
-	u16 portstatus;
-	u16 portchange;
-	ALLOC_CACHE_ALIGN_BUFFER(struct usb_port_status, portsts, 1);
-
-	for (delay_time = 0;
-			delay_time < HUB_RESET_TIMEOUT;
-			delay_time += delay) {
-		/* wait to give the device a chance to reset */
-		mdelay(delay);
-
-		/* read and decode port status */
-		ret = usb_get_port_status(dev, port + 1, portsts);
-		if (ret < 0)
-		{
-			debug("%s: usb_get_port_status returns %d\n", __func__, ret);
-			return ret;
-		}
-		portstatus = le16_to_cpu(portsts->wPortStatus);
-		portchange = le16_to_cpu(portsts->wPortChange);
-		/* The port state is unknown until the reset completes. */
-		if (!(portstatus & USB_PORT_STAT_RESET))
-			break;
-
-		/* switch to the long delay after two short delay failures */
-		if (delay_time >= 2 * HUB_SHORT_RESET_TIME)
-			delay = HUB_LONG_RESET_TIME;
-
-		printf( "port %d not reset yet, waiting %dms\n",
-			port+1, delay);
-	}
-
-	if ((portstatus & USB_PORT_STAT_RESET))
-		return -EBUSY;
-
-	usb_clear_port_feature(dev, port+1, USB_PORT_FEAT_C_RESET);
-	/* Device went away? */
-	if (!(portstatus & USB_PORT_STAT_CONNECTION))
-		return -ENOTCONN;
-
-	/* bomb out completely if the connection bounced.  A USB 3.0
-	 * connection may bounce if multiple warm resets were issued,
-	 * but the device may have successfully re-connected. Ignore it.
-	 */
-	if (portchange & USB_PORT_STAT_C_CONNECTION)
-		return -ENOTCONN;
-
-	if (!(portstatus & USB_PORT_STAT_ENABLE))
-		return -EBUSY;
-
-
-	return 0;
-}
-
-
-
 int hub_port_reset(struct usb_device *dev, int port,
 			unsigned short *portstat)
 {
 	int tries;
-	int ret;
 	ALLOC_CACHE_ALIGN_BUFFER(struct usb_port_status, portsts, 1);
 	unsigned short portstatus, portchange;
 
-	debug("hub_port_reset: resetting port %d...\n", port+1);
+	debug("hub_port_reset: resetting port %d...\n", port);
 	for (tries = 0; tries < MAX_TRIES; tries++) {
 
 		usb_set_port_feature(dev, port + 1, USB_PORT_FEAT_RESET);
-		ret = hub_port_wait_reset(dev, port, 200);
+		mdelay(200);
 
-		if (ret < 0) {
-			printf("%s: wait reset failed status %lX\n", __func__,
+		if (usb_get_port_status(dev, port + 1, portsts) < 0) {
+			debug("get_port_status failed status %lX\n",
 			      dev->status);
 			return -1;
 		}
-		ret = usb_get_port_status(dev, port + 1, portsts);
 		portstatus = le16_to_cpu(portsts->wPortStatus);
 		portchange = le16_to_cpu(portsts->wPortChange);
 
@@ -275,21 +210,25 @@ int hub_port_reset(struct usb_device *dev, int port,
 		      (portstatus & USB_PORT_STAT_CONNECTION) ? 1 : 0,
 		      (portstatus & USB_PORT_STAT_ENABLE) ? 1 : 0);
 
-		if (!(portstatus & USB_PORT_STAT_RESET))
+		if ((portchange & USB_PORT_STAT_C_CONNECTION) ||
+		    !(portstatus & USB_PORT_STAT_CONNECTION))
+			return -1;
+
+		if (portstatus & USB_PORT_STAT_ENABLE)
 			break;
+
+		mdelay(200);
 	}
-	*portstat = portstatus;
+
 	if (tries == MAX_TRIES) {
 		debug("Cannot enable port %i after %i retries, " \
 		      "disabling port.\n", port + 1, MAX_TRIES);
 		debug("Maybe the USB cable is bad?\n");
 		return -1;
 	}
-	if 	(!(portstatus & USB_PORT_STAT_CONNECTION))
-		return -1;
 
 	usb_clear_port_feature(dev, port + 1, USB_PORT_FEAT_C_RESET);
-
+	*portstat = portstatus;
 	return 0;
 }
 
