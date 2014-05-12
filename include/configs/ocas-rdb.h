@@ -60,6 +60,8 @@
 #define CONFIG_SYS_MONITOR_LEN	(CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS/2*1024)
 
 #define CONFIG_SPL_BOARD_INIT
+#define CONFIG_SPL_WATCHDOG_SUPPORT
+
 
 #define CONFIG_SPL_BSS_START_ADDR	0x18200000
 #define CONFIG_SPL_BSS_MAX_SIZE		0x100000
@@ -74,6 +76,11 @@
 #define CONFIG_MACH_TYPE	4445
 #define CONFIG_MX6
 
+#define CONFIG_HW_WATCHDOG
+#define CONFIG_IMX_WATCHDOG
+#define CONFIG_WATCHDOG_TIMEOUT_MSECS 128000
+#undef CONFIG_IMX_WATCHDOG_USE_WD2
+#undef CONFIG_IMX_WATCHDOG_ASSERT_WDOG_B
 
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
@@ -253,6 +260,10 @@
 	"loadzimage=ext4load sata 0:1 ${loadaddr} ${zimage}\0" \
 	"loadfpga=if ext4load sata 0:1 ${loadaddr} ${fpgaimage}; then fpga load 0 ${loadaddr} ${filesize}; fi; \0" \
 	"loadfdt=ext4load sata 0:1 ${fdt_addr} ${fdt_file}\0" \
+	"loaduboot=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/u-boot.img; \0" \
+	"loadspl=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/SPL; \0" \
+	"flashspl=if run loadspl; then sf erase 0 10000; sf write ${loadaddr} 400 ${filesize}; fi; \0" \
+	"flashuboot=if run loaduboot; then sf erase 40000 90000; sf write ${loadaddr} 40000 ${filesize}; fi; \0" \
 	"netboot=echo Booting from net ...; " \
 		"run sataargs; " \
 		"tftp zImage; " \

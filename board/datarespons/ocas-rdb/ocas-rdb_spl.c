@@ -16,6 +16,8 @@
 #include <asm/gpio.h>
 #include <asm/arch/mx6_ddrtune.h>
 #include <i2c.h>
+#include <asm/imx_pwm.h>
+#include <watchdog.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -484,7 +486,7 @@ void board_init_f(ulong dummy)
 	gd = &gdata;
 
 	board_early_init_f();	
-
+	hw_watchdog_init();
 	timer_init();
 	preloader_console_init();
 	err = ocas_pmic_setup();
@@ -556,10 +558,5 @@ u32 spl_boot_mode(void)
 	}
 }
 
-void reset_cpu(ulong addr)
-{
-	puts("reset_cpu\n");
-	__REG16(WDOG1_BASE_ADDR) = 4;
-}
 #endif
 
