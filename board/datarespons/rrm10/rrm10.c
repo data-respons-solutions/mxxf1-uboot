@@ -653,6 +653,7 @@ static int check_version(void)
 
 static int update_env(int is_panel)
 {
+	char *fdt_defined = getenv("fdt_file");
 	if (is_panel)
 	{
 
@@ -661,12 +662,14 @@ static int update_env(int is_panel)
 		gpio_direction_output(GPIO_BL_EN, 1);
 		mdelay(2);
 		imx_pwm_enable(0);
-		setenv("ftd_file", "/boot/rrm10.dtb");
+		if (!fdt_defined)
+			setenv("fdt_file", "/boot/rrm10.dtb");
 	/* gpio_direction_output(GPIO_BL_PWM, 1); */
 	}
 	else
 	{
-		setenv("fdt_file", "/boot/rrm10-hdmi.dtb");
+		if (!fdt_defined)
+			setenv("fdt_file", "/boot/rrm10-hdmi.dtb");
 		setenv("panel", "HDMI");
 	}
 
