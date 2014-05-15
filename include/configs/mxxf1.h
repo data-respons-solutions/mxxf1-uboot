@@ -14,8 +14,8 @@
  * GNU General Public License for more details.
  */
 
-#ifndef __RRM10_CONFIG_H
-#define __RRM10_CONFIG_H
+#ifndef __MXXF1_CONFIG_H
+#define __MXXF1_CONFIG_H
 
 
 #ifdef CONFIG_SPL
@@ -76,7 +76,7 @@
 #define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONFIG_CONSOLE_DEV		"ttymxc0"
 #define CONFIG_MMCROOT			"/dev/mmcblk0p1"
-#define CONFIG_DEFAULT_FDT_FILE	"/boot/rrm10.dtb"
+#define CONFIG_DEFAULT_FDT_FILE	"/boot/mxxf110.dtb"
 #define PHYS_SDRAM_SIZE		(1u * 1024 * 1024 * 1024)
 
 /*
@@ -111,10 +111,10 @@
 #define CONFIG_REVISION_TAG
 
 #ifndef CONFIG_SPL_BUILD
-#define RRM_VIDEO
+#define MXXF1_VIDEO
 #endif
 
-#ifdef RRM_VIDEO
+#ifdef MXXF1_VIDEO
 #define CONFIG_VIDEO
 #define CONFIG_VIDEO_IPUV3
 #define CONFIG_CFB_CONSOLE
@@ -281,7 +281,7 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"zimage=/boot/zImage\0" \
-	"panel=RRM10-XGA\0" \
+	"panel=MXXF1-XGA\0" \
 	"fdt_addr=0x11000000\0" \
 	"boot_fdt=try\0" \
 	"ip_dyn=try\0" \
@@ -332,7 +332,7 @@
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_SYS_HUSH_PARSER
 #define CONFIG_SYS_PROMPT_HUSH_PS2     "> "
-#define CONFIG_SYS_PROMPT              "U-Boot (rrm10) > "
+#define CONFIG_SYS_PROMPT              "U-Boot (MXXF1) > "
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_CBSIZE              512
 
@@ -380,4 +380,4 @@
 
 
 
-#endif                         /* __RRM10_CONFIG_H */
+#endif                         /* __MXXF1_CONFIG_H */

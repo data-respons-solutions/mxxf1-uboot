@@ -418,7 +418,7 @@ static void spl_dram_init(void)
 	}
 }
 
-int rrm10_pmic_setup(void)
+int mxxf1_pmic_setup(void)
 {
 	int ret;
 	i2c_set_bus_num(1);
@@ -432,7 +432,7 @@ int rrm10_pmic_setup(void)
 }
 
 
-static int rrm_pmic_set(pf100_regs reg, int mV)
+static int mxxf1_pmic_set(pf100_regs reg, int mV)
 {
 	u8 values[2];
 
@@ -493,11 +493,11 @@ void board_init_f(ulong dummy)
 	hw_watchdog_init();
 	timer_init();
 	preloader_console_init();
-	err = rrm10_pmic_setup();
+	err = mxxf1_pmic_setup();
 	if (err == 0) {
-		/*rrm_pmic_set(SW1AB, 1425);
-		rrm_pmic_set(SW1C, 1425); */
-		rrm_pmic_set(SW3AB, 1350);
+		/*mxxf1_pmic_set(SW1AB, 1425);
+		mxxf1_pmic_set(SW1C, 1425); */
+		mxxf1_pmic_set(SW3AB, 1350);
 		udelay(100000);
 	}
 	err = imx_pwm_config(2, per/2, per);

@@ -122,7 +122,7 @@ static int hdmi_plugged=0;
 #define GPIO_DIMM_UP IMX_GPIO_NR(4, 7)
 
 
-int rrm10_eeprom_read (unsigned dev_addr, unsigned offset, uchar *buffer, unsigned cnt);
+int mxxf1_eeprom_read (unsigned dev_addr, unsigned offset, uchar *buffer, unsigned cnt);
 static void setup_display(void);
 
 
@@ -442,7 +442,7 @@ static int get_mac_addr(void)
 	char *at_end = base + sizeof(eeprom_content);
 	int len;
 
-	ret = rrm10_eeprom_read(eeprom_addr, 0, eeprom_content, sizeof(eeprom_content) );
+	ret = mxxf1_eeprom_read(eeprom_addr, 0, eeprom_content, sizeof(eeprom_content) );
 	if (ret < 0)
 	{
 		printf("%s: eeprom read failure\n", __func__);
@@ -663,13 +663,13 @@ static int update_env(int is_panel)
 		mdelay(2);
 		imx_pwm_enable(0);
 		if (!fdt_defined)
-			setenv("fdt_file", "/boot/rrm10.dtb");
+			setenv("fdt_file", "/boot/mxxf1.dtb");
 	/* gpio_direction_output(GPIO_BL_PWM, 1); */
 	}
 	else
 	{
 		if (!fdt_defined)
-			setenv("fdt_file", "/boot/rrm10-hdmi.dtb");
+			setenv("fdt_file", "/boot/mxxf1-hdmi.dtb");
 		setenv("panel", "HDMI");
 	}
 
@@ -720,7 +720,7 @@ int board_init(void)
 #endif
 	check_version();
 	if (panel_version)
-		setenv("panel", "RRM10-XGA");
+		setenv("panel", "MXXF1-XGA");
 	else
 		setenv("panel", "HDMI");
 
@@ -761,7 +761,7 @@ int board_late_init(void)
 
 int checkboard(void)
 {
-	printf("Board: MX6Q-RRM10\n");
+	printf("Board: MX6Q-MXXF1\n");
 
 	return 0;
 }
@@ -838,7 +838,7 @@ static struct display_info_t const displays[] = {{
 	.detect	= NULL,
 	.enable	= enable_lvds,
 	.mode	= {
-		.name           = "RRM10-XGA",
+		.name           = "MXXF1-XGA",
 		.refresh        = 60,
 		.xres           = 1024,
 		.yres           = 768,

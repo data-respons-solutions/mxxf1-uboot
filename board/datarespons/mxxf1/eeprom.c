@@ -6,7 +6,7 @@
 
 
 
-int rrm10_eeprom_read (unsigned dev_addr, unsigned offset, uchar *buffer, unsigned cnt)
+int mxxf1_eeprom_read (unsigned dev_addr, unsigned offset, uchar *buffer, unsigned cnt)
 {
 	unsigned end = offset + cnt;
 	unsigned blk_off;
@@ -41,7 +41,7 @@ int rrm10_eeprom_read (unsigned dev_addr, unsigned offset, uchar *buffer, unsign
 }
 
 
-int rrm10_eeprom_write (unsigned dev_addr, unsigned offset, uchar *buffer, unsigned cnt)
+int mxxf1_eeprom_write (unsigned dev_addr, unsigned offset, uchar *buffer, unsigned cnt)
 {
 	unsigned end = offset + cnt;
 	unsigned blk_off;
