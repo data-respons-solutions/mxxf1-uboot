@@ -260,8 +260,8 @@
 	"loadzimage=ext4load sata 0:1 ${loadaddr} ${zimage}\0" \
 	"loadfpga=if ext4load sata 0:1 ${loadaddr} ${fpgaimage}; then fpga load 0 ${loadaddr} ${filesize}; fi; \0" \
 	"loadfdt=ext4load sata 0:1 ${fdt_addr} ${fdt_file}\0" \
-	"loaduboot=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/u-boot.img; \0" \
-	"loadspl=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/SPL; \0" \
+	"loaduboot=ext4load sata 0:1 ${loadaddr} /boot/u-boot.img; \0" \
+	"loadspl=ext4load sata 0:1 ${loadaddr} /boot/SPL; \0" \
 	"flashspl=if run loadspl; then sf erase 0 10000; sf write ${loadaddr} 400 ${filesize}; fi; \0" \
 	"flashuboot=if run loaduboot; then sf erase 40000 90000; sf write ${loadaddr} 40000 ${filesize}; fi; \0" \
 	"netboot=echo Booting from net ...; " \
