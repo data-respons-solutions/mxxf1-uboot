@@ -508,7 +508,9 @@ void board_init_f(ulong dummy)
 	if (err)
 		printf("%s: imx_pwm_config for backlight ERROR\n", __func__);
 
+	mx6_ddr_debug();
 	err = mx6_ddr_init(CONFIG_SYS_MEMTEST_START);
+	mx6_ddr_debug();
 
 	if (err) {
 		imx_pwm_enable(0);
