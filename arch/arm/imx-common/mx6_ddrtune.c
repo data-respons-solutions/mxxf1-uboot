@@ -275,7 +275,7 @@ static int do_tune_wcal(void)
 	reg32_write((MMDC_P0_BASE_ADDR + MAPSR_OFFSET),
 		reg32_read((MMDC_P0_BASE_ADDR + MAPSR_OFFSET)) | 0x1);
 
-	printf("Start write leveling calibration\n");
+	printf("%s: Start write leveling calibration\n", __func__);
 	/*
 	 * 2. disable auto refresh and ZQ calibration
 	 * before proceeding with Write Leveling calibration
@@ -283,6 +283,7 @@ static int do_tune_wcal(void)
 	temp1 = reg32_read(MMDC_P0_BASE_ADDR + MDREF_OFFSET);
 	reg32_write((MMDC_P0_BASE_ADDR + MDREF_OFFSET), 0x0000C000);
 	temp2 = reg32_read(MMDC_P0_BASE_ADDR + MPZQHWCTRL_OFFSET);
+	printf("%s: MPZQHWCTRL = 0x%08x\n", __func__, temp2);
 	reg32_write((MMDC_P0_BASE_ADDR + MPZQHWCTRL_OFFSET), temp2 & ~(0x3));
 
 	/* 3. increase walat and ralat to maximum */
@@ -966,6 +967,7 @@ int mx6_ddr_init(ulong addr)
 	 * Write and read back some dummy data to demonstrate 
 	 * that ddr3 is not broken
 	 */
+#ifdef CONFIG_MX6_DDRTUNE_WR_LEVEL
 	puts("\nReference read/write test prior to tuning\n");
 	do_tune_mww(addr);
 	errorcount = do_tune_mrr(addr);
@@ -980,6 +982,7 @@ int mx6_ddr_init(ulong addr)
 	if (errorcount != 0) {
 		puts("Fly-by calibration seems to have failed\n");
 	}
+#endif
 	/* Tune DQS delays. For some reason, has to be run twice. */
 	puts("\nDQS delay calibration\n");
 	//do_tune_delays(NULL, 0, 1, NULL);
@@ -1008,3 +1011,10 @@ int mx6_ddr_init(ulong addr)
 	return errorcount;
 }
 
+void mx6_ddr_debug()
+{
+	u32 temp2;
+	temp2 = reg32_read(MMDC_P0_BASE_ADDR + MPZQHWCTRL_OFFSET);
+	printf("%s: MPZQHWCTRL = 0x%08x\n", __func__, temp2);
+
+}
