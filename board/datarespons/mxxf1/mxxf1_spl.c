@@ -490,7 +490,9 @@ void board_init_f(ulong dummy)
 	gd = &gdata;
 
 	board_early_init_f();	
+#ifdef CONFIG_SPL_WATCHDOG_SUPPORT
 	hw_watchdog_init();
+#endif
 	timer_init();
 	preloader_console_init();
 	err = mxxf1_pmic_setup();
