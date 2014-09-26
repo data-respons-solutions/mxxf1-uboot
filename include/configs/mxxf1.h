@@ -281,6 +281,7 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"zimage=/boot/zImage\0" \
+	"uimage=/boot/uImage\0" \
 	"panel=MXXF1-XGA\0" \
 	"fdt_addr=0x11000000\0" \
 	"boot_fdt=try\0" \
@@ -307,8 +308,10 @@
 	"flashspl=if run loadspl; then sf erase 0 10000; sf write ${loadaddr} 400 ${filesize}; fi; \0" \
 	"flashuboot=if run loaduboot; then sf erase 40000 90000; sf write ${loadaddr} 40000 ${filesize}; fi; \0" \
 	"loadimage=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} ${zimage}; \0" \
+	"loaduimage=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} ${uimage}; \0" \
 	"loadfdt=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file}; \0" \
 	"bootscript=run setargstty; if run loadimage loadfdt; then bootz ${loadaddr} - ${fdt_addr}; else echo ERROR: Could not load image; fi; \0" \
+	"bootscript_legacy=run setargstty; if run loaduimage ; then bootm ${loadaddr}; else echo ERROR: Could not load legacy image; fi; \0" \
 	"check_usb_boot=if usb storage; then run setusb loadfdt; fi;\0" \
 	"check_sata=if sata init; then setenv usb_root /dev/sdb1; setenv has_sata 1; fi;\0" \
 
@@ -324,7 +327,8 @@
 		"fi; " \
 	"fi; " \
 	"run loadbootscript;" \
-	"run bootscript;"
+	"run bootscript;" \
+	"run bootscript_legacy;"
 
 #define CONFIG_ARP_TIMEOUT     200UL
 
