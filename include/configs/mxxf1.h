@@ -296,8 +296,8 @@
 	"console=" CONFIG_CONSOLE_DEV "\0" \
 	"fdt_high=0xffffffff\0"	  \
 	"initrd_high=0xffffffff\0" \
-	"setargstty=setenv bootargs console=${console},${baudrate} root=${rootdev} rootwait rw rootfstype=ext4 fec_mac=${ethaddr} consoleblank=0 console=tty1\0" \
-	"setargs=setenv bootargs console=${console},${baudrate} root=${rootdev} rootwait rw rootfstype=ext4 fec_mac=${ethaddr}\0" \
+	"showtty=\0" \
+	"setargs=setenv bootargs console=${console},${baudrate} root=${rootdev} rootwait rw rootfstype=ext4 fec_mac=${ethaddr} consoleblank=0 ${showtty}\0" \
 	"bootdev=0\0" \
 	"bootpart=1\0" \
 	"bootfrom=mmc\0" \
@@ -315,8 +315,8 @@
 	"loadimage=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} ${zimage}; \0" \
 	"loaduimage=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} ${uimage}; \0" \
 	"loadfdt=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file}; \0" \
-	"bootscript=run setargstty; if run loadimage loadfdt; then bootz ${loadaddr} - ${fdt_addr}; else echo ERROR: Could not load image; fi; \0" \
-	"bootscript_legacy=run setargstty; if run loaduimage ; then bootm ${loadaddr}; else echo ERROR: Could not load legacy image; fi; \0" \
+	"bootscript=run setargs; if run loadimage loadfdt; then bootz ${loadaddr} - ${fdt_addr}; else echo ERROR: Could not load image; fi; \0" \
+	"bootscript_legacy=run setargs; if run loaduimage ; then bootm ${loadaddr}; else echo ERROR: Could not load legacy image; fi; \0" \
 	"check_usb_boot=if usb storage; then run setusb loadfdt; fi;\0" \
 	"check_sata=if sata init; then setenv usb_root /dev/sdb1; setenv has_sata 1; fi;\0" \
 
