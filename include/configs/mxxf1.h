@@ -296,8 +296,10 @@
 	"console=" CONFIG_CONSOLE_DEV "\0" \
 	"fdt_high=0xffffffff\0"	  \
 	"initrd_high=0xffffffff\0" \
-	"showtty=\0" \
-	"setargs=setenv bootargs console=${console},${baudrate} root=${rootdev} rootwait rw rootfstype=ext4 fec_mac=${ethaddr} consoleblank=0 ${showtty}\0" \
+	"loglevel=3\0" \
+	"consoleblank=0\0" \
+	"showtty=console=ttymxc0,115200 console=tty1\0" \
+	"setargs=setenv bootargs root=${rootdev} rootwait rw rootfstype=ext4 fec_mac=${ethaddr} consoleblank=${consoleblank} loglevel=${loglevel} ${showtty}\0" \
 	"bootdev=0\0" \
 	"bootpart=1\0" \
 	"bootfrom=mmc\0" \
