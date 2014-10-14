@@ -243,8 +243,10 @@
 #define CONFIG_MXC_USB_PORT	1
 #define CONFIG_MXC_USB_PORTSC	(PORT_PTS_UTMI | PORT_PTS_PTW)
 #define CONFIG_MXC_USB_FLAGS	0
-#undef CONFIG_USB_KEYBOARD
+#define CONFIG_USB_KEYBOARD
 #define CONFIG_USB_HUB_MIN_POWER_ON_DELAY 500
+#define CONFIG_SYS_USB_EVENT_POLL
+#define CONFIG_CONSOLE_MUX
 
 
 #define CONFIG_CONS_INDEX              1
@@ -298,6 +300,7 @@
 	"initrd_high=0xffffffff\0" \
 	"loglevel=3\0" \
 	"consoleblank=0\0" \
+	"stdin=serial,usbkbd\0" \
 	"showtty=console=ttymxc0,115200 console=tty1\0" \
 	"setargs=setenv bootargs root=${rootdev} rootwait rw rootfstype=ext4 fec_mac=${ethaddr} consoleblank=${consoleblank} loglevel=${loglevel} ${showtty}\0" \
 	"bootdev=0\0" \
