@@ -302,7 +302,7 @@
 	"consoleblank=0\0" \
 	"stdin=serial,usbkbd\0" \
 	"showtty=console=ttymxc0,115200 console=tty1\0" \
-	"setargs=setenv bootargs root=${rootdev} rootwait rw rootfstype=ext4 fec_mac=${ethaddr} consoleblank=${consoleblank} loglevel=${loglevel} ${showtty}\0" \
+	"setargs=setenv bootargs root=${rootdev} rootwait ro rootfstype=ext4 fec_mac=${ethaddr} consoleblank=${consoleblank} loglevel=${loglevel} ${showtty}\0" \
 	"bootdev=0\0" \
 	"bootpart=1\0" \
 	"bootfrom=mmc\0" \
