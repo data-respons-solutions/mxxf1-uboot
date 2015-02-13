@@ -115,6 +115,7 @@
 	"allow_usbkbd=yes\0" \
 	"console=" CONFIG_CONSOLE_DEV "\0" \
 	"fdt_high=0xffffffff\0"	  \
+	"fdt_file=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"initrd_high=0xffffffff\0" \
 	"loglevel=3\0" \
 	"consoleblank=0\0" \
@@ -193,14 +194,16 @@
 
 /* FLASH and environment organization */
 #define CONFIG_SYS_NO_FLASH
+#define CONFIG_ENV_OVERWRITE
+#define CONFIG_ENV_IS_IN_SPI_FLASH
 
 #define CONFIG_ENV_SIZE			(64 * 1024)
-
-#define CONFIG_ENV_IS_IN_MMC
-
-#if defined(CONFIG_ENV_IS_IN_MMC)
+#define CONFIG_ENV_SECT_SIZE 	(64 * 1024)
+#define CONFIG_ENV_SPI_BUS             CONFIG_SF_DEFAULT_BUS
+#define CONFIG_ENV_SPI_CS              CONFIG_SF_DEFAULT_CS
+#define CONFIG_ENV_SPI_MODE            CONFIG_SF_DEFAULT_MODE
+#define CONFIG_ENV_SPI_MAX_HZ          CONFIG_SF_DEFAULT_SPEED
 #define CONFIG_ENV_OFFSET		(0xc0000)
-#endif
 
 #define CONFIG_OF_LIBFDT
 

@@ -263,7 +263,7 @@ int param_generate(struct param *e)
     // Generate new CRC
     //
     uint8_t *p = (uint8_t*)(e->data);
-    uint32_t checksum = computeCRC(0, &p[4], e->size-4);
+    uint32_t checksum = crc32(0, &p[4], e->size-4);
     p[0] = checksum & 0xff;
     p[1] = (checksum >> 8) & 0xff;
     p[2] = (checksum >> 16) & 0xff;
