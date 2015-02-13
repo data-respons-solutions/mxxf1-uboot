@@ -33,6 +33,9 @@
 #include <usb.h>
 #include <pwm.h>
 #include <version.h>
+#include <watchdog.h>
+
+#define USE_PWM_FOR_BL
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -557,13 +560,9 @@ static void setup_display(void)
 }
 #endif /* CONFIG_VIDEO_IPUV3 */
 
-/*
- * Do not overwrite the console
- * Use always serial for U-Boot console
- */
 int overwrite_console(void)
 {
-	return 1;
+	return 0;
 }
 
 #ifndef CONFIG_SPL_BUILD
@@ -598,7 +597,7 @@ static PanelVersion check_version(void)
 	{
 		printf("%s: I2C EEPROM at 0x%x - DIN RAIL version\n", __func__, eeprom_addr);
 		setenv("panel", "HDMI");
-		if (!fdt_defined)
+		if (NULL == fdt_defined)
 			setenv("fdt_file", "/boot/mxxf1-hdmi.dtb");
 		ret = VER_DIN;
 	}
@@ -610,7 +609,7 @@ static PanelVersion check_version(void)
 		{
 			printf("%s: I2C EEPROM at 0x%x - PANEL version\n", __func__, eeprom_addr);
 			setenv("panel", "MXXF1-XGA");
-			if (!fdt_defined)
+			if (NULL == fdt_defined)
 				setenv("fdt_file", "/boot/mxxf1.dtb");
 		}
 		ret = VER_PANEL;
@@ -747,7 +746,7 @@ int board_init(void)
 
 
 #ifdef USE_PWM_FOR_BL
-	if (pwm_config(0, 2500000, 5000000))
+	if (pwm_config(0, 2500, 5000))
 		printf("%s: pwm_config for backlight ERROR\n", __func__);
 
 	pwm_enable(0);
@@ -858,16 +857,16 @@ const struct mx6dq_iomux_grp_regs mx6_grp_ioregs = {
 const struct mx6_mmdc_calibration mx6_mmcd_calib = {
 	.p0_mpwldectrl0 =  0x001F001F,
 	.p0_mpwldectrl1 =  0x001F001F,
-	.p1_mpwldectrl0 =  0x00440044,
-	.p1_mpwldectrl1 =  0x00440044,
-	.p0_mpdgctrl0 =  0x434B0350,
-	.p0_mpdgctrl1 =  0x034C0359,
-	.p1_mpdgctrl0 =  0x434B0350,
-	.p1_mpdgctrl1 =  0x03650348,
-	.p0_mprddlctl =  0x4436383B,
-	.p1_mprddlctl =  0x39393341,
-	.p0_mpwrdlctl =  0x35373933,
-	.p1_mpwrdlctl =  0x48254A36,
+	.p1_mpwldectrl0 =  0x001F001F,
+	.p1_mpwldectrl1 =  0x001F001F,
+	.p0_mpdgctrl0 =  0x40404040,
+	.p0_mpdgctrl1 =  0x40404040,
+	.p1_mpdgctrl0 =  0x40404040,
+	.p1_mpdgctrl1 =  0x40404040,
+	.p0_mprddlctl =  0x40404040,
+	.p1_mprddlctl =  0x40404040,
+	.p0_mpwrdlctl =  0x40404040,
+	.p1_mpwrdlctl =  0x40404040,
 };
 
 static struct mx6_ddr3_cfg mem_ddr = {
@@ -998,6 +997,7 @@ void board_init_f(ulong dummy)
 
 	ccgr_init();
 	gpr_init();
+	hw_watchdog_init();
 
 	/* iomux and setup of i2c */
 	board_early_init_f();
@@ -1035,7 +1035,9 @@ void board_init_f(ulong dummy)
 	board_init_r(NULL, 0);
 }
 
+#ifndef CONFIG_SPL_WATCHDOG_SUPPORT
 void reset_cpu(ulong addr)
 {
 }
+#endif
 #endif
