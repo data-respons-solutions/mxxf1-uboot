@@ -246,10 +246,8 @@ static int do_tune_wcal(void)
 	int temp1, temp2;
 	int errorcount = 0;
 	int ddr_mr1 = 0x04;
-	int withprint = 1;
+	int withprint = 0;
 	int ldectrl[4];
-
-	ddr_mr1 = 0x04;
 
 	printf("MMDC_MPWLDECTRL0 before write level cal: 0x%08X\n",
 		reg32_read(MMDC_P0_BASE_ADDR + MPWLDECTRL0_OFFSET));
@@ -946,7 +944,6 @@ int mx6_ddr_init(ulong addr)
 	unsigned int cfgval = 0;
 	int errorcount = 0;
 
-
 	puts("\nReprogramming DDR timings...\n" );
 
 	cfgval = reg32_read(MMDC_P0_BASE_ADDR + MDCTL_OFFSET);
@@ -968,53 +965,36 @@ int mx6_ddr_init(ulong addr)
 	 * that ddr3 is not broken
 	 */
 #ifdef CONFIG_MX6_DDRTUNE_WR_LEVEL
-	puts("\nReference read/write test prior to tuning\n");
+	printf("%s: Reference read/write test prior to tuning\n", __func__);
 	do_tune_mww(addr);
 	errorcount = do_tune_mrr(addr);
 	if (errorcount)
 		printf("%s: Initial testing shows %d errors\n", __func__, errorcount);
 
 	/* do write (fly-by) calibration */
-	puts("\nFly-by calibration\n");
+	printf("%s: Fly-by calibration\n", __func__);
 	errorcount = do_tune_wcal();
 	udelay(100000);
 	/* let it settle in...seems it's necessary */
 	if (errorcount != 0) {
-		puts("Fly-by calibration seems to have failed\n");
+		printf("%s: Fly-by calibration seems to have failed\n", __func__);
 	}
 #endif
 	/* Tune DQS delays. For some reason, has to be run twice. */
-	puts("\nDQS delay calibration\n");
+	printf("%s: DQS delay calibration\n", __func__);
 	//do_tune_delays(NULL, 0, 1, NULL);
 	errorcount = do_tune_delays();
 	if (errorcount != 0) {
-		puts("DQS delay calibration has failed. Guessing values "
-				"for delay cal based on rank...\n");
-		reg32_write(MPDGCTRL0_PHY0, 0x456B057A);
-		reg32_write(MPDGCTRL1_PHY0, 0x057F0607);
-		reg32_write(MPDGCTRL0_PHY1, 0x46470645);
-		reg32_write(MPDGCTRL1_PHY1, 0x0651061D);
-		reg32_write(MPRDDLCTL_PHY0, 0x48444249);
-		reg32_write(MPRDDLCTL_PHY1, 0x4D4D424E);
-		reg32_write(MPWRDLCTL_PHY0, 0x322D4132);
-		reg32_write(MPWRDLCTL_PHY1, 0x3D2E3F37);
-
+		printf("%s: DQS delay calibration has failed\n", __func__);
 	}
+	return errorcount;
 	/* 
 	 * Confirm that the memory is working by read/write demo.
 	 * Confirmation currently read out on terminal.
 	 */
-	puts("\nReference read/write test post-tuning\n");
+	printf("%s: Reference read/write test post-tuning\n", __func__);
 	do_tune_mww(addr);
 	errorcount = do_tune_mrr(addr);
 
 	return errorcount;
-}
-
-void mx6_ddr_debug()
-{
-	u32 temp2;
-	temp2 = reg32_read(MMDC_P0_BASE_ADDR + MPZQHWCTRL_OFFSET);
-	printf("%s: MPZQHWCTRL = 0x%08x\n", __func__, temp2);
-
 }
