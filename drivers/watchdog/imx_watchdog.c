@@ -34,7 +34,7 @@ void hw_watchdog_reset(void)
 
 void hw_watchdog_init(void)
 {
-	struct watchdog_regs *wdog = (struct watchdog_regs *)WDOG1_BASE_ADDR;
+	struct wdog_regs *wdog = (struct wdog_regs *)WDOG1_BASE_ADDR;
 	u16 timeout;
 
 	/*
@@ -45,10 +45,12 @@ void hw_watchdog_init(void)
 #ifndef CONFIG_WATCHDOG_TIMEOUT_MSECS
 #define CONFIG_WATCHDOG_TIMEOUT_MSECS 128000
 #endif
+
 	timeout = (CONFIG_WATCHDOG_TIMEOUT_MSECS / 500) - 1;
 	writew(WCR_WDZST | WCR_WDBG | WCR_WDE | WCR_WDT | WCR_SRS |
 		WCR_WDW | SET_WCR_WT(timeout), &wdog->wcr);
 	hw_watchdog_reset();
+	writew(0, &wdog->wmcr);	/* Disable power down enable */
 }
 #endif
 
