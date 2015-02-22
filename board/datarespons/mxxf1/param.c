@@ -3,7 +3,7 @@
 
 #include "param.h"
 #include <u-boot/crc.h>
-
+#include <errno.h>
 
 
 int param_init(struct param *e, const char *from, int size)
@@ -26,25 +26,29 @@ int param_init(struct param *e, const char *from, int size)
     return 0;
 }
 
-
+int param_write(struct param *e, const char *where)
+{
+	memcpy((void*)where, e->data, e->size);
+	return 0;
+}
 
 int param_add(struct param *e, const char *param)
 {
     if (e->count == e->max_params)
     {
         fprintf(stderr, "%s: Internal error: No free slot for parameter\n", __func__);
-        return 1;
+        return -ENOMEM;
     }
     int len = strlen(param)+1;
     if (len == 1)
     {
         fprintf(stderr, "%s: Internal error: Tried to add 0-length parameter\n", __func__);
-        return 1;
+        return -EINVAL;
     }
     if (e->usage+len > e->size)
     {
         fprintf(stderr, "%s: Not enough free space to add parameter '%s'\n", __func__, param);
-        return 1;
+        return -ENOMEM;
     }
 
     // Add the parameter to the list
@@ -140,6 +144,9 @@ int param_delete(struct param *e, int index)
 int param_split(const char *param, char **key, char **data)
 {
     char *s = strdup(param);
+    if ( NULL == s)
+    	return -ENOMEM;
+
     char *sep = strchr(s,'=');
     *key = s;
     if (!sep)
@@ -181,7 +188,7 @@ int param_parse(struct param *e)
     if (crc != checksum)
     {
         fprintf(stderr, "%s: Incorrect nvram checksum\n", __func__);
-        return -1;
+        return -EINVAL;
     }
     else
     {
@@ -204,7 +211,7 @@ int param_parse(struct param *e)
         if (len == remain)
         {
             fprintf(stderr, "%s: Invalid nvram data. Missing 0-termination on last parameter\n", __func__);
-            return 1;
+            return -EINVAL;
         }
 
         // Add the parameter
@@ -230,7 +237,7 @@ int param_generate(struct param *e)
     int count=e->count;
     int i = 0;
 
-    fprintf(stderr, "%s: Going to generate %d parameters\n", __func__, count);
+    printf("%s: Going to generate %d parameters\n", __func__, count);
 
     while(i < count)
     {

@@ -31,7 +31,7 @@ int param_set(struct param *e, const char *param);
 int param_parse(struct param *e);
 int param_generate(struct param *e);
 
-int param_write(struct param *e, const char *where, int dryrun);
+int param_write(struct param *e, const char *where);
 
 int param_check_key(const char *key);
 int param_check_data(const char *data);

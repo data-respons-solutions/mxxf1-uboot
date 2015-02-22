@@ -81,34 +81,13 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define I2C_PAD MUX_PAD_CTRL(I2C_PAD_CTRL)
 
-#define GPIO_AUX_5V IMX_GPIO_NR(6, 10)
-#define GPIO_PCIE_RST_N IMX_GPIO_NR(7, 12)
-#define GPIO_EEPROM_WP	IMX_GPIO_NR(1, 5)
-#define GPIO_SPI_NOR_WP	IMX_GPIO_NR(6, 11)
-#define GPIO_LAN2_EE_WP	IMX_GPIO_NR(6, 14)
-#define GPIO_CAP_TOUCH_RST	IMX_GPIO_NR(6, 16)
-#define GPIO_CAP_TOUCH_PWR	IMX_GPIO_NR(1, 4)
-#define GPIO_LCD_EN	IMX_GPIO_NR(6, 15)
-#define GPIO_BL_EN	IMX_GPIO_NR(1, 2)
-#define GPIO_BL_PWM	IMX_GPIO_NR(1, 9)
-#define GPIO_FAN_EN IMX_GPIO_NR(1, 18)
-#define GPIO_BUZ_INT_EN IMX_GPIO_NR(1, 17)
-#define GPIO_BUZ_EXT_EN IMX_GPIO_NR(1, 19)
-
-#define GPIO_USB_H1_EN	IMX_GPIO_NR(1, 29)
-#define GPIO_USBP0_EN	IMX_GPIO_NR(3, 28)
-#define GPIO_USBP1_EN	IMX_GPIO_NR(2, 3)
-#define GPIO_USBP2_EN	IMX_GPIO_NR(2, 7)
-#define GPIO_USBP3_EN	IMX_GPIO_NR(6, 9)
-#define GPIO_LVDS_ROTATE IMX_GPIO_NR(7, 11)
-
-#define GPIO_DIMM_DN IMX_GPIO_NR(4, 6)
-#define GPIO_DIMM_UP IMX_GPIO_NR(4, 7)
+#include "mxxf1_gpio.h"
 
 typedef enum  { SW1AB, SW1C, SW3AB } pf100_regs;
 typedef enum {VER_PANEL, VER_DIN, VER_UNKNOWN} PanelVersion;
 
 static PanelVersion board_version = VER_UNKNOWN;
+int vpd_update(void);
 
 int dram_init(void)
 {
@@ -582,23 +561,21 @@ static void setup_iomux_enet(void)
 
 int mxxf1_eeprom_init (unsigned dev_addr);
 int eeprom_get_mac_addr(void);
+int eeprom_addr;
 
 static PanelVersion check_version(void)
 {
 	PanelVersion ret=VER_UNKNOWN;
-	int eeprom_addr = CONFIG_EEPROM_ADDR2;
+	eeprom_addr = CONFIG_EEPROM_ADDR2;
 	i2c_set_bus_num(1);
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 
 	i2c_set_bus_speed(CONFIG_SYS_I2C_SPEED);
 	ret = i2c_probe(eeprom_addr);
-	char *fdt_defined = getenv("fdt_file");
+
 	if (ret == 0)
 	{
 		printf("%s: I2C EEPROM at 0x%x - DIN RAIL version\n", __func__, eeprom_addr);
-		setenv("panel", "HDMI");
-		if (NULL == fdt_defined)
-			setenv("fdt_file", "/boot/mxxf1-hdmi.dtb");
 		ret = VER_DIN;
 	}
 	else
@@ -608,11 +585,8 @@ static PanelVersion check_version(void)
 		if (ret == 0)
 		{
 			printf("%s: I2C EEPROM at 0x%x - PANEL version\n", __func__, eeprom_addr);
-			setenv("panel", "MXXF1-XGA");
-			if (NULL == fdt_defined)
-				setenv("fdt_file", "/boot/mxxf1.dtb");
+			ret = VER_PANEL;
 		}
-		ret = VER_PANEL;
 	}
 	ret = mxxf1_eeprom_init(eeprom_addr);
 	return ret;
@@ -703,9 +677,9 @@ int board_early_init_f(void)
 	/* Bring up basic power for serial debug etc	*/
 
 	gpio_direction_output(GPIO_PCIE_RST_N, 1);
-	gpio_direction_output(GPIO_EEPROM_WP, 0);
-	gpio_direction_output(GPIO_LAN2_EE_WP, 0);
-	gpio_direction_output(GPIO_SPI_NOR_WP, 0);
+	gpio_direction_output(GPIO_EEPROM_WP, 1);
+	gpio_direction_output(GPIO_LAN2_EE_WP, 1);
+	gpio_direction_output(GPIO_SPI_NOR_WP, 1);
 	gpio_direction_output(GPIO_CAP_TOUCH_PWR, 1);
 	gpio_direction_output(GPIO_LCD_EN, 0);
 	gpio_direction_output(GPIO_BL_EN, 0);
@@ -731,10 +705,11 @@ int board_early_init_f(void)
 #ifndef CONFIG_SPL_BUILD
 int board_init(void)
 {
+
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
-	printf("%s: with version %s\n", __func__, U_BOOT_VERSION);
+
 	board_version = check_version();
 	setup_display();
 
@@ -744,7 +719,7 @@ int board_init(void)
 		setenv("stderr", "vga");
 	}
 
-
+	//vpd_update();
 #ifdef USE_PWM_FOR_BL
 	if (pwm_config(0, 2500, 5000))
 		printf("%s: pwm_config for backlight ERROR\n", __func__);
@@ -781,11 +756,44 @@ static const struct boot_mode board_boot_modes[] = {
 
 #ifndef CONFIG_SPL_BUILD
 static char * const usbcmd[] = {"usb", "start"};
+static char * const reset_env_cmd[] = {"env", "default", "-a"};
+static char * const save_env_cmd[] = {"env", "save"};
+
 int board_late_init(void)
 {
 	int rep;
 	ulong ticks;
-	printf("%s:", __func__);
+	char *version_from_env;
+	char *fdt_defined;
+
+	printf("MXXF1 U-BOOT version [%s]\n", U_BOOT_VERSION);
+	version_from_env = getenv("UBOOT_VERSION");
+	if (version_from_env == 0 || strncmp(U_BOOT_VERSION, version_from_env, 128))
+	{
+		cmd_process(0, 3, reset_env_cmd, &rep, &ticks);
+		printf("U-Boot version [%s] differs from env [%s] - update\n", U_BOOT_VERSION, version_from_env);
+		setenv("UBOOT_VERSION", U_BOOT_VERSION);
+		cmd_process(0, 2, save_env_cmd, &rep, &ticks);
+	}
+
+	fdt_defined = getenv("fdt_file");
+	switch (board_version)
+	{
+	case VER_DIN:
+		if (NULL == fdt_defined)
+			setenv("fdt_file", "/boot/mxxf1-hdmi.dtb");
+		break;
+
+	case VER_PANEL:
+		setenv("stdout", "vga");
+		setenv("stderr", "vga");
+		if (NULL == fdt_defined)
+			setenv("fdt_file", "/boot/mxxf1.dtb");
+		break;
+
+	default:
+		break;
+	}
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
 	eeprom_get_mac_addr();
 
