@@ -87,7 +87,7 @@ typedef enum  { SW1AB, SW1C, SW3AB } pf100_regs;
 typedef enum {VER_PANEL, VER_DIN, VER_UNKNOWN} PanelVersion;
 
 static PanelVersion board_version = VER_UNKNOWN;
-int vpd_update(void);
+int vpd_update_eeprom(char *touch_fw_ver);
 
 int dram_init(void)
 {
@@ -545,9 +545,67 @@ int overwrite_console(void)
 }
 
 #ifndef CONFIG_SPL_BUILD
+#define MAX_I2C_DATA_LEN 10
+static char egalax_fw[6];
+static int egalax_firmware_version(void)
+{
+	int to=100000;
+	static const uint8_t cmd[MAX_I2C_DATA_LEN] = { 0x03, 0x03, 0xa, 0x01, 'D', 0, 0, 0, 0, 0 };
+	uint8_t rcv_buf[MAX_I2C_DATA_LEN+1];
+
+	int ret;
+	i2c_set_bus_num(2);
+	i2c_set_bus_speed(CONFIG_SYS_I2C_SPEED);
+
+	ret = i2c_probe(0x04);
+	if (ret)
+	{
+		printf("%s: NO touch controller\n", __func__);
+		return -ENODEV;
+	}
+	if (i2c_write(0x04, 0, 0, (uint8_t*)cmd, MAX_I2C_DATA_LEN))
+	{
+		printf("%s: Error requesting FW version\n", __func__);
+		return -EIO;
+	}
+	else
+	{
+		while (gpio_get_value(GPIO_TOUCH_IRQ) && to > 0)
+		{
+			udelay(1000);
+			to--;
+		}
+		if (to <= 0)
+		{
+			printf("%s: timeout waiting for touch irq\n", __func__);
+			return -EIO;
+		}
+		ret = i2c_read(0x04, 0, 0, rcv_buf, MAX_I2C_DATA_LEN);
+		if (ret)
+		{
+			printf("%s: Error receiving FW version\n", __func__);
+			return -EIO;
+		}
+		if (rcv_buf[0] == 0x03 && rcv_buf[4] == 'D')
+		{
+			rcv_buf[MAX_I2C_DATA_LEN] = '\0';
+			strcpy(egalax_fw, (char *)&rcv_buf[5]);
+			printf("%s: FW version [%s]\n", __func__, egalax_fw);
+		}
+		else
+		{
+			printf("%s: Got touch message %x.%x.%x\n", __func__, rcv_buf[0], rcv_buf[1], rcv_buf[2]);
+		}
+	}
+
+	gpio_set_value(GPIO_CAP_TOUCH_RST, 0);
+	udelay(500);
+	gpio_set_value(GPIO_CAP_TOUCH_RST, 1);
+	return 0;
+}
+
 static void setup_iomux_enet(void)
 {
-
 
 	/* Reset AR8031 PHY */
 	gpio_direction_output(IMX_GPIO_NR(1, 25) , 0);
@@ -568,8 +626,6 @@ static PanelVersion check_version(void)
 	PanelVersion ret=VER_UNKNOWN;
 	eeprom_addr = CONFIG_EEPROM_ADDR2;
 	i2c_set_bus_num(1);
-	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
-
 	i2c_set_bus_speed(CONFIG_SYS_I2C_SPEED);
 	ret = i2c_probe(eeprom_addr);
 
@@ -693,6 +749,7 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_AUX_5V, 1);
 	gpio_direction_input(GPIO_DIMM_DN);
 	gpio_direction_input(GPIO_DIMM_UP);
+	gpio_direction_input(GPIO_TOUCH_IRQ);
 #ifndef CONFIG_SPL_BUILD
 	setup_display();
 #endif
@@ -705,21 +762,12 @@ int board_early_init_f(void)
 #ifndef CONFIG_SPL_BUILD
 int board_init(void)
 {
-
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
-
 
 	board_version = check_version();
 	setup_display();
 
-	if (board_version == VER_PANEL || (board_version == VER_DIN && detect_hdmi(&displays[1]) ))
-	{
-		setenv("stdout", "vga");
-		setenv("stderr", "vga");
-	}
-
-	//vpd_update();
 #ifdef USE_PWM_FOR_BL
 	if (pwm_config(0, 2500, 5000))
 		printf("%s: pwm_config for backlight ERROR\n", __func__);
@@ -766,12 +814,17 @@ int board_late_init(void)
 	char *version_from_env;
 	char *fdt_defined;
 
-	printf("MXXF1 U-BOOT version [%s]\n", U_BOOT_VERSION);
+
 	version_from_env = getenv("UBOOT_VERSION");
 	if (version_from_env == 0 || strncmp(U_BOOT_VERSION, version_from_env, 128))
 	{
-		cmd_process(0, 3, reset_env_cmd, &rep, &ticks);
+		if (board_version == VER_PANEL)
+		{
+			setenv("stdout", "vga");
+			setenv("stderr", "vga");
+		}
 		printf("U-Boot version [%s] differs from env [%s] - update\n", U_BOOT_VERSION, version_from_env);
+		cmd_process(0, 3, reset_env_cmd, &rep, &ticks);
 		setenv("UBOOT_VERSION", U_BOOT_VERSION);
 		cmd_process(0, 2, save_env_cmd, &rep, &ticks);
 	}
@@ -794,6 +847,12 @@ int board_late_init(void)
 	default:
 		break;
 	}
+	printf("MXXF1 U-BOOT version [%s]\n", U_BOOT_VERSION);
+	if (egalax_firmware_version() == 0)
+		vpd_update_eeprom(egalax_fw);
+	else
+		vpd_update_eeprom(0);
+
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
 	eeprom_get_mac_addr();
 

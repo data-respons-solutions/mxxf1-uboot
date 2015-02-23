@@ -25,4 +25,6 @@
 #define GPIO_DIMM_DN IMX_GPIO_NR(4, 6)
 #define GPIO_DIMM_UP IMX_GPIO_NR(4, 7)
 
+#define GPIO_TOUCH_IRQ IMX_GPIO_NR(6, 8)
+
 #endif

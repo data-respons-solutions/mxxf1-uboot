@@ -64,12 +64,13 @@ int mxxf1_eeprom_write(unsigned dev_addr, unsigned offset, uint8_t *buffer,
 	unsigned end = offset + cnt;
 	unsigned blk_off;
 	int rcode = 0;
+	int retries;
 	i2c_set_bus_num(1);
 	/* Write data until done or would cross a write page boundary.
 	 * We must write the address again when changing pages
 	 * because the address counter only increments within a page.
 	 */
-	printf("\n%s: Program eeprom at 0x%02x, offset %d, length %d ", __func__,
+	printf("\n%s: Program eeprom at 0x%02x, offset %d, length %d\n", __func__,
 			dev_addr, offset, cnt);
 	gpio_set_value(GPIO_EEPROM_WP, 0);
 	while (offset < end)
@@ -87,10 +88,12 @@ int mxxf1_eeprom_write(unsigned dev_addr, unsigned offset, uint8_t *buffer,
 		if (len > maxlen)
 			len = maxlen;
 
-		printf("%s: addr=0x%x, offs=0x%x, len=0x%x\n", __func__, segment_addr, blk_off, len);
-		if (i2c_write(segment_addr, blk_off, 1, buffer, len) != 0)
+		retries = 10;
+		while (retries-- && i2c_write(segment_addr, blk_off, 1, buffer, len));
+
+		if (retries <= 0)
 		{
-			printf("%s: IO error\n", __func__);
+			printf("%s: IO error remains after timeout - giving up\n", __func__);
 			gpio_set_value(GPIO_EEPROM_WP, 1);
 			return -EIO;
 		}
@@ -170,40 +173,55 @@ int eeprom_get_mac_addr(void)
 	return ret;
 }
 
-int vpd_update_eeprom(void)
+static int check_and_update(const char *key, const char *value)
 {
-	char *data, *key;
-	int status;
-	int index = param_find(&ee, "UBOOT_VERSION");
-
-	if (index < 0)
+	int dirty = 0;
+	int psize;
+	char *param;
+	int index = param_find(&ee, key);
+	if (param_check_key(key) || param_check_data(value))
 	{
-		printf("%s: UBOOT_VERSION not found in EEPROM, adding it\n", __func__);
-		status = param_add(&ee, strcat("UBOOT_VERSION=", U_BOOT_VERSION));
-		if (status)
-			return status;
+		printf("%s: Illegal key/value\n", __func__);
+		return -EINVAL;
+	}
+	psize = strlen(key) + strlen(value) + 4;
+	param = malloc(psize);
+	strcpy(param, key);
+	strcat(param, "=");
+	strcat(param, value);
+	if ( index < 0 )
+	{
+		param_add(&ee, param);
+		dirty = 1;
 	}
 	else
 	{
-		status = param_split(ee.param[index], &key, &data);
-		if (status < 0)
+		if (strcmp(ee.param[index], param))
 		{
-			printf("%s: param_split failed [%d]\n", __func__, status);
-			return 0;
+			param_update(&ee, index, param);
+			dirty = 1;
 		}
-		if ((data && strncmp(data, U_BOOT_VERSION, 120)) || NULL == data)
-		{
-			printf("%s: Updating u-boot version from [%s] to [%s]\n", __func__,
-					data ? data : "void", U_BOOT_VERSION);
-			param_update(&ee, index, strcat("UBOOT_VERSION=", U_BOOT_VERSION));
-		}
-		else
-			return 0;
 	}
-	param_generate(&ee);
-	status = mxxf1_eeprom_write(eeprom_addr, 0, ee.data, ee.size);
-	eeprom_ok = status ? 0 : 1;
-	return 1;
+	free(param);
+	return dirty;
+}
+
+int vpd_update_eeprom(char *touch_fw_ver)
+{
+	int status;
+	int dirty=0;
+	dirty = check_and_update("UBOOT_VERSION", U_BOOT_VERSION);
+	if (touch_fw_ver)
+		dirty |= check_and_update("TOUCH_FW", touch_fw_ver);
+
+	if (dirty)
+	{
+		param_generate(&ee);
+		status = mxxf1_eeprom_write(eeprom_addr, 0, ee.data, ee.size);
+		eeprom_ok = status ? 0 : 1;
+		return 1;
+	}
+	return 0;
 }
 
 static int do_vpd(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
