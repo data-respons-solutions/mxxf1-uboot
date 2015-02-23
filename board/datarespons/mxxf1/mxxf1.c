@@ -988,7 +988,7 @@ static int mxxf1_pmic_set(pf100_regs reg, int mV)
 			return -EINVAL;
 		}
 		values[0] = (mV - 300) / 25;
-		i2c_write(0x08, 0x20, 1, values, 1);
+		i2c_write(0x08, PFUZE100_SW1ABVOL, 1, values, 1);
 		break;
 
 	case SW1C:
@@ -997,7 +997,7 @@ static int mxxf1_pmic_set(pf100_regs reg, int mV)
 			return -EINVAL;
 		}
 		values[0] = (mV - 300) / 25;
-		i2c_write(0x08, 0x2E, 1, values, 1);
+		i2c_write(0x08, PFUZE100_SW1CVOL, 1, values, 1);
 		break;
 
 	case SW3AB:
@@ -1006,8 +1006,8 @@ static int mxxf1_pmic_set(pf100_regs reg, int mV)
 			return -EINVAL;
 		}
 		values[0] = (mV - 400) / 25;
-		i2c_write(0x08, 0x3C, 1, values, 1);
-		i2c_write(0x08, 0x43, 1, values, 1);
+		i2c_write(0x08, PFUZE100_SW3AVOL, 1, values, 1);
+		i2c_write(0x08, PFUZE100_SW3BVOL, 1, values, 1);
 		break;
 	}
 
