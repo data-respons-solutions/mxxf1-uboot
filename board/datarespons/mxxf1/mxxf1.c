@@ -644,7 +644,7 @@ static PanelVersion check_version(void)
 			ret = VER_PANEL;
 		}
 	}
-	ret = mxxf1_eeprom_init(eeprom_addr);
+
 	return ret;
 }
 
@@ -780,7 +780,10 @@ int board_init(void)
 	gpio_set_value(GPIO_BL_EN, 1);
 	setup_usb();
 	setup_sata();
-
+	if (mxxf1_eeprom_init(eeprom_addr))
+	{
+		printf("%s: Failed to init VPD eeprom\n", __func__);
+	}
 	return 0;
 }
 #endif

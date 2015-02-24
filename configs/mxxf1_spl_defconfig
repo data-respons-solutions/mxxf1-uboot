@@ -1,5 +1,5 @@
 CONFIG_SPL=y
-CONFIG_SYS_EXTRA_OPTIONS="IMX_CONFIG=arch/arm/imx-common/spl_sd.cfg,SPL,MX6Q"
+CONFIG_SYS_EXTRA_OPTIONS="IMX_CONFIG=board/datarespons/mxxf1/spl_spi.cfg,SPL,MX6Q"
 +S:CONFIG_ARM=y
 +S:CONFIG_TARGET_MXXF1=y
 
