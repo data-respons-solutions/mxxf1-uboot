@@ -14,15 +14,16 @@ static char eeprom_content[CONFIG_EEPROM_SIZE];
 
 static struct param ee;
 static int eeprom_ok = 0;
+static int vpd_valid = 0;
 static unsigned eeprom_addr = 0;
 
-int mxxf1_eeprom_init(unsigned dev_addr)
+int mxxf1_eeprom_read(void)
 {
 	unsigned offset = 0;
 	unsigned end = CONFIG_EEPROM_SIZE;
 	unsigned blk_off;
 	char *buffer = eeprom_content;
-	eeprom_addr = dev_addr;
+
 	i2c_set_bus_num(1);
 	//printf("%s with dev_addr= 0x%x, offs=0x%x, cnt=%d\n", __func__, dev_addr, offset, cnt);
 	/* Read data until done or would cross a page boundary.
@@ -33,7 +34,7 @@ int mxxf1_eeprom_init(unsigned dev_addr)
 	{
 		unsigned len;
 		unsigned maxlen;
-		uchar segment_addr = dev_addr;
+		uchar segment_addr = eeprom_addr;
 		blk_off = offset & 0xFF; /* block offset */
 
 		segment_addr |= (offset >> 8) & 0x7; /* block number */
@@ -53,8 +54,21 @@ int mxxf1_eeprom_init(unsigned dev_addr)
 		buffer += len;
 		offset += len;
 	}
+
+	return 0;
+}
+
+int mxxf1_eeprom_init(unsigned dev_addr)
+{
+	eeprom_ok = 0;
+	vpd_valid = 0;
+	eeprom_addr = dev_addr;
+	int res = mxxf1_eeprom_read();
+	if (res)
+		return res;
+	eeprom_ok = 1;
 	param_init(&ee, eeprom_content, CONFIG_EEPROM_SIZE);
-	eeprom_ok = param_parse(&ee) == 0 ? 1 : 0;
+	vpd_valid = param_parse(&ee) == 0 ? 1 : 0;
 	return 0;
 }
 
@@ -178,7 +192,7 @@ static int check_and_update(const char *key, const char *value)
 	int dirty = 0;
 	int psize;
 	char *param;
-	int index = param_find(&ee, key);
+	int index;
 	if (param_check_key(key) || param_check_data(value))
 	{
 		printf("%s: Illegal key/value\n", __func__);
@@ -189,6 +203,7 @@ static int check_and_update(const char *key, const char *value)
 	strcpy(param, key);
 	strcat(param, "=");
 	strcat(param, value);
+	index = param_find(&ee, key);
 	if ( index < 0 )
 	{
 		param_add(&ee, param);
@@ -208,6 +223,7 @@ static int check_and_update(const char *key, const char *value)
 
 int vpd_update_eeprom(char *touch_fw_ver)
 {
+	int retries=3;
 	int status;
 	int dirty=0;
 	dirty = check_and_update("UBOOT_VERSION", U_BOOT_VERSION);
@@ -217,9 +233,27 @@ int vpd_update_eeprom(char *touch_fw_ver)
 	if (dirty)
 	{
 		param_generate(&ee);
-		status = mxxf1_eeprom_write(eeprom_addr, 0, ee.data, ee.size);
-		eeprom_ok = status ? 0 : 1;
-		return 1;
+		while (retries--)
+		{
+			status = mxxf1_eeprom_write(eeprom_addr, 0, ee.data, ee.size);
+			printf("%s: Validating VPD\n", __func__);
+			memset(eeprom_content, 0xff, CONFIG_EEPROM_SIZE);
+			mxxf1_eeprom_read();
+			if (memcmp(eeprom_content, ee.data, ee.size))
+			{
+				printf("%s: EEPROM did not validate!\n", __func__);
+				eeprom_ok = 0;
+				vpd_valid = 0;
+			}
+			else
+			{
+				printf("%s: EEPROM validated\n", __func__);
+				eeprom_ok = 1;
+				vpd_valid = 1;
+				return 1;
+			}
+		}
+		printf("%s: Failed to write EEPROM\n", __func__);
 	}
 	return 0;
 }
@@ -227,7 +261,13 @@ int vpd_update_eeprom(char *touch_fw_ver)
 static int do_vpd(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int n;
-	if (!eeprom_ok)
+	if (argc > 1 && strcmp(argv[1], "erase") == 0)
+	{
+		memset(eeprom_content, 0xff, CONFIG_EEPROM_SIZE);
+		mxxf1_eeprom_write(eeprom_addr, 0, (uint8_t*)eeprom_content, CONFIG_EEPROM_SIZE);
+
+	}
+	if (!vpd_valid)
 	{
 		printf("BAD EEPROM CRC\n");
 		return 0;
