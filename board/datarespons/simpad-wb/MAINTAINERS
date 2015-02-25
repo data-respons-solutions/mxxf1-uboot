@@ -1,0 +1,6 @@
+SIMPAD_WB BOARD
+M:	Fabio Estevam <fabio.estevam@freescale.com>
+S:	Maintained
+F:	board/datarespons/simpad-wb/
+F:	include/configs/simpad-wb.h
+F:	configs/simpad_wb_defconfig

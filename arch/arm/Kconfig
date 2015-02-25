@@ -634,6 +634,10 @@ config TARGET_MXXF1
 	bool "Support mxxf1"
 	select CPU_V7
 	select SUPPORT_SPL
+	
+config TARGET_SIMPAD_WB
+	bool "Support simpad-wb"
+	select CPU_V7
 
 config TARGET_MX6SLEVK
 	bool "Support mx6slevk"
@@ -991,6 +995,7 @@ source "board/woodburn/Kconfig"
 source "board/xaeniax/Kconfig"
 source "board/zipitz2/Kconfig"
 source "board/datarespons/mxxf1/Kconfig"
+source "board/datarespons/simpad-wb/Kconfig"
 
 source "arch/arm/Kconfig.debug"
 
