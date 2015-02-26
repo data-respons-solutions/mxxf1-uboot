@@ -1,0 +1,6 @@
+MXXF1 BOARD
+M:	Hans Christian Lonstad <hcl@datarespons.no>
+S:	Maintained
+F:	board/datarespons/simpad2
+F:	include/configs/simpad2.h
+F:	configs/simpad2_spl_defconfig
