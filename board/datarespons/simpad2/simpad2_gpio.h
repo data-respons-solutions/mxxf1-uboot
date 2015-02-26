@@ -1,0 +1,18 @@
+#ifndef __SIMPAD2_GPIO_H__
+#define __SIMPAD2_GPIO_H__
+
+#define GPIO_CAP_TOUCH_RST	IMX_GPIO_NR(6, 16)
+#define GPIO_USB_H1_EN		IMX_GPIO_NR(1, 29)
+#define GPIO_TOUCH_IRQ 		IMX_GPIO_NR(6, 7)
+
+#define SPI_CS_GPIO 		IMX_GPIO_NR(3, 19)
+#define USDHC2_CD_GPIO		IMX_GPIO_NR(2, 2)
+#define USDHC3_CD_GPIO		IMX_GPIO_NR(2, 0)
+
+#define GPIO_LCD_EN			IMX_GPIO_NR(6, 15)
+#define GPIO_BL_EN			IMX_GPIO_NR(6, 16)
+#define KEY_FUNCTION 		IMX_GPIO_NR(1, 4)
+
+#define GPIO_SPI_NOR_WP 	IMX_GPIO_NR(3, 20)
+
+#endif

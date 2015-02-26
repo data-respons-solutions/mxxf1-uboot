@@ -4,25 +4,25 @@
 #include <asm/errno.h>
 #include <linux/ctype.h>
 #include <u-boot/crc.h>
-#include "param.h"
-#include "mxxf1_gpio.h"
+#include "../lm-common/param.h"
 #include <malloc.h>
 #include <version.h>
 #include <asm/gpio.h>
 
-static char eeprom_content[CONFIG_EEPROM_SIZE];
+#define VPD_SIZE 2048
+static char vpd_content[VPD_SIZE];
 
 static struct param ee;
-static int eeprom_ok = 0;
+static int vpd_ok = 0;
 static int vpd_valid = 0;
-static unsigned eeprom_addr = 0;
+static unsigned vpd_addr = 0;
 
-int mxxf1_eeprom_read(void)
+int simpad2_vpd_read(void)
 {
 	unsigned offset = 0;
-	unsigned end = CONFIG_EEPROM_SIZE;
+	unsigned end = VPD_SIZE;
 	unsigned blk_off;
-	char *buffer = eeprom_content;
+	char *buffer = vpd_content;
 
 	i2c_set_bus_num(1);
 	//printf("%s with dev_addr= 0x%x, offs=0x%x, cnt=%d\n", __func__, dev_addr, offset, cnt);
@@ -34,7 +34,7 @@ int mxxf1_eeprom_read(void)
 	{
 		unsigned len;
 		unsigned maxlen;
-		uchar segment_addr = eeprom_addr;
+		uchar segment_addr = vpd_addr;
 		blk_off = offset & 0xFF; /* block offset */
 
 		segment_addr |= (offset >> 8) & 0x7; /* block number */
@@ -58,22 +58,22 @@ int mxxf1_eeprom_read(void)
 	return 0;
 }
 
-int mxxf1_eeprom_init(unsigned dev_addr)
+int simpad2_vpd_init(unsigned dev_addr)
 {
-	eeprom_ok = 0;
+	vpd_ok = 0;
 	vpd_valid = 0;
-	eeprom_addr = dev_addr;
-	int res = mxxf1_eeprom_read();
+	vpd_addr = dev_addr;
+	int res = simpad2_vpd_read();
 	if (res)
 		return res;
-	eeprom_ok = 1;
-	param_init(&ee, eeprom_content, CONFIG_EEPROM_SIZE);
+	vpd_ok = 1;
+	param_init(&ee, vpd_content, VPD_SIZE);
 	vpd_valid = param_parse(&ee) == 0 ? 1 : 0;
 	return 0;
 }
 
-int mxxf1_eeprom_write(unsigned dev_addr, unsigned offset, uint8_t *buffer,
-		unsigned cnt)
+int simpad2_vpd_write(unsigned dev_addr, unsigned offset, uint8_t *buffer,
+		unsigned cnt, int wp_gpio)
 {
 	unsigned end = offset + cnt;
 	unsigned blk_off;
@@ -84,9 +84,9 @@ int mxxf1_eeprom_write(unsigned dev_addr, unsigned offset, uint8_t *buffer,
 	 * We must write the address again when changing pages
 	 * because the address counter only increments within a page.
 	 */
-	printf("\n%s: Program eeprom at 0x%02x, offset %d, length %d\n", __func__,
+	printf("\n%s: Program vpd at 0x%02x, offset %d, length %d\n", __func__,
 			dev_addr, offset, cnt);
-	gpio_set_value(GPIO_EEPROM_WP, 0);
+	gpio_set_value(wp_gpio, 0);
 	while (offset < end)
 	{
 		unsigned len;
@@ -108,7 +108,7 @@ int mxxf1_eeprom_write(unsigned dev_addr, unsigned offset, uint8_t *buffer,
 		if (retries <= 0)
 		{
 			printf("%s: IO error remains after timeout - giving up\n", __func__);
-			gpio_set_value(GPIO_EEPROM_WP, 1);
+			gpio_set_value(wp_gpio, 1);
 			return -EIO;
 		}
 
@@ -119,11 +119,11 @@ int mxxf1_eeprom_write(unsigned dev_addr, unsigned offset, uint8_t *buffer,
 
 	}
 	printf("\n%s: Done\n", __func__);
-	gpio_set_value(GPIO_EEPROM_WP, 1);
+	gpio_set_value(wp_gpio, 1);
 	return rcode;
 }
 
-int eeprom_get_mac_addr(void)
+int vpd_get_mac_addr(void)
 {
 	char *data, *key;
 	int ret = param_find(&ee, "FEC_MAC_ADDR");
@@ -142,13 +142,13 @@ int eeprom_get_mac_addr(void)
 	}
 	else
 	{
-		printf("%s: FEC_MAC_ADDR not present in eeprom\n", __func__);
+		printf("%s: FEC_MAC_ADDR not present in vpd\n", __func__);
 		return -1;
 	}
 
-	char *base = (char*) &eeprom_content[4];
+	char *base = (char*) &vpd_content[4];
 	char *at = base;
-	char *at_end = base + sizeof(eeprom_content);
+	char *at_end = base + sizeof(vpd_content);
 	int len;
 
 	while (at < at_end)
@@ -182,7 +182,7 @@ int eeprom_get_mac_addr(void)
 
 	}
 	if (ret)
-		printf("%s: FEC_MAC_ADDR not present in eeprom\n", __func__);
+		printf("%s: FEC_MAC_ADDR not present in vpd\n", __func__);
 
 	return ret;
 }
@@ -221,7 +221,7 @@ static int check_and_update(const char *key, const char *value)
 	return dirty;
 }
 
-int vpd_update_eeprom(char *touch_fw_ver)
+int vpd_update(char *touch_fw_ver, int wp_gpio)
 {
 	int retries=3;
 	int status;
@@ -235,25 +235,25 @@ int vpd_update_eeprom(char *touch_fw_ver)
 		param_generate(&ee);
 		while (retries--)
 		{
-			status = mxxf1_eeprom_write(eeprom_addr, 0, ee.data, ee.size);
+			status = simpad2_vpd_write(vpd_addr, 0, ee.data, ee.size, wp_gpio);
 			printf("%s: Validating VPD\n", __func__);
-			memset(eeprom_content, 0xff, CONFIG_EEPROM_SIZE);
-			mxxf1_eeprom_read();
-			if (memcmp(eeprom_content, ee.data, ee.size))
+			memset(vpd_content, 0xff, VPD_SIZE);
+			simpad2_vpd_read();
+			if (memcmp(vpd_content, ee.data, ee.size))
 			{
-				printf("%s: EEPROM did not validate!\n", __func__);
-				eeprom_ok = 0;
+				printf("%s: vpd did not validate!\n", __func__);
+				vpd_ok = 0;
 				vpd_valid = 0;
 			}
 			else
 			{
-				printf("%s: EEPROM validated\n", __func__);
-				eeprom_ok = 1;
+				printf("%s: vpd validated\n", __func__);
+				vpd_ok = 1;
 				vpd_valid = 1;
 				return 1;
 			}
 		}
-		printf("%s: Failed to write EEPROM\n", __func__);
+		printf("%s: Failed to write vpd\n", __func__);
 	}
 	return 0;
 }
@@ -261,15 +261,10 @@ int vpd_update_eeprom(char *touch_fw_ver)
 static int do_vpd(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int n;
-	if (argc > 1 && strcmp(argv[1], "erase") == 0)
-	{
-		memset(eeprom_content, 0xff, CONFIG_EEPROM_SIZE);
-		mxxf1_eeprom_write(eeprom_addr, 0, (uint8_t*)eeprom_content, CONFIG_EEPROM_SIZE);
 
-	}
 	if (!vpd_valid)
 	{
-		printf("BAD EEPROM CRC\n");
+		printf("BAD vpd CRC\n");
 		return 0;
 	}
 	for (n = 0; n < ee.count; n++)
@@ -282,7 +277,7 @@ static int do_vpd(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 U_BOOT_CMD(
 		vpd, 2, 1, do_vpd,
 		"show VPD data",
-		"  Print Vital Product Data for MXXF1\n"
+		"  Print Vital Product Data for simpad2\n"
 );
 
 #endif
