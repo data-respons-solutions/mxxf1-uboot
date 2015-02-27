@@ -401,7 +401,8 @@ static int egalax_firmware_version(void)
 		{
 			rcv_buf[MAX_I2C_DATA_LEN] = '\0';
 			strcpy(egalax_fw, (char *)&rcv_buf[5]);
-			printf("%s: FW version [%s]\n", __func__, egalax_fw);
+			printf("Touch FW version [%s]\n", egalax_fw);
+			i2c_read(0x04, 0, 0, rcv_buf, MAX_I2C_DATA_LEN);	/* Drain the rest */
 		}
 		else
 		{
@@ -442,16 +443,7 @@ int board_eth_init(bd_t *bis)
 #define USB_OTHERREGS_OFFSET	0x800
 #define UCTRL_PWR_POL		(1 << 9)
 
-static void setup_usb(void)
-{
-	/*
-	 * set daisy chain for otg_pin_id on 6q.
-	 * for 6dl, this bit is reserved
-	 */
-#ifdef CONFIG_MX6Q
-	imx_iomux_set_gpr_register(1, 13, 1, 0);
-#endif
-}
+
 
 int board_ehci_hcd_init(int port)
 {
@@ -520,6 +512,17 @@ int board_early_init_f(void)
 }
 
 #ifndef CONFIG_SPL_BUILD
+static void setup_usb(void)
+{
+	/*
+	 * set daisy chain for otg_pin_id on 6q.
+	 * for 6dl, this bit is reserved
+	 */
+#ifdef CONFIG_MX6Q
+	imx_iomux_set_gpr_register(1, 13, 1, 0);
+#endif
+}
+
 int board_init(void)
 {
 	/* address of boot parameters */
@@ -541,7 +544,7 @@ int board_init(void)
 	setup_usb();
 	return 0;
 }
-#endif
+#endif	/* CONFIG_SPL_BUILD */
 
 #ifdef CONFIG_MXC_SPI
 int board_spi_cs_gpio(unsigned bus, unsigned cs)
