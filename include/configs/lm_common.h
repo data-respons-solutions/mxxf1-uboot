@@ -112,17 +112,17 @@
 	"fdt_high=0xffffffff\0"	  \
 	"fdt_file=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"initrd_high=0xffffffff\0" \
-	"loglevel=6\0" \
+	"loglevel=7\0" \
 	"consoleblank=300\0" \
 	"showtty=console=ttymxc0,115200 console=tty1\0" \
 	"setargs=setenv bootargs root=${rootdev} rootwait ro rootfstype=ext4 fec_mac=${ethaddr} consoleblank=${consoleblank} loglevel=${loglevel} ${showtty}\0" \
 	"bootdev=0\0" \
 	"bootpart=1\0" \
 	"bootfrom=mmc\0" \
-	"rootdev=/dev/mmcblk0p1\0" \
+	"mmc_root=" CONFIG_MMCROOT "\0" \
 	"usb_root=/dev/sda1\0" \
 	"loadbootscript=if ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/boot.txt; then env import -t ${loadaddr} ${filesize}; fi; \0" \
-	"setmmc=setenv bootfrom mmc; setenv bootdev 0; setenv bootpart 1; setenv rootdev /dev/mmcblk0p1; echo Setting boot to mmc; \0 " \
+	"setmmc=setenv bootfrom mmc; setenv bootdev 0; setenv bootpart 1; setenv rootdev ${mmc_root}; echo Setting boot to mmc; \0 " \
 	"setusb=setenv bootfrom usb; setenv bootdev 0; setenv bootpart 1; setenv rootdev ${usb_root}; echo Setting boot to usb; \0 " \
 	"loaduboot=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/u-boot.img; \0" \
 	"loadspl=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/SPL; \0" \

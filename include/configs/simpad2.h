@@ -33,11 +33,13 @@
 #define CONFIG_MACH_TYPE	3980
 #define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONFIG_CONSOLE_DEV		"ttymxc0"
-#define CONFIG_MMCROOT			"/dev/mmcblk0p1"
+
 #ifdef CONFIG_EMU_SABRESD
-#define CONFIG_DEFAULT_FDT_FILE	"/boot/simpad2_sabre.dtb"
+#define CONFIG_DEFAULT_FDT_FILE	"/boot/imx6q-sabresd-ldo.dtb"
+#define CONFIG_MMCROOT			"/dev/mmcblk2p1"
 #else
 #define CONFIG_DEFAULT_FDT_FILE	"/boot/simpad.dtb"
+#define CONFIG_MMCROOT			"/dev/mmcblk0p1"
 #endif
 #define PHYS_SDRAM_SIZE		(1u * 1024 * 1024 * 1024)
 #define CONFIG_MX6_DDRTUNE_WR_LEVEL
