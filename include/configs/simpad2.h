@@ -35,7 +35,7 @@
 #define CONFIG_CONSOLE_DEV		"ttymxc0"
 
 #ifdef CONFIG_EMU_SABRESD
-#define CONFIG_DEFAULT_FDT_FILE	"/boot/imx6q-sabresd-ldo.dtb"
+#define CONFIG_DEFAULT_FDT_FILE	"/boot/simpad2-sabresd.dtb"
 #define CONFIG_MMCROOT			"/dev/mmcblk2p1"
 #else
 #define CONFIG_DEFAULT_FDT_FILE	"/boot/simpad.dtb"
