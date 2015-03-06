@@ -23,6 +23,8 @@ int mx6_ddr_init(ulong addr);
 #define PMIC_I2C_BUS 4
 #endif
 
+__weak int lm_ram64() { return 1; }
+
 #ifdef CONFIG_MX6DL
 const struct mx6sdl_iomux_ddr_regs mx6_ddr_ioregs = {
 	.dram_sdclk_0 =  0x00020030,
@@ -226,6 +228,9 @@ static void gpr_init(void)
  */
 static void spl_dram_init(void)
 {
+#ifdef GPIO_DDR_SETTING
+	int four_chip = gpio_get_value(GPIO_DDR_SETTING);
+#endif
 	struct mx6_ddr_sysinfo sysinfo = {
 		/* width of data bus:0=16,1=32,2=64 */
 		.dsize = mem_ddr.width/32,
@@ -282,6 +287,9 @@ void board_init_f(ulong dummy)
 		udelay(10000);
 	}
 	/* DDR initialization */
+	if (lm_ram64() == 0)
+		mem_ddr.width = 32;
+
 	spl_dram_init();
 	err = mx6_ddr_init(CONFIG_SYS_MEMTEST_START);
 	if (err) {

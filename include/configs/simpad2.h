@@ -36,10 +36,12 @@
 
 #ifdef CONFIG_EMU_SABRESD
 #define CONFIG_DEFAULT_FDT_FILE	"/boot/simpad2-sabresd.dtb"
-#define CONFIG_MMCROOT			"/dev/mmcblk2p1"
+#define CONFIG_MMCROOT			"/dev/mmcblk1p1"
+#define CONFIG_MMC_DEV "1"
 #else
 #define CONFIG_DEFAULT_FDT_FILE	"/boot/simpad.dtb"
 #define CONFIG_MMCROOT			"/dev/mmcblk0p1"
+#define CONFIG_MMC_DEV "0"
 #endif
 #define PHYS_SDRAM_SIZE		(1u * 1024 * 1024 * 1024)
 #define CONFIG_MX6_DDRTUNE_WR_LEVEL

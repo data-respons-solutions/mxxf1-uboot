@@ -465,6 +465,7 @@ int board_ehci_power(int port, int on)
 	switch (port) {
 	case 0:
 		break;
+#ifdef CONFIG_EMU_SABRESD
 	case 1:
 		if (on) {
 			gpio_direction_output(GPIO_USB_H1_EN, 1);
@@ -474,6 +475,7 @@ int board_ehci_power(int port, int on)
 			gpio_direction_output(GPIO_USB_H1_EN, 0);
 		}
 		break;
+#endif
 	default:
 		printf("MXC USB port %d not yet supported\n", port);
 		return -EINVAL;
@@ -490,21 +492,43 @@ int board_early_init_f(void)
 	imx_iomux_v3_setup_multiple_pads(ecspi1_pads, ARRAY_SIZE(ecspi1_pads));
 	imx_iomux_v3_setup_multiple_pads(usb_otg_pads, ARRAY_SIZE(usb_otg_pads));
 	imx_iomux_v3_setup_multiple_pads(other_pads, ARRAY_SIZE(other_pads));
-	/* Bring up basic power for serial debug etc	*/
 
 
+	gpio_direction_input(GPIO_TOUCH_IRQ);
+	gpio_direction_input(KEY_FUNCTION);
 	gpio_direction_output(GPIO_LCD_EN, 0);
 	gpio_direction_output(GPIO_BL_EN, 0);
 
 	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
 	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
 	setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info2);
+
 #ifndef CONFIG_EMU_SABRESD
 	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
+	gpio_direction_output(GPIO_CAP_TOUCH_RST, 0);
+	gpio_direction_output(GPIO_AUX_5V_EN, 1);	/* Turn on power */
+	gpio_direction_output(GPIO_CHARGER_NCE, 1);	/* Turn off charger */
+	gpio_direction_input(GPIO_ADAPTER_N);
+	gpio_direction_output(GPIO_WL_VDDIO_EN, 0);
+	gpio_direction_output(GPIO_WL_REG_ON, 0);
+	gpio_direction_output(GPIO_BT_REG_ON, 0);
+	gpio_direction_input(GPIO_RECOVERY_SWITCH);
 	gpio_direction_output(GPIO_SPI_NOR_WP, 1);
+	gpio_direction_output(GPIO_CHARGER_ISET, 0);
+	gpio_direction_output(GPIO_WL_BAT_PWR_EN, 0);
+	gpio_direction_input(GPIO_HW_SETTING0);
+	gpio_direction_input(GPIO_HW_SETTING1);
+	gpio_direction_input(GPIO_PWR_BTN);
+	gpio_direction_input(GPIO_DDR_SETTING);
+	gpio_direction_output(GPIO_LED_R, 0);
+	gpio_direction_output(GPIO_LED_G, 1);
+	gpio_direction_output(GPIO_LED_B, 1);
+	gpio_direction_output(GPIO_LCD_LR, 0);
+	gpio_direction_output(GPIO_LCD_UD, 0);
+	gpio_direction_output(GPIO_PMU_RST_N, 1);
+
 #endif
-	gpio_direction_input(GPIO_TOUCH_IRQ);
-	gpio_direction_input(KEY_FUNCTION);
+
 #ifndef CONFIG_SPL_BUILD
 	setup_display();
 #endif
@@ -528,6 +552,10 @@ int board_init(void)
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
+#ifndef CONFIG_EMU_SABRESD
+	gpio_set_value(GPIO_CAP_TOUCH_RST, 1);
+	udelay(100);
+#endif
 	/* Check if the display should present u-boot info */
 	enable_display = gpio_get_value(KEY_FUNCTION);	/* TODO: invert */
 
@@ -546,12 +574,22 @@ int board_init(void)
 }
 #endif	/* CONFIG_SPL_BUILD */
 
-#ifdef CONFIG_MXC_SPI
 int board_spi_cs_gpio(unsigned bus, unsigned cs)
 {
-	return (bus == 0 && cs == 1) ? SPI_CS_GPIO : -1;
-}
+	switch (bus)
+	{
+	case 0:
+		return cs == 1 ? SPI_CS_GPIO : -1;
+		break;
+#ifndef CONFIG_EMU_SABRESD
+	case 1:
+		return cs == 1 ? GPIO_PMU_SPI_CS : -1;
+		break;
 #endif
+	default:
+		return -1;
+	}
+}
 
 #ifdef CONFIG_CMD_BMODE
 static const struct boot_mode board_boot_modes[] = {
@@ -572,7 +610,11 @@ int board_late_init(void)
 {
 	int rep;
 	ulong ticks;
-
+#ifndef CONFIG_EMU_SABRESD
+	printf("SIMPAD2 HW version: %d\n",
+			(gpio_get_value(GPIO_HW_SETTING1) << 1) | gpio_get_value(GPIO_HW_SETTING0)
+			);
+#endif
 	egalax_firmware_version();
 #if 0
 	printf("Simpad2 U-BOOT version [%s]\n", U_BOOT_VERSION);
@@ -596,6 +638,15 @@ int checkboard(void)
 {
 	puts("Board: Simpad2\n");
 	return 0;
+}
+
+int lm_ram64()
+{
+#ifndef CONFIG_EMU_SABRESD
+	return gpio_get_value(GPIO_DDR_SETTING);
+#else
+	return 1;
+#endif
 }
 
 
