@@ -509,13 +509,16 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_AUX_5V_EN, 1);	/* Turn on power */
 	gpio_direction_output(GPIO_CHARGER_NCE, 1);	/* Turn off charger */
 	gpio_direction_input(GPIO_ADAPTER_N);
-	gpio_direction_output(GPIO_WL_VDDIO_EN, 0);
+
 	gpio_direction_output(GPIO_WL_REG_ON, 0);
 	gpio_direction_output(GPIO_BT_REG_ON, 0);
 	gpio_direction_input(GPIO_RECOVERY_SWITCH);
 	gpio_direction_output(GPIO_SPI_NOR_WP, 1);
 	gpio_direction_output(GPIO_CHARGER_ISET, 0);
-	gpio_direction_output(GPIO_WL_BAT_PWR_EN, 0);
+	/* Turn on main power and IO for WiFI module - no action in kernel */
+	gpio_direction_output(GPIO_WL_BAT_PWR_EN, 1);
+	gpio_direction_output(GPIO_WL_VDDIO_EN, 1);
+
 	gpio_direction_input(GPIO_HW_SETTING0);
 	gpio_direction_input(GPIO_HW_SETTING1);
 	gpio_direction_input(GPIO_PWR_BTN);
@@ -640,7 +643,7 @@ int checkboard(void)
 	return 0;
 }
 
-int lm_ram64()
+int lm_ram64(void)
 {
 #ifndef CONFIG_EMU_SABRESD
 	return gpio_get_value(GPIO_DDR_SETTING);
