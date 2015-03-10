@@ -14,7 +14,7 @@
 #include <asm/arch/imx-regs.h>
 
 #define MAX_CPUS 4
-static struct src *src = (struct src *)SRC_BASE_ADDR;
+static volatile struct src *src = (struct src *)SRC_BASE_ADDR;
 
 static uint32_t cpu_reset_mask[MAX_CPUS] = {
 	0, /* We don't really want to modify the cpu0 */
@@ -33,13 +33,15 @@ static uint32_t cpu_ctrl_mask[MAX_CPUS] = {
 int cpu_reset(int nr)
 {
 	/* Software reset of the CPU N */
-	src->scr |= cpu_reset_mask[nr];
+	u32 scr = readl(&src->scr);
+	writel(scr | cpu_reset_mask[nr], &src->scr);
 	return 0;
 }
 
 int cpu_status(int nr)
 {
-	printf("core %d => %d\n", nr, !!(src->scr & cpu_ctrl_mask[nr]));
+	u32 scr = readl(&src->scr);
+	printf("core %d => %d\n", nr, scr & cpu_ctrl_mask[nr] ? 1 : 0);
 	return 0;
 }
 
@@ -82,6 +84,9 @@ int is_core_valid(unsigned int core)
 int cpu_disable(int nr)
 {
 	/* Disable the CPU N */
-	src->scr &= ~cpu_ctrl_mask[nr];
+	u32 scr = readl(&src->scr);
+	scr &= ~cpu_ctrl_mask[nr];
+	writel(scr, &src->scr);
+
 	return 0;
 }
