@@ -13,6 +13,8 @@ struct watchdog_regs {
 	u16	wcr;	/* Control */
 	u16	wsr;	/* Service */
 	u16	wrsr;	/* Reset Status */
+	u16 wicr;	/* Irq control */
+	u16 wmcr;	/* MISC Control */
 };
 
 #define WCR_WDZST	0x01
@@ -20,13 +22,22 @@ struct watchdog_regs {
 #define WCR_WDE		0x04	/* WDOG enable */
 #define WCR_WDT		0x08
 #define WCR_SRS		0x10
+#define WCR_WDA		0x20
 #define WCR_WDW		0x80
 #define SET_WCR_WT(x)	(x << 8)
 
+#ifdef CONFIG_IMX_WATCHDOG_USE_WD2
+#define USED_BASE_ADDR  WDOG2_BASE_ADDR
+#else
+#define USED_BASE_ADDR  WDOG1_BASE_ADDR
+#endif
+
+
 #ifdef CONFIG_IMX_WATCHDOG
+
 void hw_watchdog_reset(void)
 {
-	struct watchdog_regs *wdog = (struct watchdog_regs *)WDOG1_BASE_ADDR;
+	struct watchdog_regs *wdog = (struct watchdog_regs *)USED_BASE_ADDR;
 
 	writew(0x5555, &wdog->wsr);
 	writew(0xaaaa, &wdog->wsr);
@@ -34,8 +45,9 @@ void hw_watchdog_reset(void)
 
 void hw_watchdog_init(void)
 {
-	struct wdog_regs *wdog = (struct wdog_regs *)WDOG1_BASE_ADDR;
+	struct watchdog_regs *wdog = (struct watchdog_regs *)USED_BASE_ADDR;
 	u16 timeout;
+	u16 reg;
 
 	/*
 	 * The timer watchdog can be set between
@@ -45,18 +57,24 @@ void hw_watchdog_init(void)
 #ifndef CONFIG_WATCHDOG_TIMEOUT_MSECS
 #define CONFIG_WATCHDOG_TIMEOUT_MSECS 128000
 #endif
-
 	timeout = (CONFIG_WATCHDOG_TIMEOUT_MSECS / 500) - 1;
-	writew(WCR_WDZST | WCR_WDBG | WCR_WDE | WCR_WDT | WCR_SRS |
-		WCR_WDW | SET_WCR_WT(timeout), &wdog->wcr);
+	reg = WCR_WDZST | WCR_WDBG | WCR_WDA | WCR_WDW | WCR_SRS | SET_WCR_WT(timeout);
+#ifdef CONFIG_IMX_WATCHDOG_ASSERT_WDOG_B
+	reg |= WCR_WDT;
+#endif
+
+	writew(reg,  &wdog->wcr);
+	writew(reg | WCR_WDE,  &wdog->wcr);
 	hw_watchdog_reset();
-	writew(0, &wdog->wmcr);	/* Disable power down enable */
+
+	/* Shut down POR watchdog counter, we now have control */
+	writew(0, &wdog->wmcr);
 }
 #endif
 
 void reset_cpu(ulong addr)
 {
-	struct watchdog_regs *wdog = (struct watchdog_regs *)WDOG1_BASE_ADDR;
+	struct watchdog_regs *wdog = (struct watchdog_regs *)USED_BASE_ADDR;
 
 	writew(WCR_WDE, &wdog->wcr);
 	writew(0x5555, &wdog->wsr);
