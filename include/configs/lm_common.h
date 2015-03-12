@@ -142,6 +142,10 @@
 	"g_mass_storage.iSerialNumber=\"\" \0"\
 	"factory_boot=run factory_args; bootz ${loadaddr} ${initrd_addr} ${fdt_addr}; \0" \
 	"testfact=run loadfdt loadimage loadinitrd factory_boot; \0"
+#ifdef CONFIG_FACTORY_BOOT
+#define CONFIG_BOOTCOMMAND \
+	"run factory_boot;"
+#else
 #define CONFIG_BOOTCOMMAND \
 	"mmc dev "CONFIG_MMC_DEV"; mmc rescan; " \
 	"if run check_usb_boot; then " \
@@ -150,7 +154,8 @@
 		"run setmmc; echo booting from MMC ...;" \
 	"fi; " \
 	"run loadbootscript;" \
-	"run bootscript;" \
+	"run bootscript;"
+#endif
 
 #define CONFIG_ARP_TIMEOUT     200UL
 
