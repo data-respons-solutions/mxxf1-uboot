@@ -647,6 +647,11 @@ config TARGET_SIMPAD2
 	bool "Support simpad-2"
 	select CPU_V7
 	select SUPPORT_SPL
+	
+config TARGET_LINKBOX2
+	bool "Support linkbox-2"
+	select CPU_V7
+	select SUPPORT_SPL
 
 config TARGET_MX6SLEVK
 	bool "Support mx6slevk"
@@ -1007,6 +1012,7 @@ source "board/zipitz2/Kconfig"
 source "board/datarespons/mxxf1/Kconfig"
 source "board/datarespons/simpad-wb/Kconfig"
 source "board/datarespons/simpad2/Kconfig"
+source "board/datarespons/linkbox2/Kconfig"
 
 source "arch/arm/Kconfig.debug"
 

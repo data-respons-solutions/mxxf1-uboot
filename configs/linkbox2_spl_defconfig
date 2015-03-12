@@ -1,0 +1,5 @@
+CONFIG_SPL=y
+CONFIG_SYS_EXTRA_OPTIONS="IMX_CONFIG=board/datarespons/linkbox2/spl_spi.cfg,SPL,MX6DL"
++S:CONFIG_ARM=y
++S:CONFIG_TARGET_LINKBOX2=y
+
