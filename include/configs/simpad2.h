@@ -50,6 +50,7 @@
 #define CONFIG_MX6_DDRTUNE_WR_LEVEL
 #define CONFIG_SUPPORT_EMMC_BOOT /* eMMC specific */
 
+#define CONFIG_VIDEO
 #include "lm_common.h"
 
 
