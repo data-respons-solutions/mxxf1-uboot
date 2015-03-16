@@ -37,8 +37,6 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#define USE_PWM_FOR_BL
-#define BL_PWM 1
 
 #include "../lm-common/lm_common_defs.h"
 #ifdef CONFIG_EMU_SABRESD
@@ -271,17 +269,20 @@ int board_early_init_f(void)
 
 #ifndef CONFIG_EMU_SABRESD
 	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
-	gpio_direction_output(GPIO_AUX_12V_EN, 1);
-	gpio_direction_output(GPIO_AUX_5V_EN, 1);	/* Turn on power */
+	/* Keep manikin off */
+	gpio_direction_output(GPIO_AUX_12V_EN, 0);
+	gpio_direction_output(GPIO_AUX_5V_EN, 0);
+
 	gpio_direction_output(GPIO_CHARGER_CE_N, 1);	/* Turn off charger */
 	gpio_direction_output(GPIO_CHARGER2_CE_N, 1);	/* Turn off charger2 */
-	gpio_direction_output(GPIO_PMIC_5V_EN, 1);		/* Turn on VBUS */
+
 	gpio_direction_output(GPIO_SPK_SD_N, 0);	/* Turn off speaker */
 	gpio_direction_output(GPIO_AC5W_SD_N, 0);	/* Turn off AMP */
 	gpio_direction_input(GPIO_ADAPTER_N);
-
-	gpio_direction_output(GPIO_WL_REG_ON, 0);
-	gpio_direction_output(GPIO_BT_REG_ON, 0);
+	gpio_direction_output(GPIO_VCC5_EN_R, 1);		/* Turn on system 5V */
+	gpio_direction_output(GPIO_PMIC_5V_EN, 1);		/* Turn on VBUS */
+	gpio_direction_output(GPIO_WL_REG_ON, 0);		/* WiFI off */
+	gpio_direction_output(GPIO_BT_REG_ON, 0);		/* Bluetooth off */
 	gpio_direction_input(GPIO_RECOVERY_SWITCH);
 	gpio_direction_output(GPIO_SPI_NOR_WP, 1);
 	/* Turn on main power and IO for WiFI module - no action in kernel */
