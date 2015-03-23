@@ -618,7 +618,7 @@ int board_late_init(void)
 			(gpio_get_value(GPIO_HW_SETTING1) << 1) | gpio_get_value(GPIO_HW_SETTING0)
 			);
 #endif
-	egalax_firmware_version();
+	//egalax_firmware_version();
 #if 0
 	printf("Simpad2 U-BOOT version [%s]\n", U_BOOT_VERSION);
 	if (egalax_firmware_version() == 0)
