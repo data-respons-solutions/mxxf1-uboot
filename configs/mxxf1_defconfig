@@ -1,0 +1,4 @@
+CONFIG_SYS_EXTRA_OPTIONS="IMX_CONFIG=board/freescale/mx6sabresd/mx6q_4x_mt41j128.cfg,MX6Q"
++S:CONFIG_ARM=y
++S:CONFIG_TARGET_MXXF1=y
+
