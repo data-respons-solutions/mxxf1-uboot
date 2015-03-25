@@ -235,7 +235,6 @@ int board_ehci_power(int port, int on)
 	switch (port) {
 	case 0:
 		break;
-#ifdef CONFIG_EMU_SABRESD
 	case 1:
 		if (on) {
 			gpio_direction_output(GPIO_USB_H1_EN, 1);
@@ -245,7 +244,6 @@ int board_ehci_power(int port, int on)
 			gpio_direction_output(GPIO_USB_H1_EN, 0);
 		}
 		break;
-#endif
 	default:
 		printf("MXC USB port %d not yet supported\n", port);
 		return -EINVAL;
@@ -268,14 +266,15 @@ int board_early_init_f(void)
 	setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info2);
 
 #ifndef CONFIG_EMU_SABRESD
-	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
+	if (setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3))
+		printf("%s: Error setting up i2c4 \n", __func__);
 	/* Keep manikin off */
 	gpio_direction_output(GPIO_AUX_12V_EN, 0);
 	gpio_direction_output(GPIO_AUX_5V_EN, 0);
 
 	gpio_direction_output(GPIO_CHARGER_CE_N, 1);	/* Turn off charger */
 	gpio_direction_output(GPIO_CHARGER2_CE_N, 1);	/* Turn off charger2 */
-
+	gpio_direction_output(GPIO_USB_H1_EN, 0);
 	gpio_direction_output(GPIO_SPK_SD_N, 0);	/* Turn off speaker */
 	gpio_direction_output(GPIO_AC5W_SD_N, 0);	/* Turn off AMP */
 	gpio_direction_input(GPIO_ADAPTER_N);
@@ -299,7 +298,7 @@ int board_early_init_f(void)
 
 	gpio_direction_output(GPIO_WIFI_LED_R, 1);
 	gpio_direction_output(GPIO_WIFI_LED_G, 1);
-	gpio_direction_output(GPIO_WIFI_LED_B, 1);
+	gpio_direction_output(GPIO_WIFI_LED_B, 0);
 
 	gpio_direction_output(GPIO_PMU_RST_N, 1);
 	gpio_direction_output(GPIO_MCU_RST, 1);
@@ -374,13 +373,7 @@ int board_late_init(void)
 			(gpio_get_value(GPIO_HW_SETTING1) << 1) | gpio_get_value(GPIO_HW_SETTING0)
 			);
 #endif
-#if 0
 	printf("Linkbox2 U-BOOT version [%s]\n", U_BOOT_VERSION);
-	if (egalax_firmware_version() == 0)
-		vpd_update(egalax_fw, GPIO_SPI_NOR_WP);
-	else
-		vpd_update(0, GPIO_SPI_NOR_WP);
-#endif
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
 	//eeprom_get_mac_addr();
 

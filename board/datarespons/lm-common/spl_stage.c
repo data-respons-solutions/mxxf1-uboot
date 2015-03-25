@@ -20,7 +20,7 @@ int mx6_ddr_init(ulong addr);
 #ifdef CONFIG_EMU_SABRESD
 #define PMIC_I2C_BUS 1
 #else
-#define PMIC_I2C_BUS 4
+#define PMIC_I2C_BUS 3
 #endif
 
 __weak int lm_ram64() { return 1; }
@@ -289,6 +289,7 @@ void board_init_f(ulong dummy)
 	/* DDR initialization */
 	if (lm_ram64() == 0)
 		mem_ddr.width = 32;
+	printf("Memory width %d\n", mem_ddr.width);
 
 	spl_dram_init();
 	err = mx6_ddr_init(CONFIG_SYS_MEMTEST_START);
