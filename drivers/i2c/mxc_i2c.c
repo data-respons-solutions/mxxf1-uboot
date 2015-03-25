@@ -552,3 +552,10 @@ U_BOOT_I2C_ADAP_COMPLETE(mxc2, mxc_i2c_init, mxc_i2c_probe,
 			 CONFIG_SYS_MXC_I2C3_SPEED,
 			 CONFIG_SYS_MXC_I2C3_SLAVE, 2)
 #endif
+#ifdef CONFIG_MX6DL
+ U_BOOT_I2C_ADAP_COMPLETE(mxc3, mxc_i2c_init, mxc_i2c_probe,
+			 mxc_i2c_read, mxc_i2c_write,
+			 mxc_i2c_set_bus_speed,
+			 CONFIG_SYS_MXC_I2C3_SPEED,
+			 CONFIG_SYS_MXC_I2C3_SLAVE, 3)
+#endif
