@@ -140,13 +140,19 @@ int enable_usdhc_clk(unsigned char enable, unsigned bus_num)
 #endif
 
 #ifdef CONFIG_SYS_I2C_MXC
+#ifdef CONFIG_MX6DL
+#define MAX_I2C 3
+#else
+#define MAX_I2C 2
+#endif
 /* i2c_num can be from 0 - 2 */
 int enable_i2c_clk(unsigned char enable, unsigned i2c_num)
 {
 	u32 reg;
 	u32 mask;
 
-	if (i2c_num > 2)
+
+	if (i2c_num > MAX_I2C)
 		return -EINVAL;
 
 	mask = MXC_CCM_CCGR_CG_MASK
