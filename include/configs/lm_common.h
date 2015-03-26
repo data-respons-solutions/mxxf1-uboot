@@ -50,7 +50,7 @@
 /* MMC Configs */
 #define CONFIG_FSL_ESDHC
 #define CONFIG_FSL_USDHC
-#define CONFIG_SYS_FSL_ESDHC_ADDR      0
+#define CONFIG_SYS_FSL_ESDHC_ADDR   USDHC3_BASE_ADDR
 
 #define CONFIG_MMC
 #define CONFIG_CMD_MMC
@@ -94,7 +94,7 @@
 /* Command definition */
 #include <config_cmd_default.h>
 
-#define CONFIG_CMD_BMODE
+#undef CONFIG_CMD_BMODE
 #define CONFIG_CMD_BOOTZ
 #define CONFIG_CMD_SETEXPR
 #undef CONFIG_CMD_IMLS
@@ -176,7 +176,6 @@
 
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_STACKSIZE               (128 * 1024)
-
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS           1
 #define PHYS_SDRAM                     MMDC0_ARB_BASE_ADDR
@@ -219,7 +218,6 @@
 #define CONFIG_VIDEO_IPUV3
 #define CONFIG_CFB_CONSOLE
 #define CONFIG_VGA_AS_SINGLE_DEVICE
-#define CONFIG_SYS_CONSOLE_IS_IN_ENV
 #define CONFIG_SYS_CONSOLE_OVERWRITE_ROUTINE
 #define CONFIG_VIDEO_BMP_RLE8
 #define CONFIG_SPLASH_SCREEN

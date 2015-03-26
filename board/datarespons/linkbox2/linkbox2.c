@@ -43,19 +43,15 @@ DECLARE_GLOBAL_DATA_PTR;
 #include "sabresd_pins.h"
 #include "sabresd_gpio.h"
 
+#else
+#include "linkbox2_pins.h"
+#include "linkbox2_gpio.h"
+
+#endif
 struct fsl_esdhc_cfg usdhc_cfg[2] = {
 	{USDHC3_BASE_ADDR},
 	{USDHC4_BASE_ADDR},
 };
-#else
-#include "linkbox2_pins.h"
-#include "linkbox2_gpio.h"
-struct fsl_esdhc_cfg usdhc_cfg[1] = {
-	{USDHC3_BASE_ADDR},
-};
-
-#endif
-
 
 int dram_init(void)
 {
@@ -80,6 +76,7 @@ int board_mmc_getcd(struct mmc *mmc)
 		break;
 #else
 	case USDHC3_BASE_ADDR:
+	case USDHC4_BASE_ADDR:
 		ret = 1;
 		break;
 #endif
@@ -93,9 +90,11 @@ int board_mmc_init(bd_t *bis)
 #ifndef CONFIG_SPL_BUILD
 	int ret;
 
-#ifdef CONFIG_EMU_SABRESD
+
 		imx_iomux_v3_setup_multiple_pads(usdhc3_pads, ARRAY_SIZE(usdhc3_pads));
+#ifdef CONFIG_EMU_SABRESD
 		gpio_direction_input(USDHC3_CD_GPIO);
+#endif
 		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC3_CLK);
 		imx_iomux_v3_setup_multiple_pads(usdhc4_pads, ARRAY_SIZE(usdhc4_pads));
 		usdhc_cfg[1].sdhc_clk = mxc_get_clock(MXC_ESDHC4_CLK);
@@ -107,13 +106,6 @@ int board_mmc_init(bd_t *bis)
 		if (ret)
 			return ret;
 
-#else
-		imx_iomux_v3_setup_multiple_pads(usdhc3_pads, ARRAY_SIZE(usdhc3_pads));
-		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC3_CLK);
-		ret = fsl_esdhc_initialize(bis, &usdhc_cfg[0]);
-		if (ret)
-			return ret;
-#endif
 	return 0;
 #else
 	struct src *psrc = (struct src *)SRC_BASE_ADDR;
@@ -135,7 +127,6 @@ int board_mmc_init(bd_t *bis)
 		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC3_CLK);
 		gd->arch.sdhc_clk = usdhc_cfg[0].sdhc_clk;
 		break;
-#ifdef CONFIG_EMU_SABRESD
 	case 0x3:
 		imx_iomux_v3_setup_multiple_pads(
 			usdhc4_pads, ARRAY_SIZE(usdhc4_pads));
@@ -143,7 +134,6 @@ int board_mmc_init(bd_t *bis)
 		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC4_CLK);
 		gd->arch.sdhc_clk = usdhc_cfg[0].sdhc_clk;
 		break;
-#endif
 	}
 
 	return fsl_esdhc_initialize(bis, &usdhc_cfg[0]);
@@ -185,8 +175,6 @@ int board_phy_config(struct phy_device *phydev)
 
 
 #ifndef CONFIG_SPL_BUILD
-#define MAX_I2C_DATA_LEN 10
-
 
 static void setup_iomux_enet(void)
 {
@@ -199,7 +187,6 @@ static void setup_iomux_enet(void)
 }
 
 
-int simpad2_eeprom_init (unsigned dev_addr);
 int eeprom_get_mac_addr(void);
 int eeprom_addr;
 
@@ -260,14 +247,14 @@ int board_early_init_f(void)
 	imx_iomux_v3_setup_multiple_pads(ecspi1_pads, ARRAY_SIZE(ecspi1_pads));
 	imx_iomux_v3_setup_multiple_pads(usb_otg_pads, ARRAY_SIZE(usb_otg_pads));
 	imx_iomux_v3_setup_multiple_pads(other_pads, ARRAY_SIZE(other_pads));
+	imx_iomux_v3_setup_multiple_pads(i2c_pads, ARRAY_SIZE(i2c_pads));
 
 	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
 	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
 	setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info2);
 
 #ifndef CONFIG_EMU_SABRESD
-	if (setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3))
-		printf("%s: Error setting up i2c4 \n", __func__);
+	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
 	/* Keep manikin off */
 	gpio_direction_output(GPIO_AUX_12V_EN, 0);
 	gpio_direction_output(GPIO_AUX_5V_EN, 0);
@@ -390,6 +377,7 @@ int checkboard(void)
 	puts("Board: Linkbox2\n");
 	return 0;
 }
+
 
 int lm_ram64(void)
 {

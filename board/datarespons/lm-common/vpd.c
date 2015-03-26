@@ -224,7 +224,6 @@ static int check_and_update(const char *key, const char *value)
 int vpd_update(char *touch_fw_ver, int wp_gpio)
 {
 	int retries=3;
-	int status;
 	int dirty=0;
 	dirty = check_and_update("UBOOT_VERSION", U_BOOT_VERSION);
 	if (touch_fw_ver)
@@ -235,7 +234,7 @@ int vpd_update(char *touch_fw_ver, int wp_gpio)
 		param_generate(&ee);
 		while (retries--)
 		{
-			status = simpad2_vpd_write(vpd_addr, 0, ee.data, ee.size, wp_gpio);
+			simpad2_vpd_write(vpd_addr, 0, ee.data, ee.size, wp_gpio);
 			printf("%s: Validating VPD\n", __func__);
 			memset(vpd_content, 0xff, VPD_SIZE);
 			simpad2_vpd_read();

@@ -15,6 +15,8 @@
 #include <libfdt.h>
 #include "lm_common_defs.h"
 
+DECLARE_GLOBAL_DATA_PTR;
+
 int mx6_ddr_init(ulong addr);
 
 #ifdef CONFIG_EMU_SABRESD
@@ -23,7 +25,7 @@ int mx6_ddr_init(ulong addr);
 #define PMIC_I2C_BUS 3
 #endif
 
-__weak int lm_ram64() { return 1; }
+__weak int lm_ram64(void) { return 1; }
 
 #ifdef CONFIG_MX6DL
 const struct mx6sdl_iomux_ddr_regs mx6_ddr_ioregs = {
@@ -152,7 +154,7 @@ static void ccgr_init(void)
 	struct mxc_ccm_reg *ccm = (struct mxc_ccm_reg *)CCM_BASE_ADDR;
 
 	writel(0x00C03F3F, &ccm->CCGR0);
-	writel(0x0030FC03, &ccm->CCGR1);
+	writel(0x0030FF03, &ccm->CCGR1);
 	writel(0x0FFFC000, &ccm->CCGR2);
 	writel(0x3FF00000, &ccm->CCGR3);
 	writel(0x00FFF300, &ccm->CCGR4);
@@ -185,6 +187,7 @@ static int simpad2_pmic_set(pf100_regs reg, int mV)
 			printf("%s: SW1AB max is 1425 mV, reject %d mV\n", __func__, mV);
 			return -EINVAL;
 		}
+		printf("Setting PMIC register SW1AB to %d mV\n", mV);
 		values[0] = (mV - 300) / 25;
 		i2c_write(0x08, PFUZE100_SW1ABVOL, 1, values, 1);
 		break;
@@ -194,6 +197,7 @@ static int simpad2_pmic_set(pf100_regs reg, int mV)
 			printf("%s: SW1AB max is 1425 mV, reject %d mV\n", __func__, mV);
 			return -EINVAL;
 		}
+		printf("Setting PMIC register SW1C to %d mV\n", mV);
 		values[0] = (mV - 300) / 25;
 		i2c_write(0x08, PFUZE100_SW1CVOL, 1, values, 1);
 		break;
@@ -203,6 +207,7 @@ static int simpad2_pmic_set(pf100_regs reg, int mV)
 			printf("%s: SW3AB max is 1500 mV, reject %d mV\n", __func__, mV);
 			return -EINVAL;
 		}
+		printf("Setting PMIC register SW3AB to %d mV\n", mV);
 		values[0] = (mV - 400) / 25;
 		i2c_write(0x08, PFUZE100_SW3AVOL, 1, values, 1);
 		i2c_write(0x08, PFUZE100_SW3BVOL, 1, values, 1);
@@ -269,16 +274,16 @@ void board_init_f(ulong dummy)
 
 	ccgr_init();
 	gpr_init();
-	hw_watchdog_init();
 
 	/* iomux and setup of i2c */
 	board_early_init_f();
-
+	hw_watchdog_init();
 	/* setup GP timer */
 	timer_init();
 
 	/* UART clocks enabled and gd valid - init serial console */
 	preloader_console_init();
+	printf("SPL started\n");
 	err = simpad2_pmic_setup();
 	if (err == 0) {
 		simpad2_pmic_set(SW1AB, 1425);
