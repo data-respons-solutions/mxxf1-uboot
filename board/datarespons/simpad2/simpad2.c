@@ -339,10 +339,13 @@ static void setup_display(void)
 }
 #endif
 
+#ifdef CONFIG_VIDEO
 int overwrite_console(void)
 {
 	return 0;
 }
+#endif
+
 
 #ifndef CONFIG_SPL_BUILD
 #define MAX_I2C_DATA_LEN 10
@@ -520,7 +523,7 @@ int board_early_init_f(void)
 
 #endif
 
-#ifndef CONFIG_SPL_BUILD
+#if !defined(CONFIG_SPL_BUILD) && defined(CONFIG_VIDEO)
 	setup_display();
 #endif
 	return 0;
