@@ -40,7 +40,7 @@
 #define CONFIG_MMCROOT			"/dev/mmcblk1p1"
 #define CONFIG_MMC_DEV "1"
 #else
-#define CONFIG_DEFAULT_FDT_FILE	"/boot/linkbox.dtb"
+#define CONFIG_DEFAULT_FDT_FILE	"/boot/linkbox2.dtb"
 #define CONFIG_MMCROOT			"/dev/mmcblk0p1"
 #define CONFIG_MMC_DEV "0"
 #endif
@@ -50,7 +50,6 @@
 
 #undef CONFIG_VIDEO
 #include "lm_common.h"
-
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_SYS_MMC_ENV_DEV		0	/* SDHC3 */
