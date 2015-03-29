@@ -498,7 +498,7 @@ int board_early_init_f(void)
 	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
 	gpio_direction_output(GPIO_CAP_TOUCH_RST, 0);
 	gpio_direction_output(GPIO_AUX_5V_EN, 1);	/* Turn on power */
-	gpio_direction_output(GPIO_CHARGER_NCE, 1);	/* Turn off charger */
+	gpio_direction_output(GPIO_CHARGER_NCE, 0);	/* Turn on charger */
 	gpio_direction_input(GPIO_ADAPTER_N);
 
 	gpio_direction_output(GPIO_WL_REG_ON, 0);
