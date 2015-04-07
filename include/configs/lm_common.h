@@ -116,7 +116,7 @@
 	"loglevel=7\0" \
 	"consoleblank=300\0" \
 	"showtty=console=ttymxc0,115200 console=tty1\0" \
-	"setargs=setenv bootargs console=${console} root=${rootdev} rootwait ro rootfstype=ext4 fec_mac=${ethaddr} consoleblank=${consoleblank} loglevel=${loglevel} ${showtty}\0" \
+	"setargs=setenv bootargs console=${console} root=${rootdev} rootwait ro rootfstype=ext4 consoleblank=${consoleblank} loglevel=${loglevel} ${showtty}\0" \
 	"bootdev=0\0" \
 	"bootpart=1\0" \
 	"bootfrom=mmc\0" \
