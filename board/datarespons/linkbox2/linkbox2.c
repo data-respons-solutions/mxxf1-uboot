@@ -143,7 +143,7 @@ int board_mmc_init(bd_t *bis)
 int mx6_rgmii_rework(struct phy_device *phydev)
 {
 	unsigned short val;
-
+	printf("%s: Setting enet ref clock to 125 MHz\n", __func__);
 	/* To enable AR8031 ouput a 125MHz clk from CLK_25M */
 	phy_write(phydev, MDIO_DEVAD_NONE, 0xd, 0x7);
 	phy_write(phydev, MDIO_DEVAD_NONE, 0xe, 0x8016);

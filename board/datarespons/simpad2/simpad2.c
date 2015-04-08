@@ -505,16 +505,16 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_BT_REG_ON, 0);
 	gpio_direction_input(GPIO_RECOVERY_SWITCH);
 	gpio_direction_output(GPIO_SPI_NOR_WP, 1);
-	gpio_direction_output(GPIO_CHARGER_ISET, 0);
-	/* Turn on main power and IO for WiFI module - no action in kernel */
-	gpio_direction_output(GPIO_WL_BAT_PWR_EN, 1);
-	gpio_direction_output(GPIO_WL_VDDIO_EN, 1);
+	gpio_direction_output(GPIO_CHARGER_ISET, 1);
+
+	gpio_direction_output(GPIO_WL_BAT_PWR_EN, 0);
+	gpio_direction_output(GPIO_WL_VDDIO_EN, 0);
 
 	gpio_direction_input(GPIO_HW_SETTING0);
 	gpio_direction_input(GPIO_HW_SETTING1);
 	gpio_direction_input(GPIO_PWR_BTN);
 	gpio_direction_input(GPIO_DDR_SETTING);
-	gpio_direction_output(GPIO_LED_R, 0);
+	gpio_direction_output(GPIO_LED_R, 1);
 	gpio_direction_output(GPIO_LED_G, 1);
 	gpio_direction_output(GPIO_LED_B, 1);
 	gpio_direction_output(GPIO_LCD_LR, 0);
