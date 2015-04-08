@@ -441,7 +441,7 @@ int board_ehci_hcd_init(int port)
 {
 	u32 *usbnc_usb_ctrl;
 
-	if (port > 1)
+	if (port > 0)
 		return -EINVAL;
 
 	usbnc_usb_ctrl = (u32 *)(USB_BASE_ADDR + USB_OTHERREGS_OFFSET +
@@ -498,14 +498,14 @@ int board_early_init_f(void)
 	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
 	gpio_direction_output(GPIO_CAP_TOUCH_RST, 0);
 	gpio_direction_output(GPIO_AUX_5V_EN, 1);	/* Turn on power */
-	gpio_direction_output(GPIO_CHARGER_NCE, 0);	/* Turn on charger */
+
 	gpio_direction_input(GPIO_ADAPTER_N);
 
 	gpio_direction_output(GPIO_WL_REG_ON, 0);
 	gpio_direction_output(GPIO_BT_REG_ON, 0);
 	gpio_direction_input(GPIO_RECOVERY_SWITCH);
 	gpio_direction_output(GPIO_SPI_NOR_WP, 1);
-	gpio_direction_output(GPIO_CHARGER_ISET, 1);
+
 
 	gpio_direction_output(GPIO_WL_BAT_PWR_EN, 0);
 	gpio_direction_output(GPIO_WL_VDDIO_EN, 0);
@@ -521,6 +521,8 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_LCD_UD, 0);
 	gpio_direction_output(GPIO_PMU_RST_N, 1);
 
+	gpio_direction_output(GPIO_CHARGER_NCE, 0);	/* Turn on charger */
+	gpio_direction_output(GPIO_CHARGER_ISET, 1);
 #endif
 
 #if !defined(CONFIG_SPL_BUILD) && defined(CONFIG_VIDEO)

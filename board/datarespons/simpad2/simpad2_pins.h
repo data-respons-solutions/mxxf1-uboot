@@ -100,7 +100,7 @@ static iomux_v3_cfg_t const rgb_pads[] = {
 static iomux_v3_cfg_t const usb_otg_pads[] = {
 	MX6_PAD_EIM_D22__USB_OTG_PWR 	| MUX_PAD_CTRL(NO_PAD_CTRL),
 	MX6_PAD_EIM_D21__USB_OTG_OC 	| MUX_PAD_CTRL(NO_PAD_CTRL),
-	MX6_PAD_ENET_RX_ER__USB_OTG_ID 	| MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_ENET_RX_ER__USB_OTG_ID 	| MUX_PAD_CTRL(REGINP_PAD_CTRL),
 };
 
 static iomux_v3_cfg_t const other_pads[] = {
