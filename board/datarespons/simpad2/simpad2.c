@@ -488,7 +488,7 @@ int board_early_init_f(void)
 
 	gpio_direction_input(GPIO_TOUCH_IRQ);
 	gpio_direction_input(KEY_FUNCTION);
-	gpio_direction_output(GPIO_LCD_EN, 0);
+	gpio_direction_output(GPIO_LCD_EN, 1);
 	gpio_direction_output(GPIO_BL_EN, 0);
 
 	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
@@ -514,8 +514,8 @@ int board_early_init_f(void)
 	gpio_direction_input(GPIO_HW_SETTING1);
 	gpio_direction_input(GPIO_PWR_BTN);
 	gpio_direction_input(GPIO_DDR_SETTING);
-	gpio_direction_output(GPIO_LED_R, 1);
-	gpio_direction_output(GPIO_LED_G, 1);
+	gpio_direction_output(GPIO_LED_R, 0);
+	gpio_direction_output(GPIO_LED_G, 0);
 	gpio_direction_output(GPIO_LED_B, 1);
 	gpio_direction_output(GPIO_LCD_LR, 0);
 	gpio_direction_output(GPIO_LCD_UD, 0);

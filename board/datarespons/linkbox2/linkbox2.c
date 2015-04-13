@@ -282,7 +282,7 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_LED_G, 1);
 	gpio_direction_output(GPIO_LED_B, 1);
 
-	gpio_direction_output(GPIO_LED_R, 1);
+	gpio_direction_output(GPIO_LED_R, 0);
 	gpio_direction_output(GPIO_LED_G, 0);
 	gpio_direction_output(GPIO_LED_B, 1);
 
