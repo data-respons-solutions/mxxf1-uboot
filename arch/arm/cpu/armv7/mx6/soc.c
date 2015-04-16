@@ -366,8 +366,8 @@ void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
 	struct fuse_bank4_regs *fuse =
 			(struct fuse_bank4_regs *)bank->fuse_regs;
 
-	u32 value = readl(&fuse->mac_addr_high);
-	mac[0] = (value >> 8);
+	u32 value = readl(&fuse->mac_addr_high) & 0xffff;
+	mac[0] = (value >> 8) & 0xfe;
 	mac[1] = value ;
 
 	value = readl(&fuse->mac_addr_low);
