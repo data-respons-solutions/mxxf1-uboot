@@ -486,7 +486,7 @@ int board_early_init_f(void)
 	imx_iomux_v3_setup_multiple_pads(other_pads, ARRAY_SIZE(other_pads));
 	imx_iomux_v3_setup_multiple_pads(i2c_pads, ARRAY_SIZE(i2c_pads));
 
-	gpio_direction_input(GPIO_TOUCH_IRQ);
+	gpio_direction_output(GPIO_TOUCH_IRQ, 1);
 	gpio_direction_input(KEY_FUNCTION);
 	gpio_direction_output(GPIO_LCD_EN, 1);
 	gpio_direction_output(GPIO_BL_EN, 0);
@@ -518,11 +518,13 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_LED_G, 0);
 	gpio_direction_output(GPIO_LED_B, 1);
 	gpio_direction_output(GPIO_LCD_LR, 0);
-	gpio_direction_output(GPIO_LCD_UD, 0);
+	gpio_direction_output(GPIO_LCD_UD, 1);
 	gpio_direction_output(GPIO_PMU_RST_N, 1);
 
 	gpio_direction_output(GPIO_CHARGER_NCE, 0);	/* Turn on charger */
 	gpio_direction_output(GPIO_CHARGER_ISET, 1);
+	//udelay(1000);
+
 #endif
 
 #if !defined(CONFIG_SPL_BUILD) && defined(CONFIG_VIDEO)
@@ -551,6 +553,10 @@ int board_init(void)
 #ifndef CONFIG_EMU_SABRESD
 	gpio_set_value(GPIO_CAP_TOUCH_RST, 1);
 	udelay(100);
+	gpio_set_value(GPIO_TOUCH_IRQ, 0);
+	mdelay(5);
+	gpio_set_value(GPIO_TOUCH_IRQ, 1);
+	gpio_direction_input(GPIO_TOUCH_IRQ);
 #endif
 	/* Check if the display should present u-boot info */
 	enable_display = gpio_get_value(KEY_FUNCTION);	/* TODO: invert */
@@ -611,6 +617,7 @@ int board_late_init(void)
 	printf("SIMPAD2 HW version: %d\n",
 			(gpio_get_value(GPIO_HW_SETTING1) << 1) | gpio_get_value(GPIO_HW_SETTING0)
 			);
+
 #endif
 	//egalax_firmware_version();
 #if 0

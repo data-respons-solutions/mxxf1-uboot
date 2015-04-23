@@ -273,6 +273,8 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_SPI_NOR_WP, 1);
 	gpio_direction_output(GPIO_WL_BAT_PWR_EN, 0);
 	gpio_direction_output(GPIO_WL_VDDIO_EN, 0);
+	gpio_direction_output(GPIO_PWM2, 0);
+	gpio_direction_output(GPIO_PWM3, 0);
 
 	gpio_direction_input(GPIO_HW_SETTING0);
 	gpio_direction_input(GPIO_HW_SETTING1);

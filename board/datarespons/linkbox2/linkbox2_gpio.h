@@ -41,7 +41,8 @@
 #define GPIO_WIFI_LED_G		IMX_GPIO_NR(5, 6)
 #define GPIO_WIFI_LED_B		IMX_GPIO_NR(5, 7)
 #define GPIO_WIFI_LED_R		IMX_GPIO_NR(5, 8)
-
+#define GPIO_PWM3			IMX_GPIO_NR(1, 17)
+#define GPIO_PWM2			IMX_GPIO_NR(1, 19)
 /* PMU */
 #define GPIO_PMU_RST_N		IMX_GPIO_NR(5, 13)
 #define GPIO_PMU_SPI_CS		IMX_GPIO_NR(5, 12)
