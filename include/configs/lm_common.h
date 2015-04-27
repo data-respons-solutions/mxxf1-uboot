@@ -113,8 +113,8 @@
 	"fdt_file=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"initrd_file=/boot/initrd\0" \
 	"initrd_high=0xffffffff\0" \
-	"loglevel=7\0" \
-	"consoleblank=300\0" \
+	"loglevel=4\0" \
+	"consoleblank=0\0" \
 	"showtty=console=ttymxc0,115200 console=tty1\0" \
 	"setargs=setenv bootargs console=${console} root=${rootdev} rootwait ro rootfstype=ext4 consoleblank=${consoleblank} loglevel=${loglevel} ${showtty}\0" \
 	"bootdev=0\0" \
