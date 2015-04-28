@@ -519,7 +519,7 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_LED_B, 1);
 	gpio_direction_output(GPIO_LCD_LR, 0);
 	gpio_direction_output(GPIO_LCD_UD, 1);
-	gpio_direction_output(GPIO_PMU_RST_N, 1);
+	gpio_direction_input(GPIO_PMU_RST_N);
 
 	gpio_direction_output(GPIO_CHARGER_NCE, 0);	/* Turn on charger */
 	gpio_direction_output(GPIO_CHARGER_ISET, 1);
