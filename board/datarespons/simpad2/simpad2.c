@@ -38,7 +38,8 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 #define USE_PWM_FOR_BL
-#define BL_PWM 1
+#define BL_PWM 0
+#define VIBRA_PWM 1
 
 #include "../lm-common/lm_common_defs.h"
 #ifdef CONFIG_EMU_SABRESD
@@ -523,6 +524,7 @@ int board_early_init_f(void)
 
 	gpio_direction_output(GPIO_CHARGER_NCE, 0);	/* Turn on charger */
 	gpio_direction_output(GPIO_CHARGER_ISET, 1);
+	gpio_direction_output(GPIO_VIBRA, 0);
 	//udelay(1000);
 
 #endif
@@ -557,6 +559,7 @@ int board_init(void)
 	mdelay(5);
 	gpio_set_value(GPIO_TOUCH_IRQ, 1);
 	gpio_direction_input(GPIO_TOUCH_IRQ);
+
 #endif
 	/* Check if the display should present u-boot info */
 	enable_display = gpio_get_value(KEY_FUNCTION);	/* TODO: invert */

@@ -29,6 +29,7 @@
 #define GPIO_BL_EN			IMX_GPIO_NR(4, 8)
 #define GPIO_LCD_LR			IMX_GPIO_NR(1, 7)
 #define GPIO_LCD_UD			IMX_GPIO_NR(1, 8)
+#define GPIO_VIBRA			IMX_GPIO_NR(1, 19)
 
 /* PMU */
 #define GPIO_PMU_RST_N		IMX_GPIO_NR(5, 13)
