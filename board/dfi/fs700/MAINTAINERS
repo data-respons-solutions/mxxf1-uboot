@@ -1,0 +1,6 @@
+MXXF1 BOARD
+M:	Hans Christian Lonstad <hcl@datarespons.no>
+S:	Maintained
+F:	board/dfi/fs700
+F:	include/configs/fs700.h
+F:	configs/fs700_defconfig

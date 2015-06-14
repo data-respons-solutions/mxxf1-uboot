@@ -1,0 +1,15 @@
+if TARGET_FS700
+
+config SYS_BOARD
+	default "fs700"
+
+config SYS_VENDOR
+	default "dfi"
+
+config SYS_SOC
+	default "mx6"
+
+config SYS_CONFIG_NAME
+	default "fs700"
+
+endif
