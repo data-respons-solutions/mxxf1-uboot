@@ -42,7 +42,7 @@
 #define OC_SLOW_PAD_CTRL (PAD_CTL_ODE | SLOWOUT_PAD_CTRL)
 #define I2C_PAD MUX_PAD_CTRL(I2C_PAD_CTRL)
 
-typedef enum  { SW1AB, SW1C, SW3AB } pf100_regs;
+typedef enum  { SW1AB, SW1C, SW3AB, VGEN4 } pf100_regs;
 
 int vpd_update(char *touch_fw_ver, int wp_gpio);
 #endif

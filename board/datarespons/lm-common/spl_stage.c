@@ -212,8 +212,13 @@ static int simpad2_pmic_set(pf100_regs reg, int mV)
 		i2c_write(0x08, PFUZE100_SW3AVOL, 1, values, 1);
 		i2c_write(0x08, PFUZE100_SW3BVOL, 1, values, 1);
 		break;
-	}
 
+	case VGEN4:
+		printf("Setting PMIC register VGEN4 to %d mV\n", mV);
+		values[0] = ((mV - 1800) * 15) / 1500;
+		i2c_write(0x08, PFUZE100_VGEN4VOL, 1, values, 1);
+		break;
+	}
 	return 0;
 }
 static void gpr_init(void)
