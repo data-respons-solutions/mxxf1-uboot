@@ -115,9 +115,11 @@ static iomux_v3_cfg_t const usb_otg_pads[] = {
 
 static iomux_v3_cfg_t const other_pads[] = {
 	MX6_PAD_NANDF_CLE__GPIO6_IO07	| MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_NANDF_CS0__GPIO6_IO13	| MUX_PAD_CTRL(NO_PAD_CTRL),		/* Wifi IO enable */
 	MX6_PAD_NANDF_CS2__GPIO6_IO15	| MUX_PAD_CTRL(NO_PAD_CTRL),
 	MX6_PAD_NANDF_CS3__GPIO6_IO16	| MUX_PAD_CTRL(NO_PAD_CTRL),
 	MX6_PAD_GPIO_4__GPIO1_IO04		| MUX_PAD_CTRL(REGINP_PAD_CTRL),
+	MX6_PAD_EIM_D22__GPIO3_IO22		| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* Wifi power */
 };
 
 static iomux_v3_cfg_t const di0_pads[] = {
