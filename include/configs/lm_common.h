@@ -136,12 +136,11 @@
 	"check_usb_boot=if usb storage; then run setusb loadfdt; fi;\0" \
 	"initrd_addr=0x12C00000\0" \
 	"initrd_high=0xffffffff\0" \
-	"factory_args=setenv bootargs console=${console} rdinit=/linuxrc enable_wait_mode=off" \
-	"g_mass_storage.stall=0 g_mass_storage.removable=1 " \
-	"g_mass_storage.idVendor=0x066F g_mass_storage.idProduct=0x37FF "\
-	"g_mass_storage.iSerialNumber=\"\" \0"\
+	"factory_args=setenv bootargs console=${console} rdinit=/linuxrc enable_wait_mode=off \0" \
+	"install_args=setenv bootargs console=${console} rdinit=/install_script enable_wait_mode=off \0" \
 	"factory_boot=run factory_args; bootz ${loadaddr} ${initrd_addr} ${fdt_addr}; \0" \
-	"testfact=run loadfdt loadimage loadinitrd factory_boot; \0"
+	"testfact=run loadfdt loadimage loadinitrd factory_boot; \0" \
+	"install_boot=run install_args loadfdt loadimage loadinitrd; bootz ${loadaddr} ${initrd_addr} ${fdt_addr}; \0"
 #ifdef CONFIG_FACTORY_BOOT
 #define CONFIG_BOOTCOMMAND \
 	"run factory_boot;"
