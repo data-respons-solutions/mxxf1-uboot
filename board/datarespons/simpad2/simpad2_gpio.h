@@ -34,5 +34,6 @@
 /* PMU */
 #define GPIO_PMU_RST_N		IMX_GPIO_NR(5, 13)
 #define GPIO_PMU_SPI_CS		IMX_GPIO_NR(5, 12)
+#define GPIO_PMU_STATUS		IMX_GPIO_NR(5, 17)
 
 #endif

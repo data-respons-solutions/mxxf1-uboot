@@ -618,6 +618,7 @@ int board_late_init(void)
 	ulong ticks;
 
 #ifndef CONFIG_EMU_SABRESD
+	gpio_direction_output(GPIO_PMU_STATUS, 0);	/* Tell PMU we are ready */
 	printf("SIMPAD2 HW version: %d\n",
 			(gpio_get_value(GPIO_HW_SETTING1) << 1) | gpio_get_value(GPIO_HW_SETTING0)
 			);
