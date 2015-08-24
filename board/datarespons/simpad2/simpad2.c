@@ -522,8 +522,9 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_LCD_LR, 0);
 	gpio_direction_output(GPIO_LCD_UD, 1);
 	gpio_direction_input(GPIO_PMU_RST_N);
+	gpio_direction_output(GPIO_PMU_STATUS, 1);
 
-	gpio_direction_output(GPIO_CHARGER_NCE, 0);	/* Turn on charger */
+	gpio_direction_output(GPIO_CHARGER_NCE, 1);
 	gpio_direction_output(GPIO_CHARGER_ISET, 1);
 	gpio_direction_output(GPIO_VIBRA, 0);
 	//udelay(1000);
@@ -618,7 +619,6 @@ int board_late_init(void)
 	ulong ticks;
 
 #ifndef CONFIG_EMU_SABRESD
-	gpio_direction_output(GPIO_PMU_STATUS, 1);
 	printf("SIMPAD2 HW version: %d\n",
 			(gpio_get_value(GPIO_HW_SETTING1) << 1) | gpio_get_value(GPIO_HW_SETTING0)
 			);
