@@ -31,7 +31,7 @@
 #define CONFIG_IMX6_THERMAL
 
 #define CONFIG_SYS_GENERIC_BOARD
-#define CONFIG_IMX_WATCHDOG_USE_WD2
+
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		(10 * SZ_1M)
 

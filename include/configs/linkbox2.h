@@ -34,6 +34,7 @@
 #define CONFIG_MACH_TYPE	3980
 #define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONFIG_CONSOLE_DEV		"ttymxc0"
+#define CONFIG_IMX_WATCHDOG_USE_WD2
 
 #ifdef CONFIG_EMU_SABRESD
 #define CONFIG_DEFAULT_FDT_FILE	"/boot/linkbox2-sabresd.dtb"
