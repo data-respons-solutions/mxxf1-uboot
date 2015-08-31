@@ -52,7 +52,6 @@
 #undef CONFIG_VIDEO
 #include "lm_common.h"
 
-
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_SYS_MMC_ENV_DEV		0	/* SDHC3 */
 #endif
