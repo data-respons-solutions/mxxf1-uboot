@@ -53,6 +53,26 @@ struct fsl_esdhc_cfg usdhc_cfg[2] = {
 	{USDHC4_BASE_ADDR},
 };
 
+#ifndef CONFIG_SPL_BUILD
+static const char* hw_string[8] = {
+	"REVC",
+	"REVD",
+	"FUTURE",
+	"FUTURE",
+	"FUTURE",
+	"FUTURE",
+	"FUTURE",
+	"FUTURE",
+};
+#endif
+
+static int get_version(void)
+{
+	return ((gpio_get_value(GPIO_HW_SETTING2) << 2) |
+			(gpio_get_value(GPIO_HW_SETTING1) << 1) |
+			gpio_get_value(GPIO_HW_SETTING0)) & 7;
+}
+
 int dram_init(void)
 {
 	gd->ram_size = imx_ddr_size();
@@ -242,6 +262,27 @@ int board_ehci_power(int port, int on)
 
 int board_early_init_f(void)
 {
+	int version;
+	imx_iomux_v3_setup_multiple_pads(hw_settings_pads, ARRAY_SIZE(hw_settings_pads));
+	gpio_direction_input(GPIO_HW_SETTING0);
+	gpio_direction_input(GPIO_HW_SETTING1);
+	gpio_direction_input(GPIO_HW_SETTING2);
+
+	version = get_version();
+
+	switch (version)
+	{
+	case 0:
+		imx_iomux_v3_setup_multiple_pads(revc_pads, ARRAY_SIZE(revc_pads));
+		break;
+
+	case 1: /* Rev D */
+		imx_iomux_v3_setup_multiple_pads(revd_pads, ARRAY_SIZE(revd_pads));
+		break;
+
+	default:
+		break;
+	}
 
 	imx_iomux_v3_setup_multiple_pads(uart1_pads, ARRAY_SIZE(uart1_pads));
 	imx_iomux_v3_setup_multiple_pads(ecspi1_pads, ARRAY_SIZE(ecspi1_pads));
@@ -252,7 +293,6 @@ int board_early_init_f(void)
 
 	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
 	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
-	setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info2);
 
 #ifndef CONFIG_EMU_SABRESD
 	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
@@ -359,10 +399,24 @@ int board_late_init(void)
 	int rep;
 	ulong ticks;
 #ifndef CONFIG_EMU_SABRESD
-	gpio_direction_output(GPIO_PMU_STATUS, 1);
-	printf("LINKBOX2 HW version: %d\n",
-			(gpio_get_value(GPIO_HW_SETTING1) << 1) | gpio_get_value(GPIO_HW_SETTING0)
-			);
+	int version = get_version();
+	switch (version)
+	{
+	case 0:
+		gpio_direction_output(GPIO_PMU_STATUS, 1);
+		setenv("fdt_file", "/boot/linkbox2-revC.dtb");
+		break;
+
+	case 1:
+		setenv("fdt_file", "/boot/linkbox2-revD.dtb");
+		break;
+
+	default:
+		break;
+	}
+
+	printf("LINKBOX2 HW version: %s\n", hw_string[version]);
+
 #endif
 	printf("Linkbox2 U-BOOT version [%s]\n", U_BOOT_VERSION);
 	cmd_process(0, 2, usbcmd, &rep, &ticks);

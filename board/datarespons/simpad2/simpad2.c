@@ -57,6 +57,28 @@ struct fsl_esdhc_cfg usdhc_cfg[2] = {
 };
 static int enable_display=0;
 
+#ifndef CONFIG_SPL_BUILD
+static const char* hw_string[8] = {
+	"REVB",
+	"REVC",
+	"FUTURE",
+	"FUTURE",
+	"FUTURE",
+	"FUTURE",
+	"FUTURE",
+	"FUTURE",
+};
+
+
+static int get_version(void)
+{
+	return ((gpio_get_value(GPIO_HW_SETTING2) << 2) |
+			(gpio_get_value(GPIO_HW_SETTING1) << 1) |
+			gpio_get_value(GPIO_HW_SETTING0)) & 7;
+}
+
+#endif
+
 int dram_init(void)
 {
 	gd->ram_size = imx_ddr_size();
@@ -619,9 +641,22 @@ int board_late_init(void)
 	ulong ticks;
 
 #ifndef CONFIG_EMU_SABRESD
-	printf("SIMPAD2 HW version: %d\n",
-			(gpio_get_value(GPIO_HW_SETTING1) << 1) | gpio_get_value(GPIO_HW_SETTING0)
-			);
+	int version = get_version();
+	switch (version)
+	{
+	case 0:
+		gpio_direction_output(GPIO_PMU_STATUS, 1);
+		setenv("fdt_file", "/boot/simpad2-revB.dtb");
+		break;
+
+	case 1:
+		setenv("fdt_file", "/boot/simpad2-revC.dtb");
+		break;
+
+	default:
+		break;
+	}
+	printf("SIMPAD2 HW version: %s\n", hw_string[version]);
 
 #endif
 	//egalax_firmware_version();

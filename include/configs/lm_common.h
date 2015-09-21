@@ -111,6 +111,7 @@
 	"console=" CONFIG_CONSOLE_DEV ",115200\0" \
 	"fdt_high=0xffffffff\0"	  \
 	"fdt_file=" CONFIG_DEFAULT_FDT_FILE "\0" \
+	"fdt_file_def=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"initrd_file=/boot/initrd\0" \
 	"initrd_high=0xffffffff\0" \
 	"loglevel=4\0" \
@@ -132,7 +133,9 @@
 	"loadimage=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} ${zimage}; \0" \
 	"loadinitrd=ext4load ${bootfrom} ${bootdev}:${bootpart} ${initrd_addr} ${initrd_file}; \0" \
 	"loadfdt=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file}; \0" \
-	"bootscript=run setargs; if run loadimage loadfdt; then bootz ${loadaddr} - ${fdt_addr}; else echo ERROR: Could not load image; fi; \0" \
+	"loadfdtdef=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file_def}; \0" \
+	"bootscript=run setargs; if run loadimage loadfdt; then bootz ${loadaddr} - ${fdt_addr}; else echo ERROR: Could not load prescribed config; fi; \0" \
+	"emergencyboot=run setargs; if run loadimage loadfdtdef; then bootz ${loadaddr} - ${fdt_addr}; else echo ERROR: Could not load emergency config; fi; \0" \
 	"check_usb_boot=if usb storage; then run setusb loadfdt; fi;\0" \
 	"initrd_addr=0x12C00000\0" \
 	"initrd_high=0xffffffff\0" \
@@ -153,7 +156,8 @@
 		"run setmmc; echo booting from MMC ...;" \
 	"fi; " \
 	"run loadbootscript;" \
-	"run bootscript;"
+	"run bootscript;" \
+	"run emergencyboot;"
 #endif
 
 #define CONFIG_ARP_TIMEOUT     200UL
