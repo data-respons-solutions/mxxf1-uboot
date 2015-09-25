@@ -546,7 +546,7 @@ int overwrite_console(void)
 
 #ifndef CONFIG_SPL_BUILD
 #define MAX_I2C_DATA_LEN 10
-static char egalax_fw[6];
+static char egalax_fw[32];
 static int egalax_firmware_version(void)
 {
 	int to=100000;
@@ -554,6 +554,10 @@ static int egalax_firmware_version(void)
 	uint8_t rcv_buf[MAX_I2C_DATA_LEN+1];
 
 	int ret;
+	gpio_set_value(GPIO_CAP_TOUCH_RST, 0);
+	udelay(500);
+	gpio_set_value(GPIO_CAP_TOUCH_RST, 1);
+	udelay(500);
 	i2c_set_bus_num(2);
 	i2c_set_bus_speed(CONFIG_SYS_I2C_SPEED);
 
@@ -595,6 +599,7 @@ static int egalax_firmware_version(void)
 		else
 		{
 			printf("%s: Got touch message %x.%x.%x\n", __func__, rcv_buf[0], rcv_buf[1], rcv_buf[2]);
+			return -EINVAL;
 		}
 	}
 
