@@ -85,8 +85,9 @@ DECLARE_GLOBAL_DATA_PTR;
 
 typedef enum  { SW1AB, SW1C, SW3AB } pf100_regs;
 typedef enum {VER_PANEL, VER_DIN, VER_UNKNOWN} PanelVersion;
-
+#ifndef CONFIG_SPL_BUILD
 static PanelVersion board_version = VER_UNKNOWN;
+#endif
 int vpd_update_eeprom(char *touch_fw_ver);
 
 int dram_init(void)
@@ -667,6 +668,7 @@ int board_eth_init(bd_t *bis)
 #define USB_OTHERREGS_OFFSET	0x800
 #define UCTRL_PWR_POL		(1 << 9)
 
+#ifndef CONFIG_SPL_BUILD
 static void setup_usb(void)
 {
 	/*
@@ -675,6 +677,8 @@ static void setup_usb(void)
 	 */
 	imx_iomux_set_gpr_register(1, 13, 1, 0);
 }
+#endif
+
 
 int board_ehci_hcd_init(int port)
 {
@@ -729,6 +733,7 @@ static const u32 buzzer_period = 1000000000/2300;
 
 int board_early_init_f(void)
 {
+
 	imx_iomux_v3_setup_multiple_pads(enet_pads, ARRAY_SIZE(enet_pads));
 	imx_iomux_v3_setup_multiple_pads(extra_pads, ARRAY_SIZE(extra_pads));
 	imx_iomux_v3_setup_multiple_pads(extra_nandf_pads, ARRAY_SIZE(extra_nandf_pads));
@@ -755,6 +760,8 @@ int board_early_init_f(void)
 	gpio_direction_input(GPIO_DIMM_DN);
 	gpio_direction_input(GPIO_DIMM_UP);
 	gpio_direction_input(GPIO_TOUCH_IRQ);
+
+
 #ifndef CONFIG_SPL_BUILD
 	setup_display();
 #endif
@@ -767,10 +774,16 @@ int board_early_init_f(void)
 #ifndef CONFIG_SPL_BUILD
 int board_init(void)
 {
+	struct iomuxc *iomuxc_regs = (struct iomuxc *)IOMUXC_BASE_ADDR;
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
+
+	if (get_imx_reset_cause() == 0x00010) {
+		clrbits_le32(&iomuxc_regs->gpr[12], IOMUXC_GPR12_APPS_LTSSM_ENABLE);
+	}
 	board_version = check_version();
+
 	setup_display();
 
 #ifdef USE_PWM_FOR_BL

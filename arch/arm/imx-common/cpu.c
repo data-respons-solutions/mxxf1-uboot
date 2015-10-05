@@ -26,16 +26,22 @@
 
 static u32 reset_cause = -1;
 
-static char *get_reset_cause(void)
+static void read_reset_cause(void)
 {
 	u32 cause;
 	struct src *src_regs = (struct src *)SRC_BASE_ADDR;
+	if (reset_cause == -1) {
+		cause = readl(&src_regs->srsr);
+		writel(cause, &src_regs->srsr);
+		reset_cause = cause;
+	}
+}
 
-	cause = readl(&src_regs->srsr);
-	writel(cause, &src_regs->srsr);
-	reset_cause = cause;
+static char *get_reset_cause(void)
+{
+	read_reset_cause();
 
-	switch (cause) {
+	switch (reset_cause) {
 	case 0x00001:
 	case 0x00011:
 		return "POR";
@@ -58,6 +64,7 @@ static char *get_reset_cause(void)
 
 u32 get_imx_reset_cause(void)
 {
+	read_reset_cause();
 	return reset_cause;
 }
 
