@@ -69,7 +69,7 @@ static const char* hw_string[8] = {
 	"FUTURE",
 	"FUTURE",
 };
-
+#endif
 
 static int get_version(void)
 {
@@ -78,7 +78,6 @@ static int get_version(void)
 			gpio_get_value(GPIO_HW_SETTING0)) & 7;
 }
 
-#endif
 
 int dram_init(void)
 {
@@ -370,6 +369,27 @@ int board_ehci_power(int port, int on)
 
 int board_early_init_f(void)
 {
+	int version;
+	imx_iomux_v3_setup_multiple_pads(hw_settings_pads, ARRAY_SIZE(hw_settings_pads));
+	gpio_direction_input(GPIO_HW_SETTING0);
+	gpio_direction_input(GPIO_HW_SETTING1);
+	gpio_direction_input(GPIO_HW_SETTING2);
+
+	version = get_version();
+
+	switch (version)
+	{
+	case 0:
+		imx_iomux_v3_setup_multiple_pads(revb_pads, ARRAY_SIZE(revb_pads));
+		break;
+
+	case 1: /* Rev D */
+		imx_iomux_v3_setup_multiple_pads(revc_pads, ARRAY_SIZE(revc_pads));
+		break;
+
+	default:
+		break;
+	}
 
 	imx_iomux_v3_setup_multiple_pads(uart1_pads, ARRAY_SIZE(uart1_pads));
 	imx_iomux_v3_setup_multiple_pads(ecspi1_pads, ARRAY_SIZE(ecspi1_pads));
@@ -377,6 +397,7 @@ int board_early_init_f(void)
 	imx_iomux_v3_setup_multiple_pads(usb_otg_pads, ARRAY_SIZE(usb_otg_pads));
 	imx_iomux_v3_setup_multiple_pads(other_pads, ARRAY_SIZE(other_pads));
 	imx_iomux_v3_setup_multiple_pads(i2c_pads, ARRAY_SIZE(i2c_pads));
+
 
 	gpio_direction_output(GPIO_TOUCH_IRQ, 1);
 	gpio_direction_input(KEY_FUNCTION);
@@ -402,8 +423,7 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_WL_BAT_PWR_EN, 0);
 	gpio_direction_output(GPIO_WL_VDDIO_EN, 0);
 
-	gpio_direction_input(GPIO_HW_SETTING0);
-	gpio_direction_input(GPIO_HW_SETTING1);
+
 	gpio_direction_input(GPIO_PWR_BTN);
 	gpio_direction_input(GPIO_DDR_SETTING);
 	gpio_direction_output(GPIO_LED_R, 0);
@@ -414,7 +434,7 @@ int board_early_init_f(void)
 	gpio_direction_input(GPIO_PMU_RST_N);
 	gpio_direction_output(GPIO_PMU_STATUS, 1);
 
-	gpio_direction_output(GPIO_CHARGER_NCE, 1);
+	gpio_direction_output(GPIO_CHARGER_NCE, version > 0 ? 0 : 1);
 	gpio_direction_output(GPIO_CHARGER_ISET, 1);
 	gpio_direction_output(GPIO_VIBRA, 0);
 	//udelay(1000);
