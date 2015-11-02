@@ -82,6 +82,7 @@ static iomux_v3_cfg_t const revc_pads[] = {
 	MX6_PAD_GPIO_6__GPIO1_IO06				| MUX_PAD_CTRL(NO_PAD_CTRL),	/* MIC DETECT */
 	MX6_PAD_DISP0_DAT22__GPIO5_IO16 		| MUX_PAD_CTRL(NO_PAD_CTRL),	/* START_ADAPTER */
 	MX6_PAD_DISP0_DAT23__GPIO5_IO17 		| MUX_PAD_CTRL(NO_PAD_CTRL),	/* START_KEY */
+	MX6_PAD_KEY_ROW4__GPIO4_IO15			| MUX_PAD_CTRL(INPUT_PD_PAD_CTRL),		/* PCU clr signal */
 };
 
 static iomux_v3_cfg_t const rgb_pads[] = {

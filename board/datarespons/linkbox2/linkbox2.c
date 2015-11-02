@@ -307,7 +307,7 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_AC5W_SD_N, 0);	/* Turn off AMP */
 	gpio_direction_input(GPIO_ADAPTER_N);
 	gpio_direction_output(GPIO_VCC5_EN_R, 1);		/* Turn on system 5V */
-	gpio_direction_output(GPIO_PMIC_5V_EN, 1);		/* Turn on VBUS */
+
 	gpio_direction_output(GPIO_WL_REG_ON, 0);		/* WiFI off */
 	gpio_direction_output(GPIO_BT_REG_ON, 0);		/* Bluetooth off */
 	gpio_direction_input(GPIO_RECOVERY_SWITCH);

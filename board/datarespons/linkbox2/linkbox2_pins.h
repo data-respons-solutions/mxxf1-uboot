@@ -93,7 +93,7 @@ static iomux_v3_cfg_t const revc_pads[] = {
 };
 
 static iomux_v3_cfg_t const revd_pads[] = {
-	MX6_PAD_KEY_ROW4__GPIO4_IO15	| MUX_PAD_CTRL(INPUT_PD_PAD_CTRL),	/* PCU signal */
+	MX6_PAD_KEY_ROW4__GPIO4_IO15	| MUX_PAD_CTRL(INPUT_PD_PAD_CTRL),	/* PCU clr signal */
 };
 
 static iomux_v3_cfg_t const other_pads[] = {
