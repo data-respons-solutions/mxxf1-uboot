@@ -69,11 +69,6 @@ static iomux_v3_cfg_t const ecspi2_pads[] = {
 	MX6_PAD_DISP0_DAT18__GPIO5_IO12 | MUX_PAD_CTRL(REGINP_PAD_CTRL),
 };
 
-static iomux_v3_cfg_t const usb_otg_pads[] = {
-	MX6_PAD_EIM_D22__USB_OTG_PWR 	| MUX_PAD_CTRL(NO_PAD_CTRL),
-	MX6_PAD_EIM_D21__USB_OTG_OC 	| MUX_PAD_CTRL(NO_PAD_CTRL),
-	MX6_PAD_ENET_RX_ER__USB_OTG_ID 	| MUX_PAD_CTRL(NO_PAD_CTRL),
-};
 
 static iomux_v3_cfg_t const hw_settings_pads[] = {
 	MX6_PAD_EIM_D27__GPIO3_IO27		| MUX_PAD_CTRL(NO_PAD_CTRL),	/* HW_Setting_0 */
@@ -90,10 +85,15 @@ static iomux_v3_cfg_t const revc_pads[] = {
 	MX6_PAD_DISP0_DAT22__GPIO5_IO16 | MUX_PAD_CTRL(NO_PAD_CTRL),	/* GP_01--PMU (RES)*/
 	MX6_PAD_DISP0_DAT23__GPIO5_IO17 | MUX_PAD_CTRL(NO_PAD_CTRL),	/* GP_02--PMU (STATUS) */
 	MX6_PAD_DISP0_DAT18__GPIO5_IO12	| MUX_PAD_CTRL(SPI_PAD_CTRL),	/* ECSPI2 CS */
+	MX6_PAD_EIM_D22__USB_OTG_PWR 	| MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_EIM_D21__USB_OTG_OC 	| MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_ENET_RX_ER__USB_OTG_ID 	| MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
 static iomux_v3_cfg_t const revd_pads[] = {
 	MX6_PAD_KEY_ROW4__GPIO4_IO15	| MUX_PAD_CTRL(INPUT_PD_PAD_CTRL),	/* PCU clr signal */
+	MX6_PAD_EIM_D22__GPIO3_IO22	| MUX_PAD_CTRL(INPUT_PD_PAD_CTRL),	/* UV2 */
+	MX6_PAD_EIM_D31__GPIO3_IO31	| MUX_PAD_CTRL(INPUT_PD_PAD_CTRL),	/* UV3 */
 };
 
 static iomux_v3_cfg_t const other_pads[] = {
