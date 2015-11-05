@@ -273,6 +273,7 @@ int board_early_init_f(void)
 	switch (version)
 	{
 	case 0:
+		imx_iomux_v3_setup_multiple_pads(ecspi2_pads, ARRAY_SIZE(ecspi2_pads));
 		imx_iomux_v3_setup_multiple_pads(revc_pads, ARRAY_SIZE(revc_pads));
 		break;
 
@@ -286,15 +287,16 @@ int board_early_init_f(void)
 
 	imx_iomux_v3_setup_multiple_pads(uart1_pads, ARRAY_SIZE(uart1_pads));
 	imx_iomux_v3_setup_multiple_pads(ecspi1_pads, ARRAY_SIZE(ecspi1_pads));
-	imx_iomux_v3_setup_multiple_pads(ecspi2_pads, ARRAY_SIZE(ecspi2_pads));
 	imx_iomux_v3_setup_multiple_pads(other_pads, ARRAY_SIZE(other_pads));
 	imx_iomux_v3_setup_multiple_pads(i2c_pads, ARRAY_SIZE(i2c_pads));
 
+	/*
 	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
 	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
+	*/
 
-#ifndef CONFIG_EMU_SABRESD
-	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
+
+
 	/* Keep manikin off */
 	gpio_direction_output(GPIO_AUX_12V_EN, 0);
 	gpio_direction_output(GPIO_AUX_5V_EN, 0);
@@ -317,10 +319,16 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_PWM3, 0);
 	gpio_direction_output(GPIO_PWM1, 0);
 
-	gpio_direction_input(GPIO_HW_SETTING0);
-	gpio_direction_input(GPIO_HW_SETTING1);
 	gpio_direction_input(GPIO_PWR_BTN);
 	gpio_direction_input(GPIO_DDR_SETTING);
+
+
+	gpio_direction_input(GPIO_PMU_RST_N);
+	gpio_direction_output(GPIO_MCU_RST, 1);
+	gpio_direction_input(GPIO_MCU_BOOT0);
+	gpio_direction_input(GPIO_MCU_BOOT1);
+	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
+
 	gpio_direction_output(GPIO_LED_R, 0);
 	gpio_direction_output(GPIO_LED_G, 1);
 	gpio_direction_output(GPIO_LED_B, 1);
@@ -328,14 +336,6 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_LED_R, 0);
 	gpio_direction_output(GPIO_LED_G, 0);
 	gpio_direction_output(GPIO_LED_B, 1);
-
-	gpio_direction_input(GPIO_PMU_RST_N);
-	gpio_direction_output(GPIO_MCU_RST, 1);
-	gpio_direction_input(GPIO_MCU_BOOT0);
-	gpio_direction_input(GPIO_MCU_BOOT1);
-
-#endif
-
 	return 0;
 }
 

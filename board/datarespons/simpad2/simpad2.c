@@ -393,10 +393,10 @@ int board_early_init_f(void)
 
 	imx_iomux_v3_setup_multiple_pads(uart1_pads, ARRAY_SIZE(uart1_pads));
 	imx_iomux_v3_setup_multiple_pads(ecspi1_pads, ARRAY_SIZE(ecspi1_pads));
-	imx_iomux_v3_setup_multiple_pads(ecspi2_pads, ARRAY_SIZE(ecspi2_pads));
 	imx_iomux_v3_setup_multiple_pads(usb_otg_pads, ARRAY_SIZE(usb_otg_pads));
 	imx_iomux_v3_setup_multiple_pads(other_pads, ARRAY_SIZE(other_pads));
 	imx_iomux_v3_setup_multiple_pads(i2c_pads, ARRAY_SIZE(i2c_pads));
+	gpio_direction_output(GPIO_AUX_5V_EN, 0);	/* Turn off power */
 
 
 	gpio_direction_output(GPIO_TOUCH_IRQ, 1);
@@ -404,13 +404,8 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_LCD_EN, 1);
 	gpio_direction_output(GPIO_BL_EN, 0);
 
-	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
-	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
-	setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info2);
-#ifndef CONFIG_EMU_SABRESD
-	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
-	gpio_direction_output(GPIO_CAP_TOUCH_RST, 0);
-	gpio_direction_output(GPIO_AUX_5V_EN, 1);	/* Turn on power */
+	gpio_direction_output(GPIO_CAP_TOUCH_RST, 1);
+
 
 	gpio_direction_input(GPIO_ADAPTER_N);
 
@@ -419,27 +414,42 @@ int board_early_init_f(void)
 	gpio_direction_input(GPIO_RECOVERY_SWITCH);
 	gpio_direction_output(GPIO_SPI_NOR_WP, 1);
 
-
 	gpio_direction_output(GPIO_WL_BAT_PWR_EN, 0);
 	gpio_direction_output(GPIO_WL_VDDIO_EN, 0);
 
-
 	gpio_direction_input(GPIO_PWR_BTN);
 	gpio_direction_input(GPIO_DDR_SETTING);
+
+	gpio_direction_output(GPIO_LCD_LR, 0);
+	gpio_direction_output(GPIO_LCD_UD, 1);
+
+	if (version < 1) {
+		gpio_direction_input(GPIO_PMU_RST_N);
+		gpio_direction_output(GPIO_PMU_STATUS, 1);
+		gpio_direction_output(GPIO_CHARGER_NCE, 1);
+	}
+	else {
+		gpio_direction_output(GPIO_CHARGER_NCE, 0);
+		gpio_direction_input(GPIO_PCU_START_ADAPTER);
+		gpio_direction_input(GPIO_PCU_START_KEY);
+	}
+
+
+	gpio_direction_output(GPIO_CHARGER_ISET, 1);
+	gpio_direction_output(GPIO_VIBRA, 0);
+
+
+	/*
+	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
+	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
+	setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info2);
+	*/
+	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
+
 	gpio_direction_output(GPIO_LED_R, 0);
 	gpio_direction_output(GPIO_LED_G, 0);
 	gpio_direction_output(GPIO_LED_B, 1);
-	gpio_direction_output(GPIO_LCD_LR, 0);
-	gpio_direction_output(GPIO_LCD_UD, 1);
-	gpio_direction_input(GPIO_PMU_RST_N);
-	gpio_direction_output(GPIO_PMU_STATUS, 1);
 
-	gpio_direction_output(GPIO_CHARGER_NCE, version > 0 ? 0 : 1);
-	gpio_direction_output(GPIO_CHARGER_ISET, 1);
-	gpio_direction_output(GPIO_VIBRA, 0);
-	//udelay(1000);
-
-#endif
 
 #if !defined(CONFIG_SPL_BUILD) && defined(CONFIG_VIDEO)
 	imx_iomux_v3_setup_multiple_pads(rgb_pads, ARRAY_SIZE(rgb_pads));
@@ -464,7 +474,7 @@ int board_init(void)
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
-#ifndef CONFIG_EMU_SABRESD
+	gpio_direction_output(GPIO_AUX_5V_EN, 1);	/* Turn on power */
 	gpio_set_value(GPIO_CAP_TOUCH_RST, 1);
 	udelay(100);
 	gpio_set_value(GPIO_TOUCH_IRQ, 0);
@@ -472,7 +482,6 @@ int board_init(void)
 	gpio_set_value(GPIO_TOUCH_IRQ, 1);
 	gpio_direction_input(GPIO_TOUCH_IRQ);
 
-#endif
 #ifdef CONFIG_VIDEO_IPUV3
 	setup_display();
 	if (pwm_config(BL_PWM, 2000, 5000))

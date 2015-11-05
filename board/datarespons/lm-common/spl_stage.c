@@ -280,9 +280,10 @@ void board_init_f(ulong dummy)
 	ccgr_init();
 	gpr_init();
 
+	hw_watchdog_init();
 	/* iomux and setup of i2c */
 	board_early_init_f();
-	hw_watchdog_init();
+
 	/* setup GP timer */
 	timer_init();
 

@@ -32,9 +32,14 @@
 #define GPIO_LCD_UD			IMX_GPIO_NR(1, 8)
 #define GPIO_VIBRA			IMX_GPIO_NR(1, 19)
 
-/* PMU */
+/* PMU (RevB) */
 #define GPIO_PMU_RST_N		IMX_GPIO_NR(5, 13)
 #define GPIO_PMU_SPI_CS		IMX_GPIO_NR(5, 12)
 #define GPIO_PMU_STATUS		IMX_GPIO_NR(5, 17)
+
+/* PCU */
+#define GPIO_PCU_CLR			IMX_GPIO_NR(4, 15)
+#define GPIO_PCU_START_ADAPTER	IMX_GPIO_NR(5, 16)
+#define GPIO_PCU_START_KEY		IMX_GPIO_NR(5, 17)
 
 #endif
