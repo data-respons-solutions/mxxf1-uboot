@@ -104,9 +104,11 @@
 #define CONFIG_LOADADDR                        0x12000000
 #define CONFIG_SYS_TEXT_BASE           0x17800000
 
+#define CONFIG_MACH_TYPE	0xffffffff	/* Needed for newer kernels */
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"zimage=/boot/zImage\0" \
-	"fdt_addr=0x11000000\0" \
+	"fdt_addr=0x18000000\0" \
 	"ip_dyn=try\0" \
 	"console=" CONFIG_CONSOLE_DEV ",115200\0" \
 	"fdt_high=0xffffffff\0"	  \
