@@ -1,0 +1,6 @@
+MXXF1 BOARD
+M:	Hans Christian Lonstad <hcl@datarespons.no>
+S:	Maintained
+F:	board/datarespons/mxxf1
+F:	include/configs/mxxf1.h
+F:	configs/mxxf1_spl_defconfig

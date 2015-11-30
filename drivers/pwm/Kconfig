@@ -1,0 +1,2 @@
+config PWM_IMX
+	bool "Freescale IMX PWM"

@@ -147,7 +147,31 @@ config TARGET_WANDBOARD
 
 config TARGET_WARP
 	bool "WaRP"
+	
+config TARGET_SIMPAD2
+	bool "simpad2"
+	select SUPPORT_SPL
+	select DM
+	select DM_THERMAL
+	select PWM_IMX
+	select SPL_PWM_SUPPORT
 
+config TARGET_LINKBOX2
+	bool "linkbox2"
+	select SUPPORT_SPL
+	select DM
+	select DM_THERMAL
+	select PWM_IMX
+	select SPL_PWM_SUPPORT
+	
+config TARGET_MXXF1
+	bool "mxxf1"
+	select SUPPORT_SPL
+	select DM
+	select DM_THERMAL
+	select PWM_IMX
+	select SPL_PWM_SUPPORT
+	
 endchoice
 
 config SYS_SOC
@@ -176,5 +200,8 @@ source "board/tqc/tqma6/Kconfig"
 source "board/udoo/Kconfig"
 source "board/wandboard/Kconfig"
 source "board/warp/Kconfig"
+source "board/datarespons/simpad2/Kconfig"
+source "board/datarespons/linkbox2/Kconfig"
+source "board/datarespons/mxxf1/Kconfig"
 
 endif
