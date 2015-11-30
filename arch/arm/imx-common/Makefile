@@ -28,6 +28,7 @@ obj-y 	+= cache.o init.o
 obj-$(CONFIG_CMD_SATA) += sata.o
 obj-$(CONFIG_IMX_VIDEO_SKIP) += video.o
 obj-$(CONFIG_SECURE_BOOT)    += hab.o
+obj-$(CONFIG_IMX_DDRTUNE) += mx6_ddrtune.o
 endif
 ifeq ($(SOC),$(filter $(SOC),vf610))
 obj-y += ddrmc-vf610.o
