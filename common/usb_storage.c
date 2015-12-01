@@ -31,8 +31,6 @@
  * Support for USB Mass Storage Devices (BBB) has been added. It has
  * only been tested with USB memory sticks.
  */
-
-
 #include <common.h>
 #include <command.h>
 #include <dm.h>
@@ -104,7 +102,7 @@ struct us_data {
  * enough free heap space left, but the SCSI READ(10) and WRITE(10) commands are
  * limited to 65535 blocks.
  */
-#define USB_MAX_XFER_BLK	65535
+#define USB_MAX_XFER_BLK	1024
 #else
 #define USB_MAX_XFER_BLK	20
 #endif
@@ -134,7 +132,7 @@ block_dev_desc_t *usb_stor_get_dev(int index)
 
 static void usb_show_progress(void)
 {
-	debug(".");
+	printf(".");
 }
 
 /*******************************************************************************
