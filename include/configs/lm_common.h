@@ -9,7 +9,7 @@
 #ifndef __MXXF1_COMMON_CONFIG_H
 #define __MXXF1_COMMON_CONFIG_H
 
-#define CONFIG_BOOTDELAY	2
+#define CONFIG_BOOTDELAY	1
 #define CONFIG_PMIC_I2C_BUS 0
 
 #include "mx6_common.h"
@@ -109,6 +109,7 @@
 	"initrd_file=/boot/initrd\0" \
 	"initrd_high=0xffffffff\0" \
 	"loglevel=4\0" \
+	"splash=/boot/Logo.bmp\0" \
 	"consoleblank=0\0" \
 	"showtty=console=ttymxc0,115200 console=tty1\0" \
 	"setargs=setenv bootargs console=${console} root=${rootdev} rootwait ro rootfstype=ext4 consoleblank=${consoleblank} loglevel=${loglevel} ${showtty}\0" \
@@ -190,7 +191,7 @@
 
 
 #define CONFIG_ENV_SIZE			(64 * 1024)
-#define CONFIG_SYS_CONSOLE_IS_IN_ENV
+
 #ifdef CONFIG_ENV_IS_IN_SPI_FLASH
 #define CONFIG_ENV_SECT_SIZE 	(64 * 1024)
 #define CONFIG_ENV_SPI_BUS             CONFIG_SF_DEFAULT_BUS

@@ -34,6 +34,7 @@
 #include <pwm.h>
 #include <version.h>
 #include <watchdog.h>
+#include <video.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -44,14 +45,8 @@ DECLARE_GLOBAL_DATA_PTR;
 #define VIBRA_PWM 1
 
 #include "../lm-common/lm_common_defs.h"
-#ifdef CONFIG_EMU_SABRESD
-#include "sabresd_pins.h"
-#include "sabresd_gpio.h"
-
-#else
 #include "simpad2_pins.h"
 #include "simpad2_gpio.h"
-#endif
 
 struct fsl_esdhc_cfg usdhc_cfg[2] = {
 	{USDHC3_BASE_ADDR},
@@ -92,20 +87,11 @@ int board_mmc_getcd(struct mmc *mmc)
 	int ret = 0;
 
 	switch (cfg->esdhc_base) {
-#ifdef CONFIG_EMU_SABRESD
-	case USDHC3_BASE_ADDR:
 
-		ret = !gpio_get_value(USDHC3_CD_GPIO);
-		break;
-	case USDHC4_BASE_ADDR:
-		ret = 1; /* eMMC/uSDHC4 is always present */
-		break;
-#else
 	case USDHC3_BASE_ADDR:
 	case USDHC4_BASE_ADDR:
 		ret = 1;
 		break;
-#endif
 	}
 
 	return ret;
@@ -117,9 +103,6 @@ int board_mmc_init(bd_t *bis)
 	int ret;
 
 		imx_iomux_v3_setup_multiple_pads(usdhc3_pads, ARRAY_SIZE(usdhc3_pads));
-#ifdef CONFIG_EMU_SABRESD
-		gpio_direction_input(USDHC3_CD_GPIO);
-#endif
 		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC3_CLK);
 		imx_iomux_v3_setup_multiple_pads(usdhc4_pads, ARRAY_SIZE(usdhc4_pads));
 		usdhc_cfg[1].sdhc_clk = mxc_get_clock(MXC_ESDHC4_CLK);
@@ -200,22 +183,14 @@ int board_phy_config(struct phy_device *phydev)
 
 #if !defined(CONFIG_SPL_BUILD) && defined(CONFIG_VIDEO_IPUV3)
 
-static void enable_rgb(struct display_info_t const *dev)
-{
-	imx_iomux_v3_setup_multiple_pads(rgb_pads, ARRAY_SIZE(rgb_pads));
-	pwm_enable(BL_PWM);
-	gpio_set_value(GPIO_LCD_EN, 1);
-	gpio_set_value(GPIO_BL_EN, 1);
-}
-
 struct display_info_t const displays[] = {{
 	.bus	= -1,
 	.addr	= 0,
-	.pixfmt	= IPU_PIX_FMT_RGB565,
+	.pixfmt	= IPU_PIX_FMT_RGB666,
 	.detect	= NULL,
-	.enable	= enable_rgb,
+	.enable	= NULL,
 	.mode	= {
-			.name           = "simpad2-XGA",
+			.name           = "simpad2-VGA",
 			.refresh        = 60,
 			.xres           = 640,
 			.yres           = 480,
@@ -226,79 +201,56 @@ struct display_info_t const displays[] = {{
 			.lower_margin   = 32,
 			.hsync_len      = 30,
 			.vsync_len      = 3,
-			.sync           = FB_SYNC_CLK_LAT_FALL,
+			.sync           = 0x40000000,
 			.vmode          = FB_VMODE_NONINTERLACED
 } },  };
 
 size_t display_count = ARRAY_SIZE(displays);
 
-static void enable_vpll(void)
+static void setup_display(void)
 {
-	struct mxc_ccm_reg *ccm = (struct mxc_ccm_reg *)CCM_BASE_ADDR;
-	int timeout = 100000;
+	volatile struct mxc_ccm_reg *mxc_ccm = (struct mxc_ccm_reg *)CCM_BASE_ADDR;
+	volatile struct iomuxc *iomux = (struct iomuxc *)IOMUXC_BASE_ADDR;
 
-	setbits_le32(&ccm->analog_pll_video, BM_ANADIG_PLL_VIDEO_POWERDOWN);
+	//enable_ipu_clock();
+	setbits_le32(&mxc_ccm->CCGR3, MXC_CCM_CCGR3_IPU1_IPU_MASK);
+	//enable_vpll();
+	clrbits_le32(&mxc_ccm->CCGR3, MXC_CCM_CCGR3_IPU1_IPU_DI0_MASK);
+	clrsetbits_le32(&mxc_ccm->chsccdr, MXC_CCM_CHSCCDR_IPU1_DI0_PRE_CLK_SEL_MASK,
+			CHSCCDR_IPU_PRE_CLK_540M_PFD << MXC_CCM_CHSCCDR_IPU1_DI0_PRE_CLK_SEL_OFFSET);
 
-	clrsetbits_le32(&ccm->analog_pll_video,
-			BM_ANADIG_PLL_VIDEO_DIV_SELECT |
-			BM_ANADIG_PLL_VIDEO_POST_DIV_SELECT,
-			BF_ANADIG_PLL_VIDEO_DIV_SELECT(37) |
-			BF_ANADIG_PLL_VIDEO_POST_DIV_SELECT(1));
+	clrsetbits_le32(&mxc_ccm->chsccdr, MXC_CCM_CHSCCDR_IPU1_DI0_PODF_MASK,
+			CHSCCDR_PODF_DIVIDE_BY_3 << MXC_CCM_CHSCCDR_IPU1_DI0_PODF_OFFSET);
 
-	writel(BF_ANADIG_PLL_VIDEO_NUM_A(11), &ccm->analog_pll_video_num);
-	writel(BF_ANADIG_PLL_VIDEO_DENOM_B(12), &ccm->analog_pll_video_denom);
-
-	clrbits_le32(&ccm->analog_pll_video, BM_ANADIG_PLL_VIDEO_POWERDOWN);
-
-	while (timeout--)
-		if (readl(&ccm->analog_pll_video) & BM_ANADIG_PLL_VIDEO_LOCK)
-			break;
-	if (timeout < 0)
-		printf("Warning: video pll lock timeout!\n");
-
-	clrsetbits_le32(&ccm->analog_pll_video,
-			BM_ANADIG_PLL_VIDEO_BYPASS,
-			BM_ANADIG_PLL_VIDEO_ENABLE);
-}
-
-static void setup_display_clock(void)
-{
-	struct mxc_ccm_reg *mxc_ccm = (struct mxc_ccm_reg *)CCM_BASE_ADDR;
-	struct iomuxc *iomux = (struct iomuxc *)IOMUXC_BASE_ADDR;
-
-	enable_ipu_clock();
-	enable_vpll();
-	imx_setup_hdmi();
+	clrsetbits_le32(&mxc_ccm->chsccdr, MXC_CCM_CHSCCDR_IPU1_DI0_CLK_SEL_MASK,
+					0 << MXC_CCM_CHSCCDR_IPU1_DI0_CLK_SEL_OFFSET);
 
 	/* Turn on IPU LDB DI0 clocks */
 	setbits_le32(&mxc_ccm->CCGR3, MXC_CCM_CCGR3_IPU1_IPU_DI0_MASK);
 
-	/* DI0 clock derived from ldb_di0_clk */
-	clrsetbits_le32(&mxc_ccm->chsccdr,
-			MXC_CCM_CHSCCDR_IPU1_DI0_CLK_SEL_MASK,
-			(1 << MXC_CCM_CHSCCDR_IPU1_DI0_CLK_SEL_OFFSET)
-			);
-
+	//setbits_le32(&mxc_ccm->CCGR3, 0x300);
 	/* Enable both LVDS channels, both connected to DI0. */
-	writel(IOMUXC_GPR2_DI0_VS_POLARITY_ACTIVE_LOW,
-	       &iomux->gpr[2]);
+	setbits_le32(&iomux->gpr[2], IOMUXC_GPR2_DI0_VS_POLARITY_ACTIVE_LOW);
 
 }
-
-static void setup_display(void)
-{
-	struct mxc_ccm_reg *mxc_ccm = (struct mxc_ccm_reg *)CCM_BASE_ADDR;
-	struct iomuxc *iomux = (struct iomuxc *)IOMUXC_BASE_ADDR;
-	int reg;
-
-	setup_display_clock();
-
-}
-
+#ifdef CONFIG_SYS_CONSOLE_OVERWRITE_ROUTINE
 int overwrite_console(void)
 {
 	return 1;
 }
+#endif
+
+/* Called after screen is blanked, so we can now turn on video */
+static int show_splash(void *image_at)
+{
+	video_display_bitmap((ulong)image_at, 0, 0);
+	pwm_config(BL_PWM, 10000, 20000);
+	pwm_enable(BL_PWM);
+	gpio_set_value(GPIO_LCD_EN, 0);
+	gpio_set_value(GPIO_BL_EN, 1);
+	return 0;
+}
+
 #endif
 
 
@@ -347,17 +299,6 @@ int board_ehci_power(int port, int on)
 	switch (port) {
 	case 0:
 		break;
-#ifdef CONFIG_EMU_SABRESD
-	case 1:
-		if (on) {
-			gpio_direction_output(GPIO_USB_H1_EN, 1);
-			mdelay(10);
-		}
-		else {
-			gpio_direction_output(GPIO_USB_H1_EN, 0);
-		}
-		break;
-#endif
 	default:
 		printf("MXC USB port %d not yet supported\n", port);
 		return -EINVAL;
@@ -434,10 +375,8 @@ int board_early_init_f(void)
 		gpio_direction_input(GPIO_PCU_START_KEY);
 	}
 
-
 	gpio_direction_output(GPIO_CHARGER_ISET, 1);
 	gpio_direction_output(GPIO_VIBRA, 0);
-
 
 	/*
 	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
@@ -453,6 +392,8 @@ int board_early_init_f(void)
 
 #if !defined(CONFIG_SPL_BUILD) && defined(CONFIG_VIDEO)
 	imx_iomux_v3_setup_multiple_pads(rgb_pads, ARRAY_SIZE(rgb_pads));
+	setup_display();
+
 #endif
 	return 0;
 }
@@ -484,8 +425,6 @@ int board_init(void)
 
 #ifdef CONFIG_VIDEO_IPUV3
 	setup_display();
-	if (pwm_config(BL_PWM, 2000, 5000))
-		printf("%s: pwm_config for backlight ERROR\n", __func__);
 #endif
 	setup_usb();
 	return 0;
@@ -523,13 +462,14 @@ static const struct boot_mode board_boot_modes[] = {
 static char * const usbcmd[] = {"usb", "start"};
 static char * const reset_env_cmd[] = {"env", "default", "-a"};
 static char * const save_env_cmd[] = {"env", "save"};
+static char *const splash_load[] = { "ext4load", "mmc", "0:1", "0x19000000", "/boot/Logo.bmp" };
 
 int board_late_init(void)
 {
 	int rep;
 	ulong ticks;
+	enum command_ret_t ret;
 
-#ifndef CONFIG_EMU_SABRESD
 	int version = get_version();
 	switch (version)
 	{
@@ -547,13 +487,21 @@ int board_late_init(void)
 	}
 	printf("SIMPAD2 HW version: %s\n", hw_string[version]);
 
-#endif
+	ret = cmd_process(0, 5, splash_load, &rep, &ticks);
+	if (ret == CMD_RET_SUCCESS)
+		show_splash((void*)0x19000000);
+	else
+		printf("Unable to load logo BMP file\n");
+
+
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
 
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
 #endif
 
+	gpio_set_value(GPIO_BL_EN, 1);
+	mdelay(1000);
 	return 0;
 }
 #endif
