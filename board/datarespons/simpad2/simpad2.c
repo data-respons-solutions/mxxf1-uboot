@@ -243,11 +243,14 @@ int overwrite_console(void)
 /* Called after screen is blanked, so we can now turn on video */
 static int show_splash(void *image_at)
 {
-	video_display_bitmap((ulong)image_at, 0, 0);
-	pwm_config(BL_PWM, 10000, 20000);
+	pwm_config(BL_PWM, 100, 20000);
 	pwm_enable(BL_PWM);
 	gpio_set_value(GPIO_LCD_EN, 0);
+	video_display_bitmap((ulong)image_at, 0, 0);
 	gpio_set_value(GPIO_BL_EN, 1);
+	mdelay(200);
+	pwm_config(BL_PWM, 10000, 20000);
+	pwm_enable(BL_PWM);
 	return 0;
 }
 
@@ -500,8 +503,6 @@ int board_late_init(void)
 	add_board_boot_modes(board_boot_modes);
 #endif
 
-	gpio_set_value(GPIO_BL_EN, 1);
-	mdelay(1000);
 	return 0;
 }
 #endif
