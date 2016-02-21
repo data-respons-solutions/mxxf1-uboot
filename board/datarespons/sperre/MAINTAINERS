@@ -1,0 +1,7 @@
+SPERRE BOARD
+M:	Artur Siewierski <asi@datarespons.no>
+S:	Maintained
+F:	board/datarespons/sperre
+F:	include/configs/sperre.h
+F:	configs/sperre_spl_defconfig
+F:	configs/sperre_defconfig
