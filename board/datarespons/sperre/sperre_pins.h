@@ -43,6 +43,45 @@ static iomux_v3_cfg_t const usb_pads[] = {
 	MX6_PAD_EIM_D21__USB_H1_PWR_EN	|	MUX_PAD_CTRL(NO_PAD_CTRL),		/* Output -> low */
 };
 
+static struct i2c_pads_info i2c_pad_info0 = {
+		.scl = {
+				.i2c_mode = MX6_PAD_CSI0_DAT9__I2C1_SCL	|	MUX_PAD_CTRL(I2C_PAD_CTRL),
+				.gpio_mode = MX6_PAD_CSI0_DAT9__GPIO5_IO27 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+				.gp = IMX_GPIO_NR(5, 27)
+		},
+		.sda = {
+			.i2c_mode = MX6_PAD_CSI0_DAT8__I2C1_SDA | MUX_PAD_CTRL(I2C_PAD_CTRL),
+			.gpio_mode = MX6_PAD_CSI0_DAT8__GPIO5_IO26 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+			.gp = IMX_GPIO_NR(5, 26)
+		}
+};
+
+static struct i2c_pads_info i2c_pad_info1 = {
+		.scl = {
+				.i2c_mode = MX6_PAD_KEY_COL3__I2C2_SCL	|	MUX_PAD_CTRL(I2C_PAD_CTRL),
+				.gpio_mode = MX6_PAD_KEY_COL3__GPIO4_IO12 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+				.gp = IMX_GPIO_NR(4, 12)
+		},
+		.sda = {
+			.i2c_mode = MX6_PAD_KEY_ROW3__I2C2_SDA | MUX_PAD_CTRL(I2C_PAD_CTRL),
+			.gpio_mode = MX6_PAD_KEY_ROW3__GPIO4_IO13 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+			.gp = IMX_GPIO_NR(4, 13)
+		}
+};
+
+static struct i2c_pads_info i2c_pad_info2 = {
+		.scl = {
+				.i2c_mode = MX6_PAD_GPIO_3__I2C3_SCL	|	MUX_PAD_CTRL(I2C_PAD_CTRL),
+				.gpio_mode = MX6_PAD_GPIO_3__GPIO1_IO03 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+				.gp = IMX_GPIO_NR(1, 3)
+		},
+		.sda = {
+			.i2c_mode = MX6_PAD_GPIO_6__I2C3_SDA | MUX_PAD_CTRL(I2C_PAD_CTRL),
+			.gpio_mode = MX6_PAD_GPIO_6__GPIO1_IO06 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+			.gp = IMX_GPIO_NR(1, 6)
+		}
+};
+
 static iomux_v3_cfg_t const i2c_pads[] = {
 	MX6_PAD_CSI0_DAT8__I2C1_SDA | MUX_PAD_CTRL(I2C_PAD_CTRL),
 	MX6_PAD_CSI0_DAT9__I2C1_SCL | MUX_PAD_CTRL(I2C_PAD_CTRL),
