@@ -28,7 +28,7 @@ static iomux_v3_cfg_t const enet_pads[] = {
 	MX6_PAD_ENET_MDC__RGMII_MDC	|	MUX_PAD(ENET_PAD_CTRL),
 	MX6_PAD_ENET_REF_CLK__ENET_REF_CLK	|	MUX_PAD(ENET_PAD_CTRL),
 	/* AR8033 PHY Reset */
-	MX6_PAD_ENET_CRS_DV__RGMII_nRST	|	MUX_PAD(NO_PAD_CTRL),	/* Phy reset / GPIO1[25] (high/out) */
+	MX6_PAD_ENET_CRS_DV__RGMII_nRST	|	MUX_PAD(NO_PAD_CTRL),	/* Phy reset (low) / GPIO1[25] (high/out) */
 	MX6_PAD_ENET_RXD1__RGMII_INT	|	MUX_PAD(NO_PAD_CTRL),	/* Phy int / GPIO1[26] (high/in) */
 };
 
