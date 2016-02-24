@@ -34,13 +34,19 @@ static iomux_v3_cfg_t const enet_pads[] = {
 
 static iomux_v3_cfg_t const usb_otg_pads[] = {
 	MX6_PAD_EIM_D21__USB_OTG_OC	|	MUX_PAD_CTRL(NO_PAD_CTRL),
-	MX6_PAD_EIM_D22__USB_OTG_PWR_EN	|	MUX_PAD_CTRL(NO_PAD_CTRL),		/* Output -> low */
+	/* line below is wrong, there is not USB_OTG_PWR_EN in mx6dl_pins.h, should be USB_OTG_PWR */
+	//MX6_PAD_EIM_D22__USB_OTG_PWR_EN	|	MUX_PAD_CTRL(NO_PAD_CTRL),		/* Output -> low */
+	MX6_PAD_EIM_D22__USB_OTG_PWR	|	MUX_PAD_CTRL(NO_PAD_CTRL),		/* Output -> low */
 	MX6_PAD_ENET_RX_ER__USB_OTG_ID 	| MUX_PAD_CTRL(REGINP_PAD_CTRL),	/* TODO: make sure about that */
+	MX6_PAD_EIM_D22__USB_OTG_PWR	| MUX_PAD_CTRL(NO_PAD_CTRL),		/* GPIO control */
 };
 
 static iomux_v3_cfg_t const usb_pads[] = {
 	MX6_PAD_EIM_D30__USB_H1_OC |	MUX_PAD_CTRL(NO_PAD_CTRL),
-	MX6_PAD_EIM_D21__USB_H1_PWR_EN	|	MUX_PAD_CTRL(NO_PAD_CTRL),		/* Output -> low */
+	/* line below is wrong, there is not USB_H1_PWR_EN in mx6dl_pins.h, should be USB_H1_PWR */
+	//MX6_PAD_EIM_D31__USB_H1_PWR_EN	|	MUX_PAD_CTRL(NO_PAD_CTRL),		/* Output -> low */
+	MX6_PAD_EIM_D31__USB_H1_PWR	|	MUX_PAD_CTRL(NO_PAD_CTRL),		/* Output -> low */
+	MX6_PAD_EIM_D31__GPIO3_IO31	|	MUX_PAD_CTRL(NO_PAD_CTRL),		/* GPIO control */
 };
 
 static struct i2c_pads_info i2c_pad_info0 = {

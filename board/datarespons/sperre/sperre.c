@@ -42,7 +42,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #include "sperre_pins.h"
 #include "sperre_gpio.h"
 
-#define ENET_PHY_RESET	ENET_CRS_DV
+#define GPIO_ENET_PHY_RESET	GPIO_ENET_CRS_DV
 
 struct fsl_esdhc_cfg usdhc_cfg = USDHC4_BASE_ADDR;
 
@@ -110,11 +110,121 @@ int board_mmc_init(bd_t *bis)
 #endif
 }
 
-/*
- *
- * TODO: Display to be setup here
- *
- */
+#if !defined(CONFIG_SPL_BUILD) && defined(CONFIG_VIDEO_IPUV3)
+
+static void disable_lvds(struct display_info_t const *dev)
+{
+	struct iomuxc *iomux = (struct iomuxc *)IOMUXC_BASE_ADDR;
+
+	int reg = readl(&iomux->gpr[2]);
+
+	reg &= ~(IOMUXC_GPR2_LVDS_CH0_MODE_MASK |
+		 IOMUXC_GPR2_LVDS_CH1_MODE_MASK);
+
+	writel(reg, &iomux->gpr[2]);
+}
+
+/* Enable LVDS1 for LCD, 3 Differential lines - 18BIT */
+static void enable_lvds(struct display_info_t const *dev)
+{
+	struct iomuxc *iomux = (struct iomuxc *)
+				IOMUXC_BASE_ADDR;
+	u32 reg = readl(&iomux->gpr[2]);
+	reg |= IOMUXC_GPR2_DATA_WIDTH_CH0_18BIT |
+	       IOMUXC_GPR2_DATA_WIDTH_CH1_18BIT;
+	writel(reg, &iomux->gpr[2]);
+}
+
+struct display_info_t const displays[] = {{
+	.bus	= -1,
+	.addr	= 0,
+	.pixfmt	= IPU_PIX_FMT_RGB666,	// has 3 differential lines, alternatively IPU_PIX_FMT_LVDS666
+	.detect	= NULL,
+	.enable	= enable_lvds,
+	.mode	= {
+		.name           = "Sperre-LVDS",
+		.refresh        = 60,
+		.xres           = 800,
+		.yres           = 480,
+		.pixclock       = 15380,	// Period = 15.38ns, Freq = 65.019 Mhz | 10^12/65019505.851756 Hz = 15380
+		.left_margin    = 40,
+		.right_margin   = 60,
+		.upper_margin   = 10,
+		.lower_margin   = 10,
+		.hsync_len      = 20,
+		.vsync_len      = 10,
+		.sync           = 0,	// alternatively FB_SYNC_EXT
+		.vmode          = FB_VMODE_NONINTERLACED,
+		.flag			= FB_MODE_IS_DETAILED
+} },  };
+size_t display_count = ARRAY_SIZE(displays);
+
+/* Screen is located on LVDS1 */
+static void setup_display(void)
+{
+	volatile struct mxc_ccm_reg *mxc_ccm = (struct mxc_ccm_reg *)CCM_BASE_ADDR;
+	volatile struct iomuxc *iomux = (struct iomuxc *)IOMUXC_BASE_ADDR;
+	int reg;
+
+	enable_ipu_clock();
+
+	/* Turn on LDB0, LDB1, IPU, IPU DI0 clocks */
+	setbits_le32(&mxc_ccm->CCGR3,
+			MXC_CCM_CCGR3_LDB_DI0_MASK |
+			MXC_CCM_CCGR3_LDB_DI1_MASK);
+
+	/* set LDB0, LDB1 clk select to 011/011 */
+	clrsetbits_le32(&mxc_ccm->cs2cdr,
+			MXC_CCM_CS2CDR_LDB_DI0_CLK_SEL_MASK |
+			MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_MASK,
+			(3 << MXC_CCM_CS2CDR_LDB_DI0_CLK_SEL_OFFSET) |
+			(3 << MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_OFFSET);
+
+	setbits_le32(&mxc_ccm->cscmr2,
+			MXC_CCM_CSCMR2_LDB_DI0_IPU_DIV |
+			MXC_CCM_CSCMR2_LDB_DI1_IPU_DIV);
+
+	setbits_le32(&mxc_ccm->chsccdr,
+			(CHSCCDR_CLK_SEL_LDB_DI0 << MXC_CCM_CHSCCDR_IPU1_DI0_CLK_SEL_OFFSET) |
+			(CHSCCDR_CLK_SEL_LDB_DI0 << MXC_CCM_CHSCCDR_IPU1_DI1_CLK_SEL_OFFSET));
+
+	setbits_le32(&iomux->gpr[2],
+			IOMUXC_GPR2_BGREF_RRMODE_EXTERNAL_RES |
+			IOMUXC_GPR2_DI1_VS_POLARITY_ACTIVE_LOW |
+			IOMUXC_GPR2_DI0_VS_POLARITY_ACTIVE_LOW |
+			IOMUXC_GPR2_BIT_MAPPING_CH1_SPWG |
+			IOMUXC_GPR2_DATA_WIDTH_CH1_18BIT |
+			IOMUXC_GPR2_BIT_MAPPING_CH0_SPWG |
+		 	IOMUXC_GPR2_DATA_WIDTH_CH0_18BIT |
+		 	IOMUXC_GPR2_LVDS_CH0_MODE_DISABLED |
+		 	IOMUXC_GPR2_LVDS_CH1_MODE_ENABLED_DI0);
+
+	clrsetbits_le32(&iomux->gpr[3],
+			IOMUXC_GPR3_LVDS1_MUX_CTL_MASK,	// | IOMUXC_GPR3_HDMI_MUX_CTL_MASK,
+			IOMUXC_GPR3_MUX_SRC_IPU1_DI0 << IOMUXC_GPR3_LVDS1_MUX_CTL_OFFSET);
+}
+#ifdef CONFIG_SYS_CONSOLE_OVERWRITE_ROUTINE
+int overwrite_console(void)
+{
+	return 1;
+}
+#endif
+
+/* Called after screen is blanked, so we can now turn on video */
+static int show_splash(void *image_at)
+{
+	pwm_config(BL_PWM, 100, 20000);
+	pwm_enable(BL_PWM);
+	gpio_set_value(GPIO_LCD_PPEN, 0);
+	video_display_bitmap((ulong)image_at, 0, 0);
+	gpio_set_value(GPIO_BL_EN, 1);
+	mdelay(200);
+	pwm_config(BL_PWM, 10000, 20000);
+	pwm_enable(BL_PWM);
+	return 0;
+}
+
+#endif
 
 #ifndef CONFIG_SPL_BUILD
 
@@ -122,10 +232,10 @@ static void setup_iomux_enet(void)
 {
 	imx_iomux_v3_setup_multiple_pads(enet_pads, ARRAY_SIZE(enet_pads));
 	/* TODO: Reset AR8033 PHY | Chip will be changed */
-	gpio_direction_output(ENET_PHY_RESET , 0);
+	gpio_direction_output(GPIO_ENET_PHY_RESET , 0);
 
 	udelay(500);
-	gpio_set_value(ENET_PHY_RESET, 1);
+	gpio_set_value(GPIO_ENET_PHY_RESET, 1);
 }
 
 
@@ -182,20 +292,20 @@ int board_early_init_f(void)
 	imx_iomux_v3_setup_multiple_pads(other_pads, ARRAY_SIZE(other_pads));
 	imx_iomux_v3_setup_multiple_pads(i2c_pads, ARRAY_SIZE(i2c_pads));
 
-	gpio_direction_output(LCD_PPEN, 1);
-	gpio_direction_output(BL_EN, 1);
+	gpio_direction_output(GPIO_LCD_PPEN, 1);
+	gpio_direction_output(GPIO_BL_EN, 1);
 	gpio_direction_output(GPIO_Debug_LED, 0);
-	gpio_direction_output(RTC_IRQ, 0);
-	gpio_direction_input(IO_INT);
-	gpio_direction_output(MMC_RST, 0);
-	gpio_direction_output(IO_RESET, 0);
-	gpio_direction_output(TOUCH_RES, 0);
-	gpio_direction_output(TOUCH_IRQ, 0);
-	gpio_direction_output(PMIC_INT_B, 0);
-	gpio_direction_output(RS485_PW, 0);
-	gpio_direction_output(ADS1248_RESET, 0);
-	gpio_direction_output(ADS1248_START, 0);
-	gpio_direction_output(SPI_NOR_WP, 0);
+	gpio_direction_output(GPIO_RTC_IRQ, 1);
+	gpio_direction_input(GPIO_IO_INT);
+	gpio_direction_output(GPIO_MMC_RST, 1);
+	gpio_direction_output(GPIO_IO_RESET, 0);
+	gpio_direction_output(GPIO_TOUCH_RES, 1);
+	gpio_direction_output(GPIO_TOUCH_IRQ, 1);
+	gpio_direction_output(GPIO_PMIC_INT_B, 0);
+	gpio_direction_output(GPIO_RS485_PW, 0);
+	gpio_direction_output(GPIO_ADS1248_RESET, 0);
+	gpio_direction_output(GPIO_ADS1248_START, 0);
+	gpio_direction_output(GPIO_SPI_NOR_WP, 0);
 
 	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
 	setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
@@ -203,3 +313,36 @@ int board_early_init_f(void)
 
 	return 0;
 }
+
+#ifndef CONFIG_SPL_BUILD
+static void setup_usb(void)
+{
+	/*
+	 * set daisy chain for otg_pin_id on 6q.
+	 * for 6dl, this bit is reserved
+	 */
+#ifdef CONFIG_MX6Q
+	imx_iomux_set_gpr_register(1, 13, 1, 0);
+#endif
+}
+
+int board_init(void)
+{
+	/* address of boot parameters */
+	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
+
+	gpio_set_value(GPIO_TOUCH_RES, 1);
+	udelay(100);
+	gpio_set_value(GPIO_TOUCH_IRQ, 1);
+	mdelay(5);
+	gpio_set_value(GPIO_TOUCH_IRQ, 0);
+	gpio_direction_input(GPIO_TOUCH_IRQ);
+
+#ifdef CONFIG_VIDEO_IPUV3
+	setup_display();
+#endif
+	setup_usb();
+	return 0;
+}
+#endif	/* CONFIG_SPL_BUILD */
+
