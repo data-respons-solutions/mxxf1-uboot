@@ -359,3 +359,53 @@ int board_spi_cs_gpio(unsigned bus, unsigned cs)
 	}
 }
 
+#ifdef CONFIG_CMD_BMODE
+static const struct boot_mode board_boot_modes[] = {
+	/* 4 bit bus width */
+	// TODO has to be sd4
+	//{"sd3",	 MAKE_CFGVAL(0x40, 0x30, 0x00, 0x00)},
+	/* 8 bit bus width */
+	{"emmc", MAKE_CFGVAL(0x40, 0x38, 0x00, 0x00)},
+	{NULL,	 0},
+};
+#endif
+
+#ifndef CONFIG_SPL_BUILD
+static char * const usbcmd[] = {"usb", "start"};
+static char * const reset_env_cmd[] = {"env", "default", "-a"};
+static char * const save_env_cmd[] = {"env", "save"};
+static char *const splash_load[] = { "ext4load", "mmc", "0:1", "0x19000000", "/boot/Logo.bmp" };
+
+int board_late_init(void)
+{
+	int rep;
+	ulong ticks;
+	enum command_ret_t ret;
+
+	setenv("fdt_file", "/boot/sperre.dtb");
+
+	printf("Sperre version 1.0\n");
+
+	ret = cmd_process(0, 5, splash_load, &rep, &ticks);
+	if (ret == CMD_RET_SUCCESS)
+		show_splash((void*)0x19000000);
+	else
+		printf("Unable to load logo BMP file\n");
+
+
+	cmd_process(0, 2, usbcmd, &rep, &ticks);
+
+#ifdef CONFIG_CMD_BMODE
+	add_board_boot_modes(board_boot_modes);
+#endif
+
+	return 0;
+}
+#endif
+
+int checkboard(void)
+{
+	puts("Board: Sperre\n");
+	return 0;
+}
+
