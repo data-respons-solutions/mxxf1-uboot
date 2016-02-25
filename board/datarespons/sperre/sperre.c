@@ -142,7 +142,7 @@ struct display_info_t const displays[] = {{
 	.detect	= NULL,
 	.enable	= enable_lvds,
 	.mode	= {
-		.name           = "Sperre-LVDS",
+		.name           = "Sperre-LCD",
 		.refresh        = 60,
 		.xres           = 800,
 		.yres           = 480,
@@ -290,6 +290,7 @@ int board_early_init_f(void)
 	imx_iomux_v3_setup_multiple_pads(usb_pads, ARRAY_SIZE(usb_pads));
 	imx_iomux_v3_setup_multiple_pads(gpio_pads, ARRAY_SIZE(gpio_pads));
 	imx_iomux_v3_setup_multiple_pads(other_pads, ARRAY_SIZE(other_pads));
+	imx_iomux_v3_setup_multiple_pads(ecspi3_pads, ARRAY_SIZE(ecspi3_pads));
 	imx_iomux_v3_setup_multiple_pads(i2c_pads, ARRAY_SIZE(i2c_pads));
 
 	gpio_direction_output(GPIO_LCD_PPEN, 1);
@@ -345,4 +346,16 @@ int board_init(void)
 	return 0;
 }
 #endif	/* CONFIG_SPL_BUILD */
+
+int board_spi_cs_gpio(unsigned bus, unsigned cs)
+{
+	switch (bus)
+	{
+	case 0:
+		return cs == 1 ? SPI_CS_GPIO : -1;
+		break;
+	default:
+		return -1;
+	}
+}
 
