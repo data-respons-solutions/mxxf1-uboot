@@ -308,6 +308,9 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_ADS1248_START, 0);
 	gpio_direction_output(GPIO_SPI_NOR_WP, 0);
 
+	/* SPI_NOR_CS GPIO */
+	gpio_direction_output(SPI_CS_GPIO, 0);
+
 	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
 	setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
 	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info2);
