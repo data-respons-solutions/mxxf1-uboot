@@ -9,7 +9,5 @@
 
 obj-y  := sperre.o 
 ifdef CONFIG_SPL_BUILD
-obj-y += ../lm-common/spl_stage.o
-else
-obj-y += ../lm-common/vpd.o ../lm-common/param.o
+obj-y += spl_stage.o
 endif

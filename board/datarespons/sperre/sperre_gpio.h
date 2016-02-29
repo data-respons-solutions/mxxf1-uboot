@@ -22,7 +22,7 @@
 
 #define SPI_CS_GPIO				IMX_GPIO_NR(4, 24)	/* SPI_NOR_CS */
 
-#define GPIO_USB_OTG_PWR		IMX_GPIO_NR(3, 22)	/* Output active low - EIM_D22__USB_OTG_PWR */
-#define GPIO_USB_H1_PWR			IMX_GPIO_NR(3, 31)	/* Output active low - EIM_D31__GPIO3_IO31 */
+#define GPIO_USB_OTG_PWR_EN		IMX_GPIO_NR(3, 22)	/* Output active low - EIM_D22__USB_OTG_PWR */
+#define GPIO_USB_H1_PWR_EN		IMX_GPIO_NR(3, 31)	/* Output active low - EIM_D31__GPIO3_IO31 */
 
 #endif

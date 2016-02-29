@@ -271,6 +271,17 @@ int board_ehci_power(int port, int on)
 	switch (port) {
 	case 0:
 		break;
+	case 1:
+		if (on) {
+			gpio_direction_output(GPIO_USB_OTG_PWR_EN, 1);
+			gpio_direction_output(GPIO_USB_H1_PWR_EN, 1);
+			mdelay(10);
+		}
+		else {
+			gpio_direction_output(GPIO_USB_OTG_PWR_EN, 0);
+			gpio_direction_output(GPIO_USB_H1_PWR_EN, 0);
+		}
+		break;
 	default:
 		printf("MXC USB port %d not yet supported\n", port);
 		return -EINVAL;
@@ -310,6 +321,10 @@ int board_early_init_f(void)
 
 	/* SPI_NOR_CS GPIO */
 	gpio_direction_output(SPI_CS_GPIO, 0);
+
+	/* USB */
+	gpio_direction_output(GPIO_USB_OTG_PWR_EN, 0);
+	gpio_direction_output(GPIO_USB_H1_PWR_EN, 0);
 
 	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
 	setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
@@ -361,17 +376,6 @@ int board_spi_cs_gpio(unsigned bus, unsigned cs)
 		return -1;
 	}
 }
-
-#ifdef CONFIG_CMD_BMODE
-static const struct boot_mode board_boot_modes[] = {
-	/* 4 bit bus width */
-	// TODO has to be sd4
-	//{"sd3",	 MAKE_CFGVAL(0x40, 0x30, 0x00, 0x00)},
-	/* 8 bit bus width */
-	{"emmc", MAKE_CFGVAL(0x40, 0x38, 0x00, 0x00)},
-	{NULL,	 0},
-};
-#endif
 
 #ifndef CONFIG_SPL_BUILD
 static char * const usbcmd[] = {"usb", "start"};
