@@ -6,8 +6,8 @@
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
-#ifndef __MXXF1_CONFIG_H
-#define __MXXF1_CONFIG_H
+#ifndef __CONFIG_SPERRE_H
+#define __CONFIG_SPERRE_H
 
 #include <asm/arch/imx-regs.h>
 #include <asm/imx-common/gpio.h>
@@ -68,10 +68,10 @@
 #define CONFIG_IMX_VIDEO_SKIP
 #define CONFIG_CMD_BMP
 #endif
-#include "lm_common.h"
+#include "sperre_common.h"
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
-#define CONFIG_SYS_MMC_ENV_DEV		0	/* SDHC3 */
+#define CONFIG_SYS_MMC_ENV_DEV		0	/* SDHC4 */
 #endif
 
 #define CONFIG_IMX6_PWM_PER_CLK	66000000
@@ -79,14 +79,12 @@
 #define CONFIG_CMD_GPIO
 #define CMD_CRC32
 
-
 /* I2C Configs */
 #define CONFIG_CMD_I2C
 #define CONFIG_SYS_I2C
 #define CONFIG_SYS_I2C_MXC
 #define CONFIG_SYS_I2C_SPEED		  100000
 #define CONFIG_SYS_I2C_MXC_I2C4
-
 
 /* USB Configs */
 #define CONFIG_CMD_USB
@@ -104,4 +102,4 @@
 #define CONFIG_SYS_STDIO_DEREGISTER
 #endif
 
-#endif                         /* __MXXF1_CONFIG_H */
+#endif                         /* __CONFIG_SPERRE_H */
