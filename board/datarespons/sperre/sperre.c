@@ -44,7 +44,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #include "sperre_pins.h"
 #include "sperre_gpio.h"
 
-#define GPIO_ENET_PHY_RESET	GPIO_ENET_CRS_DV
+#define GPIO_ENET_PHY_RESET	GPIO_ENET_RST
 
 struct fsl_esdhc_cfg usdhc_cfg[1] = {
 		{USDHC4_BASE_ADDR},
@@ -234,13 +234,19 @@ static int show_splash(void *image_at)
 
 static void setup_iomux_enet(void)
 {
-	imx_iomux_v3_setup_multiple_pads(enet_pads, ARRAY_SIZE(enet_pads));
+	struct iomuxc *iomux = (struct iomuxc *)IOMUXC_BASE_ADDR;
 
-	/* Reset LAN8710 PHY */
+	/* Reconfigure enet muxing while LAN8710 PHY is in reset */
 	gpio_direction_output(GPIO_ENET_PHY_RESET, 0);
-	/* Activate PHY reset for 100 us. */
-	udelay(100);
+	imx_iomux_v3_setup_multiple_pads(enet_pads, ARRAY_SIZE(enet_pads));
+	mdelay(10);
 	gpio_set_value(GPIO_ENET_PHY_RESET, 1);
+	udelay(100);
+
+	/* set GPIO_16 as ENET_REF_CLK_OUT */
+	setbits_le32(&iomux->gpr[1], IOMUXC_GPR1_ENET_CLK_SEL_MASK);
+
+	enable_fec_anatop_clock(0, ENET_50MHZ);
 }
 
 
@@ -322,7 +328,7 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_TOUCH_IRQ, 1);
 	gpio_direction_output(GPIO_PMIC_INT_B, 0);
 	gpio_direction_output(GPIO_RS485_PW, 0);
-	gpio_direction_output(GPIO_ADS1248_RESET, 0);
+	//gpio_direction_output(GPIO_ADS1248_RESET, 0);
 	gpio_direction_output(GPIO_ADS1248_START, 0);
 	gpio_direction_output(GPIO_SPI_NOR_WP, 0);
 
