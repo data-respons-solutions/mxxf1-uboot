@@ -2,7 +2,7 @@
 #define __SPERRE_GPIO_H__
 
 /* Enet */
-#define GPIO_ENET_CRS_DV 		IMX_GPIO_NR(1, 25)	/* Enet Phy reset - Output active high*/
+#define GPIO_ENET_CRS_DV 		IMX_GPIO_NR(1, 25)	/* Enet Phy reset - Output active low*/
 #define GPIO_ENET_RXD1			IMX_GPIO_NR(1, 26)	/* Enet Phy interrupt - input high */
 
 #define GPIO_LCD_PPEN			IMX_GPIO_NR(1, 0)	/* LCD Power Enable, Output active low */
@@ -20,7 +20,7 @@
 #define GPIO_ADS1248_START		IMX_GPIO_NR(1, 16)	/* Output active high */
 #define GPIO_SPI_NOR_WP			IMX_GPIO_NR(4, 14)	/* Output active high */
 
-#define SPI_CS_GPIO				IMX_GPIO_NR(4, 24)	/* Output active high - SPI_NOR_CS */
+#define SPI_CS_GPIO				IMX_GPIO_NR(4, 24)	/* Output active low - SPI_NOR_CS */
 
 #define GPIO_USB_OTG_PWR_EN		IMX_GPIO_NR(3, 22)	/* Output active low - EIM_D22__USB_OTG_PWR */
 #define GPIO_USB_H1_PWR_EN		IMX_GPIO_NR(3, 31)	/* Output active low - EIM_D31__GPIO3_IO31 */

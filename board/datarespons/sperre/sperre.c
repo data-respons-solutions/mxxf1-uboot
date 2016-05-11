@@ -38,13 +38,17 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#define BL_PWM 0
+
 #include "../lm-common/lm_common_defs.h"
 #include "sperre_pins.h"
 #include "sperre_gpio.h"
 
 #define GPIO_ENET_PHY_RESET	GPIO_ENET_CRS_DV
 
-struct fsl_esdhc_cfg usdhc_cfg = USDHC4_BASE_ADDR;
+struct fsl_esdhc_cfg usdhc_cfg[1] = {
+		{USDHC4_BASE_ADDR},
+	};
 
 #ifndef CONFIG_SPL_BUILD
 static const char* hw_string[8] = {
@@ -82,9 +86,9 @@ int board_mmc_init(bd_t *bis)
 	int ret;
 
 		imx_iomux_v3_setup_multiple_pads(usdhc4_pads, ARRAY_SIZE(usdhc4_pads));
-		usdhc_cfg.sdhc_clk = mxc_get_clock(MXC_ESDHC4_CLK);
+		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC4_CLK);
 
-		ret = fsl_esdhc_initialize(bis, &usdhc_cfg);
+		ret = fsl_esdhc_initialize(bis, &usdhc_cfg[0]);
 		if (ret)
 			return ret;
 
@@ -101,12 +105,12 @@ int board_mmc_init(bd_t *bis)
 
 	imx_iomux_v3_setup_multiple_pads(
 		usdhc4_pads, ARRAY_SIZE(usdhc4_pads));
-	usdhc_cfg.esdhc_base = USDHC4_BASE_ADDR;
-	usdhc_cfg.sdhc_clk = mxc_get_clock(MXC_ESDHC4_CLK);
-	gd->arch.sdhc_clk = usdhc_cfg.sdhc_clk;
+	usdhc_cfg[0].esdhc_base = USDHC4_BASE_ADDR;
+	usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC4_CLK);
+	gd->arch.sdhc_clk = usdhc_cfg[0].sdhc_clk;
 
 
-	return fsl_esdhc_initialize(bis, &usdhc_cfg);
+	return fsl_esdhc_initialize(bis, &usdhc_cfg[0]);
 #endif
 }
 
@@ -164,7 +168,7 @@ static void setup_display(void)
 {
 	volatile struct mxc_ccm_reg *mxc_ccm = (struct mxc_ccm_reg *)CCM_BASE_ADDR;
 	volatile struct iomuxc *iomux = (struct iomuxc *)IOMUXC_BASE_ADDR;
-	int reg;
+	//int reg;
 
 	enable_ipu_clock();
 
@@ -178,7 +182,7 @@ static void setup_display(void)
 			MXC_CCM_CS2CDR_LDB_DI0_CLK_SEL_MASK |
 			MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_MASK,
 			(3 << MXC_CCM_CS2CDR_LDB_DI0_CLK_SEL_OFFSET) |
-			(3 << MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_OFFSET);
+			(3 << MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_OFFSET));
 
 	setbits_le32(&mxc_ccm->cscmr2,
 			MXC_CCM_CSCMR2_LDB_DI0_IPU_DIV |
@@ -231,10 +235,11 @@ static int show_splash(void *image_at)
 static void setup_iomux_enet(void)
 {
 	imx_iomux_v3_setup_multiple_pads(enet_pads, ARRAY_SIZE(enet_pads));
-	/* TODO: Reset AR8033 PHY | Chip will be changed */
-	gpio_direction_output(GPIO_ENET_PHY_RESET , 0);
 
-	udelay(500);
+	/* Reset LAN8710 PHY */
+	gpio_direction_output(GPIO_ENET_PHY_RESET, 0);
+	/* Activate PHY reset for 100 us. */
+	udelay(100);
 	gpio_set_value(GPIO_ENET_PHY_RESET, 1);
 }
 
@@ -255,7 +260,7 @@ int board_ehci_hcd_init(int port)
 {
 	u32 *usbnc_usb_ctrl;
 
-	if (port > 0)
+	if (port > 1)
 		return -EINVAL;
 
 	usbnc_usb_ctrl = (u32 *)(USB_BASE_ADDR + USB_OTHERREGS_OFFSET +
@@ -270,17 +275,19 @@ int board_ehci_power(int port, int on)
 {
 	switch (port) {
 	case 0:
-		break;
-	case 1:
 		if (on) {
 			gpio_direction_output(GPIO_USB_OTG_PWR_EN, 1);
+			mdelay(10);
+		}
+		else
+			gpio_direction_output(GPIO_USB_OTG_PWR_EN, 0);
+	case 1:
+		if (on) {
 			gpio_direction_output(GPIO_USB_H1_PWR_EN, 1);
 			mdelay(10);
 		}
-		else {
-			gpio_direction_output(GPIO_USB_OTG_PWR_EN, 0);
+		else
 			gpio_direction_output(GPIO_USB_H1_PWR_EN, 0);
-		}
 		break;
 	default:
 		printf("MXC USB port %d not yet supported\n", port);
@@ -320,7 +327,7 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_SPI_NOR_WP, 0);
 
 	/* SPI_NOR_CS GPIO */
-	gpio_direction_output(SPI_CS_GPIO, 0);
+	gpio_direction_output(SPI_CS_GPIO, 1);	// leave high so it is not selected
 
 	/* USB */
 	gpio_direction_output(GPIO_USB_OTG_PWR_EN, 0);
@@ -391,7 +398,7 @@ int board_late_init(void)
 
 	setenv("fdt_file", "/boot/sperre.dtb");
 
-	printf("Sperre version 1.0\n");
+	printf("Sperre version 1.0 %s\n", hw_string[0]);
 
 	ret = cmd_process(0, 5, splash_load, &rep, &ticks);
 	if (ret == CMD_RET_SUCCESS)

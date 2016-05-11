@@ -63,7 +63,7 @@
 #define CONFIG_FEC_MXC
 #define CONFIG_MII
 #define IMX_FEC_BASE			ENET_BASE_ADDR
-#define CONFIG_FEC_XCV_TYPE		RGMII
+#define CONFIG_FEC_XCV_TYPE		RMII
 #define CONFIG_ETHPRIME			"FEC"
 #define CONFIG_FEC_MXC_PHYADDR		0
 
@@ -73,10 +73,10 @@
 #define CONFIG_CMD_SF
 #ifdef CONFIG_CMD_SF
 #define CONFIG_SPI_FLASH
-#define CONFIG_SPI_FLASH_MACRONIX
+#define CONFIG_SPI_FLASH_WINBOND
 #define CONFIG_MXC_SPI
 #define CONFIG_SF_DEFAULT_BUS		0
-#define CONFIG_SF_DEFAULT_CS		1
+#define CONFIG_SF_DEFAULT_CS		0
 #define CONFIG_SF_DEFAULT_SPEED		20000000
 #define CONFIG_SF_DEFAULT_MODE		SPI_MODE_0
 #endif
@@ -108,7 +108,7 @@
 	"fdt_file_def=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"initrd_file=/boot/initrd\0" \
 	"initrd_high=0xffffffff\0" \
-	"loglevel=4\0" \
+	"loglevel=7\0" \
 	"splash=/boot/Logo.bmp\0" \
 	"consoleblank=0\0" \
 	"showtty=console=ttymxc0,115200 console=tty1\0" \

@@ -163,6 +163,14 @@ config TARGET_LINKBOX2
 	select DM_THERMAL
 	select PWM_IMX
 	select SPL_PWM_SUPPORT
+
+config TARGET_SPERRE
+	bool "sperre"
+	select SUPPORT_SPL
+	select DM
+	select DM_THERMAL
+	select PWM_IMX
+	select SPL_PWM_SUPPORT
 	
 config TARGET_MXXF1
 	bool "mxxf1"
@@ -202,6 +210,7 @@ source "board/wandboard/Kconfig"
 source "board/warp/Kconfig"
 source "board/datarespons/simpad2/Kconfig"
 source "board/datarespons/linkbox2/Kconfig"
+source "board/datarespons/sperre/Kconfig"
 source "board/datarespons/mxxf1/Kconfig"
 
 endif
