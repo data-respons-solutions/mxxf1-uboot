@@ -172,7 +172,9 @@ static iomux_v3_cfg_t const eim_pads[] = {
 
 static iomux_v3_cfg_t const other_pads[] = {
 	MX6_PAD_EIM_D29__UART2_RTS_B	|	MUX_PAD_CTRL(NO_PAD_CTRL),
-	MX6_PAD_SD1_DAT3__PWM1_OUT		|	MUX_PAD_CTRL(NO_PAD_CTRL),
+
+	/* PWM_EN for backlight*/
+	//MX6_PAD_SD1_DAT3__PWM1_OUT		|	MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
 #endif

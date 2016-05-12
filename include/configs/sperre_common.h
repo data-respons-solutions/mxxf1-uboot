@@ -102,14 +102,14 @@
 	"zimage=/boot/zImage\0" \
 	"fdt_addr=0x18000000\0" \
 	"ip_dyn=try\0" \
-	"console=" CONFIG_CONSOLE_DEV ",115200\0" \
+	"console=" CONFIG_CONSOLE_DEV ",115200 video=mxcfb0:hdmi,1280x720M@60,if=RGB24,video=mxcfb1:dev=ldb,LDB-WVGA,if=RGB666,bpp=16,ldb=sin1,fbmem=28M,vmalloc=400M\0" \
 	"fdt_high=0xffffffff\0"	  \
 	"fdt_file=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"fdt_file_def=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"initrd_file=/boot/initrd\0" \
 	"initrd_high=0xffffffff\0" \
 	"loglevel=7\0" \
-	"splash=/boot/Logo.bmp\0" \
+	"splash=/boot/Sperre_800x480.bmp\0" \
 	"consoleblank=0\0" \
 	"showtty=console=ttymxc0,115200 console=tty1\0" \
 	"setargs=setenv bootargs console=${console} root=${rootdev} rootwait ro rootfstype=ext4 consoleblank=${consoleblank} loglevel=${loglevel} ${showtty}\0" \

@@ -7,6 +7,7 @@
 
 #define GPIO_LCD_PPEN			IMX_GPIO_NR(1, 0)	/* LCD Power Enable, Output active low */
 #define GPIO_BL_EN				IMX_GPIO_NR(4, 15)	/* BL - LCD back light, Output active low */
+#define GPIO_BL_PWM				IMX_GPIO_NR(1, 21)	/* BL - PWM back light, Output active low */
 #define GPIO_Debug_LED			IMX_GPIO_NR(1, 2)	/* Output active high */
 #define GPIO_RTC_IRQ			IMX_GPIO_NR(1, 4)	/* Output active low */
 #define GPIO_IO_INT				IMX_GPIO_NR(1, 5)	/* Input high */

@@ -146,13 +146,13 @@ struct display_info_t const displays[] = {{
 	.detect	= NULL,
 	.enable	= enable_lvds,
 	.mode	= {
-		.name           = "Sperre-LCD",
+		.name           = "Sperre-WVGA",
 		.refresh        = 60,
 		.xres           = 800,
 		.yres           = 480,
 		.pixclock       = 15380,	// Period = 15.38ns, Freq = 65.019 Mhz | 10^12/65019505.851756 Hz = 15380
-		.left_margin    = 40,
-		.right_margin   = 60,
+		.left_margin    = 80,
+		.right_margin   = 40,
 		.upper_margin   = 10,
 		.lower_margin   = 10,
 		.hsync_len      = 20,
@@ -219,7 +219,7 @@ static int show_splash(void *image_at)
 {
 	pwm_config(BL_PWM, 100, 20000);
 	pwm_enable(BL_PWM);
-	gpio_set_value(GPIO_LCD_PPEN, 0);
+	gpio_set_value(GPIO_LCD_PPEN, 1);
 	video_display_bitmap((ulong)image_at, 0, 0);
 	gpio_set_value(GPIO_BL_EN, 1);
 	mdelay(200);
@@ -318,7 +318,10 @@ int board_early_init_f(void)
 	imx_iomux_v3_setup_multiple_pads(i2c_pads, ARRAY_SIZE(i2c_pads));
 
 	gpio_direction_output(GPIO_LCD_PPEN, 1);
-	gpio_direction_output(GPIO_BL_EN, 1);
+	gpio_direction_output(GPIO_BL_EN, 0);
+	gpio_direction_output(GPIO_BL_PWM, 0);
+	gpio_set_value(GPIO_BL_PWM, 1);		// setting it on
+
 	gpio_direction_output(GPIO_Debug_LED, 0);
 	gpio_direction_output(GPIO_RTC_IRQ, 1);
 	gpio_direction_input(GPIO_IO_INT);
@@ -394,7 +397,7 @@ int board_spi_cs_gpio(unsigned bus, unsigned cs)
 static char * const usbcmd[] = {"usb", "start"};
 static char * const reset_env_cmd[] = {"env", "default", "-a"};
 static char * const save_env_cmd[] = {"env", "save"};
-static char *const splash_load[] = { "ext4load", "mmc", "0:1", "0x19000000", "/boot/Logo.bmp" };
+static char *const splash_load[] = { "load", "mmc", "0:1", "0x19000000", "/Sperre_800x480.bmp" };
 
 int board_late_init(void)
 {
