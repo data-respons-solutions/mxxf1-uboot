@@ -405,7 +405,7 @@ int board_late_init(void)
 	ulong ticks;
 	enum command_ret_t ret;
 
-	setenv("fdt_file", "/boot/sperre.dtb");
+	setenv("fdt_file", "/sperre.dtb");
 
 	printf("Sperre version 1.0 %s\n", hw_string[0]);
 

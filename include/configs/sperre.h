@@ -42,7 +42,7 @@
 #define CONFIG_MMC_DEV "1"
 #else
 #define CONFIG_DEFAULT_FDT_FILE	"/boot/sperre.dtb"
-#define CONFIG_MMCROOT			"/dev/mmcblk0p1"
+#define CONFIG_MMCROOT			"/dev/mmcblk0p2"
 #define CONFIG_MMC_DEV "0"
 #endif
 #define PHYS_SDRAM_SIZE		(1u * 512 * 1024 * 1024)
