@@ -397,15 +397,13 @@ int board_spi_cs_gpio(unsigned bus, unsigned cs)
 static char * const usbcmd[] = {"usb", "start"};
 static char * const reset_env_cmd[] = {"env", "default", "-a"};
 static char * const save_env_cmd[] = {"env", "save"};
-static char *const splash_load[] = { "load", "mmc", "0:1", "0x19000000", "/Sperre_800x480.bmp" };
+static char * const splash_load[] = { "load", "mmc", "0:1", "0x19000000", "/boot/Sperre_800x480.bmp" };
 
 int board_late_init(void)
 {
 	int rep;
 	ulong ticks;
 	enum command_ret_t ret;
-
-	setenv("fdt_file", "/sperre.dtb");
 
 	printf("Sperre version 1.0 %s\n", hw_string[0]);
 

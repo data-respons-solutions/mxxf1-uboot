@@ -99,17 +99,17 @@
 #define CONFIG_MACH_TYPE	0xffffffff	/* Needed for newer kernels */
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"zimage=zImage\0" \
+	"zimage=/boot/zImage\0" \
 	"fdt_addr=0x18000000\0" \
 	"ip_dyn=try\0" \
 	"console=" CONFIG_CONSOLE_DEV ",115200 video=mxcfb0:dev=ldb,LDB-XGA,if=RGB666,bpp=32,video=mxcfb1:off,ldb=sin1,fbmem=28M,vmalloc=400M\0" \
 	"fdt_high=0xffffffff\0"	  \
 	"fdt_file=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"fdt_file_def=" CONFIG_DEFAULT_FDT_FILE "\0" \
-	"initrd_file=/initrd\0" \
+	"initrd_file=/boot/initrd\0" \
 	"initrd_high=0xffffffff\0" \
 	"loglevel=7\0" \
-	"splash=/Sperre_800x480.bmp\0" \
+	"splash=/boot/Sperre_800x480.bmp\0" \
 	"consoleblank=0\0" \
 	"showtty=console=ttymxc0,115200 console=tty1\0" \
 	"setargs=setenv bootargs console=${console} root=${rootdev} rootwait ro rootfstype=ext4 consoleblank=${consoleblank} loglevel=${loglevel} ${showtty}\0" \
@@ -118,24 +118,24 @@
 	"bootfrom=mmc\0" \
 	"mmc_root=" CONFIG_MMCROOT "\0" \
 	"usb_root=/dev/sda1\0" \
-	"loadbootscript=if fatload ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot.txt; then env import -t ${loadaddr} ${filesize}; fi; \0" \
+	"loadbootscript=if ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/boot.txt; then env import -t ${loadaddr} ${filesize}; fi; \0" \
 	"setmmc=setenv bootfrom mmc; setenv bootdev "CONFIG_MMC_DEV" ; setenv bootpart 1; setenv rootdev ${mmc_root}; echo Setting boot to mmc; \0 " \
 	"setusb=setenv bootfrom usb; setenv bootdev 0; setenv bootpart 1; setenv rootdev ${usb_root}; echo Setting boot to usb; \0 " \
-	"loaduboot=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /u-boot.img; \0" \
-	"loadspl=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /SPL; \0" \
+	"loaduboot=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/u-boot.img; \0" \
+	"loadspl=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/SPL; \0" \
 	"flashspl=if run loadspl; then sf erase 0 10000; sf write ${loadaddr} 400 ${filesize}; fi; \0" \
 	"flashuboot=if run loaduboot; then sf erase 40000 90000; sf write ${loadaddr} 40000 ${filesize}; fi; \0" \
-	"loadimage=fatload ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} ${zimage}; \0" \
+	"loadimage=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} ${zimage}; \0" \
 	"loadinitrd=ext4load ${bootfrom} ${bootdev}:${bootpart} ${initrd_addr} ${initrd_file}; \0" \
-	"loadfdt=fatload ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file}; \0" \
+	"loadfdt=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file}; \0" \
 	"loadfdtdef=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file_def}; \0" \
 	"bootscript=run setargs; if run loadimage loadfdt; then bootz ${loadaddr} - ${fdt_addr}; else echo ERROR: Could not load prescribed config; fi; \0" \
 	"emergencyboot=run setargs; if run loadimage loadfdtdef; then bootz ${loadaddr} - ${fdt_addr}; else echo ERROR: Could not load emergency config; fi; \0" \
 	"check_usb_boot=if usb storage; then run setusb loadfdt; fi;\0" \
 	"initrd_addr=0x12C00000\0" \
 	"initrd_high=0xffffffff\0" \
-	"factory_args=setenv bootargs console=${console} rdinit=/linuxrc enable_wait_mode=off \0" \
-	"install_args=setenv bootargs console=${console} rdinit=/install_script enable_wait_mode=off \0" \
+	"factory_args=setenv bootargs console=${console} rdinit=/boot/linuxrc enable_wait_mode=off \0" \
+	"install_args=setenv bootargs console=${console} rdinit=/boot/install_script enable_wait_mode=off \0" \
 	"factory_boot=run factory_args; bootz ${loadaddr} ${initrd_addr} ${fdt_addr}; \0" \
 	"testfact=run loadfdt loadimage loadinitrd factory_boot; \0" \
 	"install_boot=run install_args loadfdt loadimage loadinitrd; bootz ${loadaddr} ${initrd_addr} ${fdt_addr}; \0"
