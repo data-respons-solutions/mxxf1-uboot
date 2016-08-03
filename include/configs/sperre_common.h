@@ -134,8 +134,8 @@
 	"check_usb_boot=if usb storage; then run setusb loadfdt; fi;\0" \
 	"initrd_addr=0x12C00000\0" \
 	"initrd_high=0xffffffff\0" \
-	"factory_args=setenv bootargs console=${console} rdinit=/boot/linuxrc enable_wait_mode=off \0" \
-	"install_args=setenv bootargs console=${console} rdinit=/boot/install_script enable_wait_mode=off \0" \
+	"factory_args=setenv bootargs console=${console} rdinit=/linuxrc enable_wait_mode=off \0" \
+	"install_args=setenv bootargs console=${console} rdinit=/install_script enable_wait_mode=off \0" \
 	"factory_boot=run factory_args; bootz ${loadaddr} ${initrd_addr} ${fdt_addr}; \0" \
 	"testfact=run loadfdt loadimage loadinitrd factory_boot; \0" \
 	"install_boot=run install_args loadfdt loadimage loadinitrd; bootz ${loadaddr} ${initrd_addr} ${fdt_addr}; \0"
