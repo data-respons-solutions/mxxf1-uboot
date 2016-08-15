@@ -486,6 +486,7 @@ int board_late_init(void)
 		break;
 
 	default:
+		setenv("fdt_file", "/boot/simpad2-revC.dtb");
 		break;
 	}
 	printf("SIMPAD2 HW version: %s\n", hw_string[version]);

@@ -411,6 +411,7 @@ int board_late_init(void)
 		break;
 
 	default:
+		setenv("fdt_file", "/boot/linkbox2-revD.dtb");
 		break;
 	}
 
