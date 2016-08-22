@@ -275,13 +275,17 @@ int board_early_init_f(void)
 	case 0:
 		imx_iomux_v3_setup_multiple_pads(ecspi2_pads, ARRAY_SIZE(ecspi2_pads));
 		imx_iomux_v3_setup_multiple_pads(revc_pads, ARRAY_SIZE(revc_pads));
+		gpio_direction_input(IMX_GPIO_NR(3,31));
 		break;
 
 	case 1: /* Rev D */
 		imx_iomux_v3_setup_multiple_pads(revd_pads, ARRAY_SIZE(revd_pads));
+		gpio_direction_input(IMX_GPIO_NR(4,21));
 		break;
 
 	default:
+		imx_iomux_v3_setup_multiple_pads(revd_pads, ARRAY_SIZE(revd_pads));
+		gpio_direction_input(IMX_GPIO_NR(4,21));
 		break;
 	}
 
@@ -320,7 +324,7 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_PWM1, 0);
 
 	gpio_direction_input(GPIO_PWR_BTN);
-	gpio_direction_input(GPIO_DDR_SETTING);
+
 
 
 	gpio_direction_input(GPIO_PMU_RST_N);
@@ -440,7 +444,16 @@ int checkboard(void)
 int lm_ram64(void)
 {
 #ifndef CONFIG_EMU_SABRESD
-	return gpio_get_value(GPIO_DDR_SETTING);
+	switch (get_version())
+	{
+	case 0:
+		return gpio_get_value(IMX_GPIO_NR(3, 31));
+		break;
+
+	default:
+		return gpio_get_value(IMX_GPIO_NR(4,21));
+		break;
+	}
 #else
 	return 1;
 #endif
