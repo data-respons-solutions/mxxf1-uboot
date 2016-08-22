@@ -49,6 +49,7 @@
 #define CONFIG_SUPPORT_EMMC_BOOT /* eMMC specific */
 
 #undef CONFIG_VIDEO
+#define CONFIG_SYS_CONSOLE_IS_IN_ENV
 #include "lm_common.h"
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
