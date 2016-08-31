@@ -141,6 +141,7 @@
 	"install_boot=run install_args loadfdt loadimage loadinitrd; bootz ${loadaddr} ${initrd_addr} ${fdt_addr}; \0"
 #ifdef CONFIG_FACTORY_BOOT
 #define CONFIG_BOOTCOMMAND \
+	"mmc partconf 0 0 1 0;" \
 	"run factory_boot;"
 #else
 #define CONFIG_BOOTCOMMAND \
