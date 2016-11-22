@@ -16,7 +16,7 @@
 #include "imx6_spl.h"
 
 #define MACH_TYPE_WANDBOARD		4412
-#define CONFIG_MACH_TYPE		MACH_TYPE_WANDBOARD
+/* #define CONFIG_MACH_TYPE		MACH_TYPE_WANDBOARD */
 
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		(10 * SZ_1M)
@@ -45,6 +45,10 @@
 /* MMC Configuration */
 #define CONFIG_SYS_FSL_USDHC_NUM	2
 #define CONFIG_SYS_FSL_ESDHC_ADDR	0
+#define CONFIG_CMD_EXT2
+#define CONFIG_CMD_EXT4
+#define CONFIG_CMD_FAT
+#define CONFIG_DOS_PARTITION
 
 /* USB Configs */
 #define CONFIG_CMD_USB
@@ -89,7 +93,7 @@
 #define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"script=boot.scr\0" \
-	"image=zImage\0" \
+	"image=/boot/zImage\0" \
 	"console=ttymxc0\0" \
 	"splashpos=m,m\0" \
 	"fdtfile=undefined\0" \
@@ -100,7 +104,7 @@
 	"ip_dyn=yes\0" \
 	"mmcdev=" __stringify(CONFIG_SYS_MMC_ENV_DEV) "\0" \
 	"mmcpart=1\0" \
-	"mmcroot=/dev/mmcblk2p2 rootwait rw\0" \
+	"mmcroot=/dev/mmcblk2p1 rootwait ro\0" \
 	"update_sd_firmware_filename=u-boot.imx\0" \
 	"update_sd_firmware=" \
 		"if test ${ip_dyn} = yes; then " \
@@ -144,11 +148,11 @@
 		"fi; " \
 		"setenv bootargs ${bootargs} ${fbmem}\0" \
 	"loadbootscript=" \
-		"fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
+		"ext4load mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
 		"source\0" \
-	"loadimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${image}\0" \
-	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdtfile}\0" \
+	"loadimage=ext4load mmc ${mmcdev}:${mmcpart} ${loadaddr} ${image}\0" \
+	"loadfdt=ext4load mmc ${mmcdev}:${mmcpart} ${fdt_addr} /boot/${fdtfile}\0" \
 	"mmcboot=echo Booting from mmc ...; " \
 		"run mmcargs; " \
 		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
