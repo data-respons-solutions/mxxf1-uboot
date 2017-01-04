@@ -172,6 +172,14 @@ config TARGET_MXXF1
 	select PWM_IMX
 	select SPL_PWM_SUPPORT
 	
+config TARGET_LINKBOX_MODULE
+	bool "linkbox-module"
+	select SUPPORT_SPL
+	select DM
+	select DM_THERMAL
+	select PWM_IMX
+	select SPL_PWM_SUPPORT
+
 endchoice
 
 config SYS_SOC
@@ -203,5 +211,6 @@ source "board/warp/Kconfig"
 source "board/datarespons/simpad2/Kconfig"
 source "board/datarespons/linkbox2/Kconfig"
 source "board/datarespons/mxxf1/Kconfig"
+source "board/datarespons/linkbox-module/Kconfig"
 
 endif

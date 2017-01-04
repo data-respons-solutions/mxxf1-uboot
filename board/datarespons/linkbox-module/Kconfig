@@ -1,0 +1,15 @@
+if TARGET_LINKBOX_MODULE
+
+config SYS_BOARD
+	default "linkbox-module"
+
+config SYS_VENDOR
+	default "datarespons"
+
+config SYS_SOC
+	default "mx6"
+
+config SYS_CONFIG_NAME
+	default "linkbox-module"
+
+endif

@@ -1,0 +1,6 @@
+LINKBOXM BOARD
+M:	Hans Christian Lonstad <hcl@datarespons.no>
+S:	Maintained
+F:	board/datarespons/linkbox-module
+F:	include/configs/linkbox2.h
+F:	configs/linkboxm_spl_defconfig
