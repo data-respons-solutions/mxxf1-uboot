@@ -196,20 +196,33 @@ int board_eth_init(bd_t *bis)
 #ifdef CONFIG_USB_EHCI_MX6
 #define USB_OTHERREGS_OFFSET	0x800
 #define UCTRL_PWR_POL		(1 << 9)
+#define UCTRL_OC_POL		(1 << 8)
 
 
 
 int board_ehci_hcd_init(int port)
 {
 	u32 *usbnc_usb_ctrl;
-
-	if (port > 2)
+	if (port > 0)
 		return -EINVAL;
 
 	usbnc_usb_ctrl = (u32 *)(USB_BASE_ADDR + USB_OTHERREGS_OFFSET +
 				 port * 4);
 
-	setbits_le32(usbnc_usb_ctrl, UCTRL_PWR_POL);
+	clrbits_le32(usbnc_usb_ctrl, UCTRL_OC_POL);
+
+	return 0;
+}
+
+int board_ehci_power(int port, int on)
+{
+	switch (port) {
+	case 0:
+		break;
+	default:
+		printf("MXC USB port %d not yet supported\n", port);
+		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -228,6 +241,10 @@ int board_early_init_f(void)
 	imx_iomux_v3_setup_multiple_pads(other_pads, ARRAY_SIZE(other_pads));
 	imx_iomux_v3_setup_multiple_pads(i2c_pads, ARRAY_SIZE(i2c_pads));
 
+	imx_iomux_v3_setup_multiple_pads(otg_pads, ARRAY_SIZE(otg_pads));
+	imx_iomux_v3_setup_multiple_pads(can1_pads, ARRAY_SIZE(can1_pads));
+	imx_iomux_v3_setup_multiple_pads(can2_pads, ARRAY_SIZE(can2_pads));
+	imx_iomux_v3_setup_multiple_pads(uart5_pads, ARRAY_SIZE(uart5_pads));
 	/*
 	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
 	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
@@ -330,27 +347,14 @@ int board_late_init(void)
 
 int checkboard(void)
 {
-	puts("Board: Linkbox2\n");
+	puts("Board: Laerdal CPU Module\n");
 	return 0;
 }
 
 
 int lm_ram64(void)
 {
-#ifndef CONFIG_EMU_SABRESD
-	switch (get_version())
-	{
-	case 0:
-		return gpio_get_value(IMX_GPIO_NR(3, 31));
-		break;
-
-	default:
-		return gpio_get_value(IMX_GPIO_NR(4,21));
-		break;
-	}
-#else
-	return 1;
-#endif
+	return 0;
 }
 
 

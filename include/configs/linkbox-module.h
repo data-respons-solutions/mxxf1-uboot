@@ -44,7 +44,7 @@
 #define CONFIG_MMCROOT			"/dev/mmcblk0p1"
 #define CONFIG_MMC_DEV "0"
 #endif
-#define PHYS_SDRAM_SIZE		(1u * 1024 * 1024 * 1024)
+#define PHYS_SDRAM_SIZE		(1u * 512 * 1024 * 1024)
 #define CONFIG_MX6_DDRTUNE_WR_LEVEL
 #define CONFIG_SUPPORT_EMMC_BOOT /* eMMC specific */
 
@@ -84,7 +84,7 @@
 #define CONFIG_EHCI_HCD_INIT_AFTER_RESET
 #define CONFIG_MXC_USB_PORTSC		(PORT_PTS_UTMI | PORT_PTS_PTW)
 #define CONFIG_MXC_USB_FLAGS		0
-#define CONFIG_USB_MAX_CONTROLLER_COUNT	2 /* Enabled USB controller number */
+#define CONFIG_USB_MAX_CONTROLLER_COUNT	1 /* Enabled USB controller number */
 #define CONFIG_USB_KEYBOARD
 #define CONFIG_CONSOLE_MUX
 #define CONFIG_SYS_USB_EVENT_POLL_VIA_CONTROL_EP
