@@ -323,11 +323,11 @@ int board_late_init(void)
 	switch (version)
 	{
 	case 0:
-		setenv("fdt_file", "/boot/linkbox-module-revA.dtb");
+		setenv("fdt_file", "/boot/laerdal-cpu-module-revA.dtb");
 		break;
 
 	default:
-		setenv("fdt_file", "/boot/linkbox-module-revA.dtb");
+		setenv("fdt_file", "/boot/laerdal-cpu-module-revA.dtb");
 		break;
 	}
 
