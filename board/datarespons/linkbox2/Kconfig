@@ -1,0 +1,17 @@
+if TARGET_LINKBOX2
+
+config SYS_BOARD
+	default "linkbox2"
+
+config SYS_VENDOR
+	default "datarespons"
+
+
+config SYS_CONFIG_NAME
+	default "linkbox2"
+
+config PMIC_I2C_BUS
+	int
+	default 0
+	
+endif
