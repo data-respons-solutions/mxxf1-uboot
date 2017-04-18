@@ -652,6 +652,10 @@ endchoice
 
 endif
 
+config SPL_PWM_SUPPORT
+	bool "Support pwm"
+	depends on SPL
+
 config SPL_WATCHDOG_SUPPORT
 	bool "Support watchdog drivers"
 	depends on SPL

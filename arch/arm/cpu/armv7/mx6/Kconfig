@@ -341,6 +341,15 @@ config TARGET_ZC5601
 	select SUPPORT_SPL
 	select DM
 	select DM_THERMAL
+	
+config TARGET_LINKBOX2
+	bool "linkbox2"
+	select BOARD_LATE_INIT
+	select SUPPORT_SPL
+	select DM
+	select DM_THERMAL
+	select BOARD_EARLY_INIT_F
+	imply SPL_PWM_SUPPORT
 
 endchoice
 
@@ -388,5 +397,6 @@ source "board/udoo/Kconfig"
 source "board/udoo/neo/Kconfig"
 source "board/wandboard/Kconfig"
 source "board/warp/Kconfig"
+source "board/datarespons/linkbox2/Kconfig"
 
 endif
