@@ -1,0 +1,17 @@
+if TARGET_CARGOTEC
+
+config SYS_BOARD
+	default "cargotec"
+
+config SYS_VENDOR
+	default "datarespons"
+
+
+config SYS_CONFIG_NAME
+	default "cargotec"
+
+config PMIC_I2C_BUS
+	int
+	default 0
+	
+endif
