@@ -263,16 +263,15 @@ int board_early_init_f(void)
 
 	version = get_version();
 
-	switch (version)
-	{
-	default:
-		imx_iomux_v3_setup_multiple_pads(otg_pads, ARRAY_SIZE(otg_pads));
-		imx_iomux_v3_setup_multiple_pads(uart4_pads, ARRAY_SIZE(uart4_pads));
-		gpio_direction_input(IMX_GPIO_NR(4,21));
-		break;
-	}
-	imx_iomux_v3_setup_multiple_pads(can1_pads, ARRAY_SIZE(can1_pads));
+	imx_iomux_v3_setup_multiple_pads(otg_pads, ARRAY_SIZE(otg_pads));
+
 	imx_iomux_v3_setup_multiple_pads(uart1_pads, ARRAY_SIZE(uart1_pads));
+	imx_iomux_v3_setup_multiple_pads(uart2_pads, ARRAY_SIZE(uart2_pads));
+	imx_iomux_v3_setup_multiple_pads(uart3_pads, ARRAY_SIZE(uart3_pads));
+	imx_iomux_v3_setup_multiple_pads(uart4_pads, ARRAY_SIZE(uart4_pads));
+	imx_iomux_v3_setup_multiple_pads(uart5_pads, ARRAY_SIZE(uart5_pads));
+	imx_iomux_v3_setup_multiple_pads(can1_pads, ARRAY_SIZE(can1_pads));
+	imx_iomux_v3_setup_multiple_pads(can2_pads, ARRAY_SIZE(can2_pads));
 	imx_iomux_v3_setup_multiple_pads(ecspi1_pads, ARRAY_SIZE(ecspi1_pads));
 	imx_iomux_v3_setup_multiple_pads(other_pads, ARRAY_SIZE(other_pads));
 	imx_iomux_v3_setup_multiple_pads(i2c_pads, ARRAY_SIZE(i2c_pads));
