@@ -101,7 +101,7 @@ static iomux_v3_cfg_t const other_pads[] = {
 
 	MX6_PAD_GPIO_0__ASRC_EXT_CLK	| MUX_PAD_CTRL(NO_PAD_CTRL),	/* External audio clk */
 
-	MX6_PAD_GPIO_19__GPIO4_IO05		| MUX_PAD_CTRL(ENET_PAD_CTRL_UP),	/* RTC_nINT */
+
 
 	MX6_PAD_NANDF_CLE__GPIO6_IO07	| MUX_PAD_CTRL(NO_PAD_CTRL),	/* GP--BT_HOST_WAKE */
 	MX6_PAD_NANDF_CS0__GPIO6_IO11	| MUX_PAD_CTRL(NO_PAD_CTRL),	/* GP--WL_VDDIO_EN */
@@ -130,6 +130,11 @@ static iomux_v3_cfg_t const other_pads[] = {
 	MX6_PAD_SD2_DAT1__AUD4_TXFS		| MUX_PAD_CTRL(NO_PAD_CTRL),	/* Bluetooth PCM */
 	MX6_PAD_SD2_DAT2__AUD4_TXD		| MUX_PAD_CTRL(NO_PAD_CTRL),	/* Bluetooth PCM */
 	MX6_PAD_SD2_DAT3__AUD4_TXC		| MUX_PAD_CTRL(NO_PAD_CTRL),	/* Bluetooth PCM */
+};
+
+static iomux_v3_cfg_t const rev1_pads[] = {
+	MX6_PAD_GPIO_18__GPIO7_IO13		| MUX_PAD_CTRL(ENET_PAD_CTRL_UP),	/* GPO1_OD */
+	MX6_PAD_GPIO_19__GPIO4_IO05		| MUX_PAD_CTRL(ENET_PAD_CTRL_UP),	/* GPO2_OD */
 };
 
 static struct i2c_pads_info i2c_pad_info0 = {

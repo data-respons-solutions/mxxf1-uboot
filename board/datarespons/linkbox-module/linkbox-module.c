@@ -48,7 +48,7 @@ struct fsl_esdhc_cfg usdhc_cfg[2] = {
 #ifndef CONFIG_SPL_BUILD
 static const char* hw_string[8] = {
 	"REVA",
-	"FUTURE",
+	"REVB",
 	"FUTURE",
 	"FUTURE",
 	"FUTURE",
@@ -202,6 +202,7 @@ int board_eth_init(bd_t *bis)
 
 int board_ehci_hcd_init(int port)
 {
+	int version;
 	u32 *usbnc_usb_ctrl;
 	if (port > 0)
 		return -EINVAL;
@@ -210,6 +211,9 @@ int board_ehci_hcd_init(int port)
 				 port * 4);
 
 	clrbits_le32(usbnc_usb_ctrl, UCTRL_OC_POL);
+	version = get_version();
+	if (version > 0)
+		setbits_le32(usbnc_usb_ctrl, UCTRL_PWR_POL);
 
 	return 0;
 }
@@ -263,6 +267,17 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_LED_R, 0);
 	gpio_direction_output(GPIO_LED_G, 1);
 	gpio_direction_output(GPIO_LED_B, 0);
+
+	int version = get_version();
+	switch (version)
+	{
+	case 0:
+		break;
+
+	default:
+		imx_iomux_v3_setup_multiple_pads(rev1_pads, ARRAY_SIZE(rev1_pads));
+		break;
+	}
 	return 0;
 }
 
@@ -327,15 +342,14 @@ int board_late_init(void)
 		break;
 
 	default:
-		setenv("fdt_file", "/boot/laerdal-cpu-module-revA.dtb");
+		setenv("fdt_file", "/boot/laerdal-cpu-module-revB.dtb");
 		break;
 	}
 
-	printf("LINKBOX-MODULE HW version: %s\n", hw_string[version]);
+	printf("CPU-MODULE HW version: %s\n", hw_string[version]);
 
-	printf("Linkbox Module U-BOOT version [%s]\n", U_BOOT_VERSION);
+	printf("Cpu Module U-BOOT version [%s]\n", U_BOOT_VERSION);
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
-	//eeprom_get_mac_addr();
 
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
