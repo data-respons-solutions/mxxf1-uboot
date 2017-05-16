@@ -650,19 +650,15 @@ static void spl_dram_init(void)
 static void do_hang_error(void)
 {
 
-	gpio_set_value(GPIO_LED_G, 1);
 	for(;;) {
-		gpio_set_value(GPIO_LED_R, 1);
 		udelay(1000000);
-		gpio_set_value(GPIO_LED_R, 0);
-		udelay(250000);
 	}
 
 }
 
 void board_init_f(ulong dummy)
 {
-	int err, n;
+	int err;
 	/* setup AIPS and disable watchdog */
 	arch_cpu_init();
 
