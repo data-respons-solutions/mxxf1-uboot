@@ -61,9 +61,9 @@ static const char* hw_string[8] = {
 
 static int get_version(void)
 {
-	return ((gpio_get_value(GPIO_HW_SETTING2) << 2) |
-			(gpio_get_value(GPIO_HW_SETTING1) << 1) |
-			gpio_get_value(GPIO_HW_SETTING0)) & 7;
+	return (((!gpio_get_value(GPIO_HW_SETTING0)) << 2) |
+			((!gpio_get_value(GPIO_HW_SETTING1)) << 1) |
+			(!gpio_get_value(GPIO_HW_SETTING2)) ) & 7;
 }
 
 int dram_init(void)
@@ -200,8 +200,6 @@ static void setup_iomux_enet(void)
 }
 
 
-int eeprom_get_mac_addr(void);
-int eeprom_addr;
 
 int board_eth_init(bd_t *bis)
 {
@@ -230,38 +228,14 @@ int board_ehci_hcd_init(int port)
 	return 0;
 }
 
-int board_ehci_power(int port, int on)
-{
-	switch (port) {
-	case 0:
-		break;
-	case 1:
-		if (on) {
-			gpio_direction_output(GPIO_USB_H1_EN, 1);
-			mdelay(10);
-		}
-		else {
-			gpio_direction_output(GPIO_USB_H1_EN, 0);
-		}
-		break;
-	default:
-		printf("MXC USB port %d not yet supported\n", port);
-		return -EINVAL;
-	}
-
-	return 0;
-}
 #endif
 
 int board_early_init_f(void)
 {
-	int version;
 	imx_iomux_v3_setup_multiple_pads(hw_settings_pads, ARRAY_SIZE(hw_settings_pads));
 	gpio_direction_input(GPIO_HW_SETTING0);
 	gpio_direction_input(GPIO_HW_SETTING1);
 	gpio_direction_input(GPIO_HW_SETTING2);
-
-	version = get_version();
 
 	imx_iomux_v3_setup_multiple_pads(otg_pads, ARRAY_SIZE(otg_pads));
 
@@ -275,6 +249,7 @@ int board_early_init_f(void)
 	imx_iomux_v3_setup_multiple_pads(ecspi1_pads, ARRAY_SIZE(ecspi1_pads));
 	imx_iomux_v3_setup_multiple_pads(other_pads, ARRAY_SIZE(other_pads));
 	imx_iomux_v3_setup_multiple_pads(i2c_pads, ARRAY_SIZE(i2c_pads));
+	imx_iomux_v3_setup_multiple_pads(wwan_pads, ARRAY_SIZE(wwan_pads));
 
 	/*
 	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
@@ -282,42 +257,36 @@ int board_early_init_f(void)
 	*/
 
 
-
-	/* Keep manikin off */
-	gpio_direction_output(GPIO_AUX_12V_EN, 0);
-	gpio_direction_output(GPIO_AUX_5V_EN, 0);
-
-	gpio_direction_output(GPIO_CHARGER_CE_N, 1);	/* Turn off charger */
-	gpio_direction_output(GPIO_CHARGER2_CE_N, 1);	/* Turn off charger2 */
-	gpio_direction_output(GPIO_USB_H1_EN, 0);
-	gpio_direction_output(GPIO_SPK_SD_N, 0);	/* Turn off speaker */
-	gpio_direction_output(GPIO_AC5W_SD_N, 0);	/* Turn off AMP */
-	gpio_direction_input(GPIO_ADAPTER_N);
-	gpio_direction_output(GPIO_VCC5_EN_R, 1);		/* Turn on system 5V */
-
 	gpio_direction_output(GPIO_WL_REG_ON, 0);		/* WiFI off */
 	gpio_direction_output(GPIO_BT_REG_ON, 0);		/* Bluetooth off */
-	gpio_direction_input(GPIO_RECOVERY_SWITCH);
-	gpio_direction_output(GPIO_SPI_NOR_WP, 1);
 	gpio_direction_output(GPIO_WL_BAT_PWR_EN, 0);
 	gpio_direction_output(GPIO_WL_VDDIO_EN, 0);
-	gpio_direction_output(GPIO_PWM2, 0);
-	gpio_direction_output(GPIO_PWM3, 0);
-	gpio_direction_output(GPIO_PWM1, 0);
 
 	gpio_direction_input(GPIO_PWR_BTN);
 
+	gpio_direction_input(CAN1_WAKE);
+	gpio_direction_output(CAN1_EN, 0);
+	gpio_direction_output(CAN1_STB_N, 1);
+	gpio_direction_output(CAN1_RES_EN, 0);
 
+	gpio_direction_input(CAN2_WAKE);
+	gpio_direction_output(CAN2_EN, 0);
+	gpio_direction_output(CAN2_STB_N, 1);
+	gpio_direction_output(CAN2_RES_EN, 0);
 
-	gpio_direction_input(GPIO_PMU_RST_N);
-	gpio_direction_output(GPIO_MCU_RST, 1);
-	gpio_direction_input(GPIO_MCU_BOOT0);
-	gpio_direction_input(GPIO_MCU_BOOT1);
+	gpio_direction_output(USB_H1_PWR, 1);
+	gpio_direction_output(EN_ANI1, 0);
+	gpio_direction_output(EN_ANI2, 0);
+	gpio_direction_output(STATUS_CPU, 0);
+
+	gpio_direction_output(GP_EN_GPO1, 0);
+	gpio_direction_output(GP_EN_GPO2, 0);
+	gpio_direction_output(GP_EN_PWR_ANT_GPS, 0);
+	gpio_direction_output(GP_PRST_WWAN_N, 0);
+	gpio_direction_output(GP_DISABLE_WWAN_N, 0);
+
 	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
 
-	gpio_direction_output(GPIO_LED_R, 0);
-	gpio_direction_output(GPIO_LED_G, 0);
-	gpio_direction_output(GPIO_LED_B, 1);
 	return 0;
 }
 
@@ -339,6 +308,8 @@ int board_init(void)
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
 	setup_usb();
+	gpio_set_value(GP_PRST_WWAN_N, 1);
+	gpio_set_value(GP_DISABLE_WWAN_N, 1);
 	return 0;
 }
 #endif	/* CONFIG_SPL_BUILD */
@@ -350,11 +321,6 @@ int board_spi_cs_gpio(unsigned bus, unsigned cs)
 	case 0:
 		return cs == 1 ? SPI_CS_GPIO : -1;
 		break;
-#ifndef CONFIG_EMU_SABRESD
-	case 1:
-		return cs == 1 ? GPIO_PMU_SPI_CS : -1;
-		break;
-#endif
 	default:
 		return -1;
 	}
@@ -379,30 +345,22 @@ int board_late_init(void)
 {
 	int rep;
 	ulong ticks;
-#ifndef CONFIG_EMU_SABRESD
 	int version = get_version();
 	switch (version)
 	{
 	case 0:
-		gpio_direction_output(GPIO_PMU_STATUS, 1);
-		setenv("fdt_file", "/boot/linkbox2-revC.dtb");
-		break;
-
-	case 1:
-		setenv("fdt_file", "/boot/linkbox2-revD.dtb");
+		setenv("fdt_file", "/boot/cargotec-gw-revA.dtb");
 		break;
 
 	default:
-		setenv("fdt_file", "/boot/linkbox2-revD.dtb");
+		setenv("fdt_file", "/boot/cargotec-gw-revA.dtb");
 		break;
 	}
 
-	printf("LINKBOX2 HW version: %s\n", hw_string[version]);
+	printf("CARGOTEC GW version: %s\n", hw_string[version]);
 
-#endif
-	printf("Linkbox2 U-BOOT version [%s]\n", U_BOOT_VERSION);
+	printf("U-BOOT version [%s]\n", U_BOOT_VERSION);
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
-	//eeprom_get_mac_addr();
 
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
