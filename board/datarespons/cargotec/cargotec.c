@@ -48,8 +48,8 @@ struct fsl_esdhc_cfg usdhc_cfg[2] = {
 
 #ifndef CONFIG_SPL_BUILD
 static const char* hw_string[8] = {
-	"REVC",
-	"REVD",
+	"REVA",
+	"REVB",
 	"FUTURE",
 	"FUTURE",
 	"FUTURE",
@@ -377,19 +377,6 @@ int checkboard(void)
 }
 
 
-int lm_ram64(void)
-{
-	switch (get_version())
-	{
-	case 0:
-		return gpio_get_value(IMX_GPIO_NR(3, 31));
-		break;
-
-	default:
-		return gpio_get_value(IMX_GPIO_NR(4,21));
-		break;
-	}
-}
 
 #ifdef CONFIG_SPL_BUILD
 #include <asm/arch/mx6-ddr.h>
@@ -507,7 +494,7 @@ const struct mx6_mmdc_calibration mx6_mmcd_calib = {
 static struct mx6_ddr3_cfg mem_ddr = {
 	.mem_speed = 1600,
 	.density = 4,
-	.width = 64,
+	.width = 32,
 	.banks = 8,
 	.rowaddr = 14,
 	.coladdr = 10,
@@ -519,7 +506,7 @@ static struct mx6_ddr3_cfg mem_ddr = {
 
 static struct mx6_ddr_sysinfo sysinfo = {
 	/* width of data bus:0=16,1=32,2=64 */
-	.dsize = 2,
+	.dsize = 1,
 	/* config for full 4GB range so that get_mem_size() works */
 	.cs_density = 32, /* 32Gb per CS */
 	/* single chip select */
@@ -656,6 +643,8 @@ static void do_hang_error(void)
 
 }
 
+static struct mx6_mmdc_calibration calib;
+
 void board_init_f(ulong dummy)
 {
 	int err;
@@ -684,24 +673,31 @@ void board_init_f(ulong dummy)
 		udelay(10000);
 	}
 	/* DDR initialization */
-	if (lm_ram64() == 0) {
-		sysinfo.dsize = 1;
-		mem_ddr.width = 32;
-	}
 	printf("Memory width %d\n", mem_ddr.width);
 
 	spl_dram_init();
+#if 0
 	err = mmdc_do_write_level_calibration(&sysinfo);
-	if (err) {
+	if (err & 0x03) {
 		printf("DDR3 write level calibration error - hang\n");
 		do_hang_error();
 
 	}
+#endif
 	err = mmdc_do_dqs_calibration(&sysinfo);
 	if (err) {
 		printf("DDR3 DQS calibration error - hang\n");
 		do_hang_error();
 	}
+	mmdc_read_calibration(&sysinfo, &calib);
+	printf("mpwldectrl0 = %08x\n", calib.p0_mpwldectrl0);
+	printf("mpwldectrl1 = %08x\n", calib.p0_mpwldectrl1);
+	printf("mpdgctrl0   = %08x\n", calib.p0_mpdgctrl0);
+	printf("mpdgctrl1   = %08x\n", calib.p0_mpdgctrl1);
+	printf("mprddlctl   = %08x\n", calib.p0_mprddlctl);
+	printf("mpwrdlctl   = %08x\n", calib.p0_mpwrdlctl);
+
+
 	/* Clear the BSS. */
 	memset(__bss_start, 0, __bss_end - __bss_start);
 
