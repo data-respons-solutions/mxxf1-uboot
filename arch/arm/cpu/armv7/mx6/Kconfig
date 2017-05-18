@@ -362,6 +362,15 @@ config TARGET_CARGOTEC
 	
 endchoice
 
+config TARGET_LINKBOX_MODULE
+	bool "linkbox-module"
+	select BOARD_LATE_INIT
+	select SUPPORT_SPL
+	select DM
+	select DM_THERMAL
+	select BOARD_EARLY_INIT_F
+	imply SPL_PWM_SUPPORT
+	
 config SYS_SOC
 	default "mx6"
 
@@ -408,5 +417,5 @@ source "board/wandboard/Kconfig"
 source "board/warp/Kconfig"
 source "board/datarespons/linkbox2/Kconfig"
 source "board/datarespons/cargotec/Kconfig"
-
+source "board/datarespons/linkbox-module/Kconfig"
 endif
