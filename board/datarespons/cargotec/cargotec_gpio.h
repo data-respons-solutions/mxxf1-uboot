@@ -39,4 +39,6 @@
 #define GP_PRST_WWAN_N		IMX_GPIO_NR(4, 27)
 #define GP_DISABLE_WWAN_N	IMX_GPIO_NR(4, 28)
 
+
+#define GP_ENABLE_LC_UART	IMX_GPIO_NR(7, 17)
 #endif

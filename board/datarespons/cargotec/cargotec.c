@@ -256,6 +256,7 @@ int board_early_init_f(void)
 	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
 	*/
 
+	gpio_direction_output(GP_ENABLE_LC_UART, 0);	/* Disable LC uart driver */
 
 	gpio_direction_output(GPIO_WL_REG_ON, 0);		/* WiFI off */
 	gpio_direction_output(GPIO_BT_REG_ON, 0);		/* Bluetooth off */
@@ -372,7 +373,7 @@ int board_late_init(void)
 
 int checkboard(void)
 {
-	puts("Board: Linkbox2\n");
+	puts("Board: Cargotec GW\n");
 	return 0;
 }
 

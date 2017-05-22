@@ -4,6 +4,7 @@
 static iomux_v3_cfg_t const uart1_pads[] = {
 	MX6_PAD_CSI0_DAT10__UART1_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
 	MX6_PAD_CSI0_DAT11__UART1_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
+	MX6_PAD_GPIO_18__GPIO7_IO13	      | MUX_PAD_CTRL(INPUT_PD_PAD_CTRL),
 };
 
 static iomux_v3_cfg_t const uart2_pads[] = {
