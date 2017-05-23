@@ -247,6 +247,7 @@ int board_early_init_f(void)
 	imx_iomux_v3_setup_multiple_pads(can1_pads, ARRAY_SIZE(can1_pads));
 	imx_iomux_v3_setup_multiple_pads(can2_pads, ARRAY_SIZE(can2_pads));
 	imx_iomux_v3_setup_multiple_pads(ecspi1_pads, ARRAY_SIZE(ecspi1_pads));
+	imx_iomux_v3_setup_multiple_pads(ecspi2_pads, ARRAY_SIZE(ecspi2_pads));
 	imx_iomux_v3_setup_multiple_pads(other_pads, ARRAY_SIZE(other_pads));
 	imx_iomux_v3_setup_multiple_pads(i2c_pads, ARRAY_SIZE(i2c_pads));
 	imx_iomux_v3_setup_multiple_pads(wwan_pads, ARRAY_SIZE(wwan_pads));
@@ -257,11 +258,11 @@ int board_early_init_f(void)
 	*/
 
 	gpio_direction_output(GP_ENABLE_LC_UART, 0);	/* Disable LC uart driver */
+	gpio_direction_output(GPIO_WL_BAT_PWR_EN, 0);
+	gpio_direction_output(GPIO_WL_VDDIO_EN, 0);
 
 	gpio_direction_output(GPIO_WL_REG_ON, 0);		/* WiFI off */
 	gpio_direction_output(GPIO_BT_REG_ON, 0);		/* Bluetooth off */
-	gpio_direction_output(GPIO_WL_BAT_PWR_EN, 0);
-	gpio_direction_output(GPIO_WL_VDDIO_EN, 0);
 
 	gpio_direction_input(GPIO_PWR_BTN);
 
@@ -308,6 +309,11 @@ int board_init(void)
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
+	gpio_set_value(GPIO_WL_BAT_PWR_EN, 1);
+	gpio_set_value(GPIO_WL_VDDIO_EN, 1);
+
+	gpio_set_value(GPIO_WL_REG_ON, 1);		/* WiFI off */
+	gpio_set_value(GPIO_BT_REG_ON, 1);
 	setup_usb();
 	gpio_set_value(GP_PRST_WWAN_N, 1);
 	gpio_set_value(GP_DISABLE_WWAN_N, 1);
