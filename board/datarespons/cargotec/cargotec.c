@@ -257,7 +257,8 @@ int board_early_init_f(void)
 	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
 	*/
 
-	gpio_direction_output(GP_ENABLE_LC_UART, 0);	/* Disable LC uart driver */
+	/* gpio_direction_output(GP_ENABLE_LC_UART, 0);	 Disable LC uart driver */
+	gpio_direction_output(TPM_RESET_N, 0);
 	gpio_direction_output(GPIO_WL_BAT_PWR_EN, 0);
 	gpio_direction_output(GPIO_WL_VDDIO_EN, 0);
 
@@ -308,7 +309,7 @@ int board_init(void)
 {
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
-
+	gpio_set_value(TPM_RESET_N, 1);
 	gpio_set_value(GPIO_WL_BAT_PWR_EN, 1);
 	gpio_set_value(GPIO_WL_VDDIO_EN, 1);
 

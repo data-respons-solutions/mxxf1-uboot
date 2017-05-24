@@ -40,5 +40,6 @@
 #define GP_DISABLE_WWAN_N	IMX_GPIO_NR(4, 28)
 
 
-#define GP_ENABLE_LC_UART	IMX_GPIO_NR(7, 17)
+#define GP_ENABLE_LC_UART	IMX_GPIO_NR(7, 13)
+#define TPM_RESET_N			IMX_GPIO_NR(4, 8)
 #endif
