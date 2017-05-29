@@ -254,7 +254,7 @@ int board_early_init_f(void)
 	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
 	*/
 
-
+	gpio_direction_output(GPIO_SPK_SDN, 0);			/* Shut down audio amplifier */
 	gpio_direction_output(GPIO_WL_REG_ON, 0);		/* WiFI off */
 	gpio_direction_output(GPIO_BT_REG_ON, 0);		/* Bluetooth off */
 	gpio_direction_output(GPIO_SPI_NOR_WP, 1);

@@ -16,5 +16,5 @@
 #define GPIO_LED_B			IMX_GPIO_NR(1, 21)
 #define SPI_CS_GPIO 		IMX_GPIO_NR(3, 19)
 
-
+#define GPIO_SPK_SDN		IMX_GPIO_NR(1, 5)
 #endif
