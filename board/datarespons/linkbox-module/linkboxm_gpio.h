@@ -16,5 +16,7 @@
 #define GPIO_LED_B			IMX_GPIO_NR(1, 21)
 #define SPI_CS_GPIO 		IMX_GPIO_NR(3, 19)
 
+#define GPIO_GPO1			IMX_GPIO_NR(7, 13)
+#define GPIO_GPO2			IMX_GPIO_NR(4, 5)
 
 #endif

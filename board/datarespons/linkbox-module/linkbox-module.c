@@ -253,6 +253,8 @@ int board_early_init_f(void)
 	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
 	*/
 
+	gpio_direction_output(GPIO_GPO1, 0);
+	gpio_direction_output(GPIO_GPO2, 0);
 
 	gpio_direction_output(GPIO_WL_REG_ON, 0);		/* WiFI off */
 	gpio_direction_output(GPIO_BT_REG_ON, 0);		/* Bluetooth off */
