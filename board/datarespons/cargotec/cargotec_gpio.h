@@ -19,7 +19,7 @@
 #define CAN1_WAKE			IMX_GPIO_NR(4, 18)
 #define CAN1_EN				IMX_GPIO_NR(4, 10)
 #define CAN1_STB_N			IMX_GPIO_NR(4, 12)
-#define CAN1_RES_EN			IMX_GPIO_NR(3, 21)
+#define CAN1_RES_EN			IMX_GPIO_NR(3, 31)
 
 #define CAN2_WAKE			IMX_GPIO_NR(4, 19)
 #define CAN2_EN				IMX_GPIO_NR(1, 9)
