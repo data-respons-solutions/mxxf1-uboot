@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2012 Freescale Semiconductor, Inc.
+ * Copyright (C) 2017 Data Respons AS
  *
- * Author: Fabio Estevam <fabio.estevam@freescale.com>
+ * Author: Hans Christian Lonstad <hcl@datarespons.com>
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
@@ -104,12 +104,9 @@ int board_mmc_init(bd_t *bis)
 	int ret;
 
 
-		imx_iomux_v3_setup_multiple_pads(usdhc3_pads, ARRAY_SIZE(usdhc3_pads));
-#ifdef CONFIG_EMU_SABRESD
-		gpio_direction_input(USDHC3_CD_GPIO);
-#endif
+		SETUP_IOMUX_PADS(usdhc3_pads);
 		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC3_CLK);
-		imx_iomux_v3_setup_multiple_pads(usdhc4_pads, ARRAY_SIZE(usdhc4_pads));
+		SETUP_IOMUX_PADS(usdhc4_pads);
 		usdhc_cfg[1].sdhc_clk = mxc_get_clock(MXC_ESDHC4_CLK);
 
 		ret = fsl_esdhc_initialize(bis, &usdhc_cfg[0]);
@@ -134,15 +131,13 @@ int board_mmc_init(bd_t *bis)
 
 	switch (reg & 0x3) {
 	case 0x2:
-		imx_iomux_v3_setup_multiple_pads(
-			usdhc3_pads, ARRAY_SIZE(usdhc3_pads));
+		SETUP_IOMUX_PADS(usdhc3_pads);
 		usdhc_cfg[0].esdhc_base = USDHC3_BASE_ADDR;
 		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC3_CLK);
 		gd->arch.sdhc_clk = usdhc_cfg[0].sdhc_clk;
 		break;
 	case 0x3:
-		imx_iomux_v3_setup_multiple_pads(
-			usdhc4_pads, ARRAY_SIZE(usdhc4_pads));
+		SETUP_IOMUX_PADS(usdhc4_pads);
 		usdhc_cfg[0].esdhc_base = USDHC4_BASE_ADDR;
 		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC4_CLK);
 		gd->arch.sdhc_clk = usdhc_cfg[0].sdhc_clk;
@@ -191,7 +186,7 @@ int board_phy_config(struct phy_device *phydev)
 
 static void setup_iomux_enet(void)
 {
-	imx_iomux_v3_setup_multiple_pads(enet_pads, ARRAY_SIZE(enet_pads));
+	SETUP_IOMUX_PADS(enet_pads);
 	/* Reset AR8031 PHY */
 	gpio_direction_output(IMX_GPIO_NR(1, 25) , 0);
 
@@ -232,25 +227,24 @@ int board_ehci_hcd_init(int port)
 
 int board_early_init_f(void)
 {
-	imx_iomux_v3_setup_multiple_pads(hw_settings_pads, ARRAY_SIZE(hw_settings_pads));
+	SETUP_IOMUX_PADS(hw_settings_pads);
 	gpio_direction_input(GPIO_HW_SETTING0);
 	gpio_direction_input(GPIO_HW_SETTING1);
 	gpio_direction_input(GPIO_HW_SETTING2);
 
-	imx_iomux_v3_setup_multiple_pads(otg_pads, ARRAY_SIZE(otg_pads));
+	SETUP_IOMUX_PADS(otg_pads);
 
-	imx_iomux_v3_setup_multiple_pads(uart1_pads, ARRAY_SIZE(uart1_pads));
-	imx_iomux_v3_setup_multiple_pads(uart2_pads, ARRAY_SIZE(uart2_pads));
-	imx_iomux_v3_setup_multiple_pads(uart3_pads, ARRAY_SIZE(uart3_pads));
-	imx_iomux_v3_setup_multiple_pads(uart4_pads, ARRAY_SIZE(uart4_pads));
-	imx_iomux_v3_setup_multiple_pads(uart5_pads, ARRAY_SIZE(uart5_pads));
-	imx_iomux_v3_setup_multiple_pads(can1_pads, ARRAY_SIZE(can1_pads));
-	imx_iomux_v3_setup_multiple_pads(can2_pads, ARRAY_SIZE(can2_pads));
-	imx_iomux_v3_setup_multiple_pads(ecspi1_pads, ARRAY_SIZE(ecspi1_pads));
-	imx_iomux_v3_setup_multiple_pads(ecspi2_pads, ARRAY_SIZE(ecspi2_pads));
-	imx_iomux_v3_setup_multiple_pads(other_pads, ARRAY_SIZE(other_pads));
-	imx_iomux_v3_setup_multiple_pads(i2c_pads, ARRAY_SIZE(i2c_pads));
-	imx_iomux_v3_setup_multiple_pads(wwan_pads, ARRAY_SIZE(wwan_pads));
+	SETUP_IOMUX_PADS(uart1_pads);
+	SETUP_IOMUX_PADS(uart2_pads);
+	SETUP_IOMUX_PADS(uart3_pads);
+	SETUP_IOMUX_PADS(uart4_pads);
+	SETUP_IOMUX_PADS(uart5_pads);
+	SETUP_IOMUX_PADS(can1_pads);
+	SETUP_IOMUX_PADS(can2_pads);
+	SETUP_IOMUX_PADS(ecspi1_pads);
+	SETUP_IOMUX_PADS(ecspi2_pads);
+	SETUP_IOMUX_PADS(other_pads);
+	SETUP_IOMUX_PADS(wwan_pads);
 
 	/*
 	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
@@ -288,8 +282,17 @@ int board_early_init_f(void)
 	gpio_direction_output(GP_PRST_WWAN_N, 0);
 	gpio_direction_output(GP_DISABLE_WWAN_N, 0);
 
-	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
-
+	if (is_mx6dq()) {
+		setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6q_i2c_pad_info0);
+		setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6q_i2c_pad_info1);
+		setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6q_i2c_pad_info2);
+	}
+	else {
+		setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6dl_i2c_pad_info0);
+		setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6dl_i2c_pad_info1);
+		setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6dl_i2c_pad_info2);
+		setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6dl_i2c_pad_info3);
+	}
 	return 0;
 }
 
@@ -300,9 +303,8 @@ static void setup_usb(void)
 	 * set daisy chain for otg_pin_id on 6q.
 	 * for 6dl, this bit is reserved
 	 */
-#ifdef CONFIG_MX6Q
-	imx_iomux_set_gpr_register(1, 13, 1, 0);
-#endif
+	if (is_mx6dq())
+		imx_iomux_set_gpr_register(1, 13, 1, 0);
 }
 
 int board_init(void)
@@ -390,8 +392,7 @@ int checkboard(void)
 #include <asm/arch/mx6-ddr.h>
 #include <spl.h>
 
-#ifdef CONFIG_MX6DL
-const struct mx6sdl_iomux_ddr_regs mx6_ddr_ioregs = {
+const struct mx6sdl_iomux_ddr_regs mx6dl_ddr_ioregs = {
 	.dram_sdclk_0 =  0x00020030,
 	.dram_sdclk_1 =  0x00020030,
 	.dram_cas =  0x00020030,
@@ -420,7 +421,7 @@ const struct mx6sdl_iomux_ddr_regs mx6_ddr_ioregs = {
 	.dram_dqm7 =  0x00020030,
 };
 
-const struct mx6sdl_iomux_grp_regs mx6_grp_ioregs = {
+const struct mx6sdl_iomux_grp_regs mx6dl_grp_ioregs = {
 	.grp_ddr_type =  0x000C0000,
 	.grp_ddrmode_ctl =  0x00020000,
 	.grp_ddrpke =  0x00000000,
@@ -436,8 +437,8 @@ const struct mx6sdl_iomux_grp_regs mx6_grp_ioregs = {
 	.grp_b6ds =  0x00000030,
 	.grp_b7ds =  0x00000030,
 };
-#else
-const struct mx6dq_iomux_ddr_regs mx6_ddr_ioregs = {
+
+const struct mx6dq_iomux_ddr_regs mx6q_ddr_ioregs = {
 	.dram_sdclk_0 =  0x00020030,
 	.dram_sdclk_1 =  0x00020030,
 	.dram_cas =  0x00020030,
@@ -466,7 +467,7 @@ const struct mx6dq_iomux_ddr_regs mx6_ddr_ioregs = {
 	.dram_dqm7 =  0x00020030,
 };
 
-const struct mx6dq_iomux_grp_regs mx6_grp_ioregs = {
+const struct mx6dq_iomux_grp_regs mx6q_grp_ioregs = {
 	.grp_ddr_type =  0x000C0000,
 	.grp_ddrmode_ctl =  0x00020000,
 	.grp_ddrpke =  0x00000000,
@@ -482,7 +483,6 @@ const struct mx6dq_iomux_grp_regs mx6_grp_ioregs = {
 	.grp_b6ds =  0x00000030,
 	.grp_b7ds =  0x00000030,
 };
-#endif
 
 const struct mx6_mmdc_calibration mx6_mmcd_calib = {
 	.p0_mpwldectrl0 =  0x001F001F,
@@ -550,10 +550,10 @@ static void ccgr_init(void)
 	writel(0x000003FF, &ccm->CCGR6);
 }
 
-int pmic_setup(void)
+int pmic_setup(int bus)
 {
 	int ret;
-	i2c_set_bus_num(CONFIG_PMIC_I2C_BUS);
+	i2c_set_bus_num(bus);
 	ret = i2c_probe(CONFIG_POWER_PFUZE100_I2C_ADDR);
 	if (ret)
 	{
@@ -564,10 +564,10 @@ int pmic_setup(void)
 }
 
 
-static int pmic_set(pf100_regs reg, int mV)
+static int pmic_set(int bus, pf100_regs reg, int mV)
 {
 	u8 values[2];
-	i2c_set_bus_num(CONFIG_PMIC_I2C_BUS);
+	i2c_set_bus_num(bus);
 	switch (reg) {
 
 	case SW1AB:
@@ -633,12 +633,10 @@ static void spl_dram_init(void)
 	int four_chip = gpio_get_value(GPIO_DDR_SETTING);
 #endif
 
-
-#ifdef CONFIG_MX6DL
-	mx6sdl_dram_iocfg(mem_ddr.width, &mx6_ddr_ioregs, &mx6_grp_ioregs);
-#else
-	mx6dq_dram_iocfg(mem_ddr.width, &mx6_ddr_ioregs, &mx6_grp_ioregs);
-#endif
+	if (is_mx6dl())
+		mx6sdl_dram_iocfg(mem_ddr.width, &mx6dl_ddr_ioregs, &mx6dl_grp_ioregs);
+	else
+		mx6dq_dram_iocfg(mem_ddr.width, &mx6q_ddr_ioregs, &mx6q_grp_ioregs);
 	mx6_dram_cfg(&sysinfo, &mx6_mmcd_calib, &mem_ddr);
 }
 
@@ -656,6 +654,7 @@ static struct mx6_mmdc_calibration calib;
 void board_init_f(ulong dummy)
 {
 	int err;
+	int pmic_bus = 3;
 	/* setup AIPS and disable watchdog */
 	arch_cpu_init();
 
@@ -673,11 +672,16 @@ void board_init_f(ulong dummy)
 	/* UART clocks enabled and gd valid - init serial console */
 	preloader_console_init();
 	printf("SPL started\n");
-	err = pmic_setup();
+	int version = get_version();
+
+	if (version > 1 || is_mx6dq())
+		pmic_bus = 2;
+
+	err = pmic_setup(pmic_bus);
 	if (err == 0) {
-		pmic_set(SW1AB, 1425);
-		pmic_set(SW1C, 1425);
-		pmic_set(SW3AB, 1350);
+		pmic_set(pmic_bus, SW1AB, 1425);
+		pmic_set(pmic_bus, SW1C, 1425);
+		pmic_set(pmic_bus, SW3AB, 1350);
 		udelay(10000);
 	}
 	/* DDR initialization */
