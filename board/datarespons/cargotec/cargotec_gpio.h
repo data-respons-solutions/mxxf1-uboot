@@ -14,7 +14,6 @@
 #define GPIO_PWR_BTN		IMX_GPIO_NR(3, 29)
 #define SPI_CS_GPIO 		IMX_GPIO_NR(3, 19)
 
-#define USB_H1_PWR			IMX_GPIO_NR(1, 29)
 
 #define CAN1_WAKE			IMX_GPIO_NR(4, 18)
 #define CAN1_EN				IMX_GPIO_NR(4, 10)

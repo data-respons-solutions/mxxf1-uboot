@@ -271,7 +271,6 @@ int board_early_init_f(void)
 	gpio_direction_output(CAN2_STB_N, 1);
 	gpio_direction_output(CAN2_RES_EN, 0);
 
-	gpio_direction_output(USB_H1_PWR, 1);
 	gpio_direction_output(EN_ANI1, 0);
 	gpio_direction_output(EN_ANI2, 0);
 	gpio_direction_output(STATUS_CPU, 0);
