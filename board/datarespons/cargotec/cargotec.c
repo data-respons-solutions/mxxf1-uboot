@@ -274,6 +274,7 @@ int board_early_init_f(void)
 	gpio_direction_output(EN_ANI1, 0);
 	gpio_direction_output(EN_ANI2, 0);
 	gpio_direction_output(STATUS_CPU, 0);
+	gpio_direction_output(GP_NINT_MCU, 1);
 
 	gpio_direction_output(GP_EN_GPO1, 0);
 	gpio_direction_output(GP_EN_GPO2, 0);

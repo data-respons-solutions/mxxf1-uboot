@@ -41,4 +41,5 @@
 
 #define GP_ENABLE_LC_UART	IMX_GPIO_NR(7, 13)
 #define TPM_RESET_N			IMX_GPIO_NR(4, 8)
+#define GP_NINT_MCU			IMX_GPIO_NR(5, 15)
 #endif
