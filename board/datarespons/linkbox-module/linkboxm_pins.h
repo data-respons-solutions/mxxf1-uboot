@@ -129,15 +129,11 @@ static iomux_v3_cfg_t const other_pads[] = {
 	IOMUX_PADS(PAD_SD2_DAT3__AUD4_TXC		| MUX_PAD_CTRL(NO_PAD_CTRL)),	/* Bluetooth PCM */
 };
 
-static iomux_v3_cfg_t const rev1_pads[] = {
+static iomux_v3_cfg_t const gpo_pads[] = {
 	IOMUX_PADS(PAD_GPIO_18__GPIO7_IO13		| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* GPO1_OD */
 	IOMUX_PADS(PAD_GPIO_19__GPIO4_IO05		| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* GPO2_OD */
 };
 
-static iomux_v3_cfg_t const rev1q_pads[] = {
-		MX6Q_PAD_NANDF_WP_B__GPIO6_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6Q_PAD_NANDF_CS3__GPIO6_IO16 | MUX_PAD_CTRL(I2C_PAD_CTRL),
-};
 
 static struct i2c_pads_info mx6dl_i2c_pad_info0 = {
 	.scl = {

@@ -48,7 +48,7 @@ struct fsl_esdhc_cfg usdhc_cfg[2] = {
 static const char* hw_string[8] = {
 	"REVA",
 	"REVB",
-	"FUTURE",
+	"REVC",
 	"FUTURE",
 	"FUTURE",
 	"FUTURE",
@@ -270,13 +270,10 @@ int board_early_init_f(void)
 	case 1:
 		if (is_mx6dl())
 			setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6dl_i2c_pad_info3);
-		else
-			SETUP_IOMUX_PADS(rev1q_pads);
-
-		SETUP_IOMUX_PADS(rev1_pads);
+		SETUP_IOMUX_PADS(gpo_pads);
 
 	default:
-		SETUP_IOMUX_PADS(rev1_pads);
+		SETUP_IOMUX_PADS(gpo_pads);
 		break;
 	}
 
@@ -357,8 +354,15 @@ int board_late_init(void)
 		setenv("fdt_file", "/boot/laerdal-cpu-module-revA.dtb");
 		break;
 
-	default:
+	case 1:
 		setenv("fdt_file", "/boot/laerdal-cpu-module-revB.dtb");
+		break;
+
+	default:
+		if (is_mx6dl())
+			setenv("fdt_file", "/boot/laerdal-cpu-module-revC-dl.dtb");
+		else
+			setenv("fdt_file", "/boot/laerdal-cpu-module-revC-q.dtb");
 		break;
 	}
 
