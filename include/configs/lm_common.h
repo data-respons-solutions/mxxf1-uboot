@@ -68,6 +68,9 @@
 #define CONFIG_CONS_INDEX              1
 #define CONFIG_BAUDRATE                        115200
 
+#ifndef CONFIG_LOGLEVEL
+#define CONFIG_LOGLEVEL 4
+#endif
 
 #define CONFIG_USB_FUNCTION_MASS_STORAGE
 
@@ -75,6 +78,9 @@
 #define CONFIG_SYS_TEXT_BASE           0x17800000
 
 #define CONFIG_MACH_TYPE	0xffffffff	/* Needed for newer kernels */
+
+#define xstr(a) str(a)
+#define str(a) #a
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"zimage=/boot/zImage\0" \
@@ -86,7 +92,7 @@
 	"fdt_file_def=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"initrd_file=/boot/initrd\0" \
 	"initrd_high=0xffffffff\0" \
-	"loglevel=4\0" \
+	"loglevel="xstr(CONFIG_LOGLEVEL)"\0" \
 	"splash=/boot/Logo.bmp\0" \
 	"consoleblank=0\0" \
 	"showtty=console=ttymxc0,115200 console=tty1\0" \

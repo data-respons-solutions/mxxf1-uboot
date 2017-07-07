@@ -20,4 +20,8 @@ config FACTORY_BOOT
 	help
 	  Enables the factory installation boot mode
 
+config LOGLEVEL
+	int "Kernel loglevel"
+	default 4
+
 endif

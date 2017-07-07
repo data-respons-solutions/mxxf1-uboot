@@ -366,7 +366,7 @@ int board_late_init(void)
 		break;
 	}
 
-	printf("CPU-MODULE HW version: %s\n", hw_string[version]);
+	printf("CPU-MODULE HW version: %s [%d]\n", hw_string[version], version);
 
 	printf("Cpu Module U-BOOT version [%s]\n", U_BOOT_VERSION);
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
