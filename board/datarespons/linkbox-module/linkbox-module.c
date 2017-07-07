@@ -671,7 +671,7 @@ void board_init_f(ulong dummy)
 	int version = get_version();
 
 	if (version > 1 || is_mx6dq())
-		pmic_bus = 2;
+		pmic_bus = 1;
 
 	err = pmic_setup(pmic_bus);
 	if (err == 0) {
