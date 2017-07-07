@@ -13,5 +13,11 @@ config SYS_CONFIG_NAME
 config PMIC_I2C_BUS
 	int
 	default 0
-	
+
+config FACTORY_BOOT
+	bool "Factory boot mode"
+	default n
+	help
+	  Enables the factory installation boot mode
+
 endif

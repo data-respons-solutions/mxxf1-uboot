@@ -9,4 +9,10 @@ config SYS_VENDOR
 config SYS_CONFIG_NAME
 	default "linkbox-module"
 
+config FACTORY_BOOT
+	bool "Factory boot mode"
+	default n
+	help
+	  Enables the factory installation boot mode
+
 endif
