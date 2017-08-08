@@ -435,12 +435,12 @@ static u32 get_mmdc_ch0_clk(void)
 			per2_clk2_podf = (cbcdr & MXC_CCM_CBCDR_PERIPH2_CLK2_PODF_MASK) >>
 				MXC_CCM_CBCDR_PERIPH2_CLK2_PODF_OFFSET;
 			if (is_cpu_type(MXC_CPU_MX6SL)) {
-				if (cbcmr & MXC_CCM_CBCMR_PERIPH2_CLK2_SEL)
+				if (cbcmr & MXC_CCM_CBCMR_VDOAXI_CLK_SEL)
 					freq = MXC_HCLK;
 				else
 					freq = decode_pll(PLL_USBOTG, MXC_HCLK);
 			} else {
-				if (cbcmr & MXC_CCM_CBCMR_PERIPH2_CLK2_SEL)
+				if (cbcmr & MXC_CCM_CBCMR_VDOAXI_CLK_SEL)
 					freq = decode_pll(PLL_BUS, MXC_HCLK);
 				else
 					freq = decode_pll(PLL_USBOTG, MXC_HCLK);
@@ -901,6 +901,13 @@ void enable_ipu_clock(void)
 	reg = readl(&mxc_ccm->CCGR3);
 	reg |= MXC_CCM_CCGR3_IPU1_IPU_MASK;
 	writel(reg, &mxc_ccm->CCGR3);
+
+	/*
+	 * Set clock source from PLL2
+	 */
+	reg = __raw_readl(&imx_ccm->cbcmr);
+	reg |= MXC_CCM_CBCMR_VDOAXI_CLK_SEL; //set pll5_video_div
+	__raw_writel(reg, &imx_ccm->cbcmr);
 
 	if (is_mx6dqp()) {
 		setbits_le32(&mxc_ccm->CCGR6, MXC_CCM_CCGR6_PRG_CLK0_MASK);

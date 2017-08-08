@@ -147,10 +147,10 @@ struct display_info_t const displays[] = {{
 	.enable	= enable_lvds,
 	.mode	= {
 		.name           = "Sperre-WVGA",
-		.refresh        = 60,
+		.refresh        = 33.3,
 		.xres           = 800,
 		.yres           = 480,
-		.pixclock       = 15380,	// Period = 15.38ns, Freq = 65.019 Mhz | 10^12/65019505.851756 Hz = 15380
+		.pixclock       = 30066,	// Period = 30.06ns, Freq = 33.26 Mhz | 10^12/33.26 Mhz = 30066
 		.left_margin    = 80,
 		.right_margin   = 40,
 		.upper_margin   = 10,
