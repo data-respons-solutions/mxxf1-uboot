@@ -910,6 +910,112 @@ void enable_ipu_clock(void)
 #endif
 /***************************************************/
 
+int config_lvds_clk(u32 di, u32 freq)
+{
+	u32 divider;
+	unsigned int reg;
+	struct mxc_ccm_reg *imx_ccm = (struct mxc_ccm_reg *)CCM_BASE_ADDR;
+
+	printf("config_ipu_lvds_clk: freq = %d.\r\n", freq);
+
+#ifdef CONFIG_MX6Q
+	__raw_writel(BM_ANADIG_PFD_528_PFD2_CLKGATE, &imx_ccm->analog_pfd_528_set);
+#endif
+
+	/* Turn on LDB0, LDB1, IPU,IPU DI0 clocks */
+	reg = __raw_readl(&imx_ccm->CCGR3);
+	reg |=  MXC_CCM_CCGR3_LDB_DI0_MASK | MXC_CCM_CCGR3_LDB_DI1_MASK;
+	writel(reg, &imx_ccm->CCGR3);
+
+	/*
+	 * Set clock source from PLL3_sw_clk
+	 */
+	reg = __raw_readl(&imx_ccm->cbcmr);
+	//reg |= MXC_CCM_CBCMR_PRE_PERIPH2_CLK2_SEL; //mark this, change to use PLL3_sw_clk
+	__raw_writel(reg, &imx_ccm->cbcmr);
+	
+	/*
+	 * Set MMDC_CH1 mask bit.
+	 */
+	reg = __raw_readl(&imx_ccm->ccdr);
+	reg |= MXC_CCM_CCDR_MMDC_CH1_HS_MASK;
+	__raw_writel(reg, &imx_ccm->ccdr);
+
+	/*
+	 * Set the periph2_clk_sel to the top mux so that
+	 * mmdc_ch1 is from pll2.
+	 */
+	reg = __raw_readl(&imx_ccm->cbcdr);
+	reg |= MXC_CCM_CBCDR_PERIPH2_CLK_SEL;
+	__raw_writel(reg, &imx_ccm->cbcdr);
+	
+	/*
+	 * Wait for the clock switch.
+	 */
+	while (__raw_readl(&imx_ccm->cdhipr))
+		;
+	
+	/*
+	 * Set the ldb_di0_clk and ldb_di1_clk to 011b.
+	 * Set ldb_di0_clk and ldb_di1_clk from MMDC1_CH1 clock
+	 */
+	reg = __raw_readl(&imx_ccm->cs2cdr);
+	reg &= ~(MXC_CCM_CS2CDR_LDB_DI0_CLK_SEL_MASK
+		 | MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_MASK);
+	reg |= ((3 << MXC_CCM_CS2CDR_LDB_DI0_CLK_SEL_OFFSET) 
+		| (3 << MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_OFFSET));
+	__raw_writel(reg, &imx_ccm->cs2cdr);
+
+	/*
+	 * Set mmcd_ch1_axi_podf
+	 */ 
+	divider = (decode_pll(PLL_BUS, MXC_HCLK) / 1000000) / (freq * 7 / 1000000);
+	divider = (divider > 8)? 8:divider;
+	reg = __raw_readl(&imx_ccm->cbcdr);
+	reg &= ~MXC_CCM_CBCDR_MMDC_CH1_PODF_MASK;
+	reg |= (divider-1) << MXC_CCM_CBCDR_MMDC_CH1_PODF_OFFSET;
+	__raw_writel(reg, &imx_ccm->cbcdr);
+
+	/*
+	 * Wait for the clock switch.
+	 */
+	while (__raw_readl(&imx_ccm->cdhipr))
+		;
+
+	/*
+	 * Clear MMDC_CH1 mask bit.
+	 */
+	reg = __raw_readl(&imx_ccm->ccdr);
+	reg &= ~MXC_CCM_CCDR_MMDC_CH1_HS_MASK;
+	__raw_writel(reg, &imx_ccm->ccdr);
+
+#ifdef LVDS_SPLIT_MODE
+	/* Set ipu_di clock to ldb_di_clk/3.5 */
+	reg = __raw_readl(&imx_ccm->cscmr2);
+	if (di == 0)
+		reg &= ~MXC_CCM_CSCMR2_LDB_DI0_IPU_DIV;
+	else if (di == 1)
+		reg &= ~MXC_CCM_CSCMR2_LDB_DI1_IPU_DIV;
+#else
+	/* Set ipu_di clock to ldb_di_clk/7 */
+	reg = __raw_readl(&imx_ccm->cscmr2);
+	if (di == 0)
+		reg |= MXC_CCM_CSCMR2_LDB_DI0_IPU_DIV;
+	else if (di == 1)
+		reg |= MXC_CCM_CSCMR2_LDB_DI1_IPU_DIV;
+#endif
+	__raw_writel(reg, &imx_ccm->cscmr2);
+
+	reg = readl(&imx_ccm->chsccdr);
+	reg |= (CHSCCDR_CLK_SEL_LDB_DI0
+		<< MXC_CCM_CHSCCDR_IPU1_DI0_CLK_SEL_OFFSET);
+	reg |= (CHSCCDR_CLK_SEL_LDB_DI0 
+		<< MXC_CCM_CHSCCDR_IPU1_DI1_CLK_SEL_OFFSET);
+	writel(reg, &imx_ccm->chsccdr);
+
+	return 0;
+}
+
 U_BOOT_CMD(
 	clocks,	CONFIG_SYS_MAXARGS, 1, do_mx6_showclocks,
 	"display clocks",

@@ -157,9 +157,8 @@ struct display_info_t const displays[] = {{
 		.lower_margin   = 10,
 		.hsync_len      = 20,
 		.vsync_len      = 10,
-		.sync           = 0,	// alternatively FB_SYNC_EXT
-		.vmode          = FB_VMODE_NONINTERLACED,
-		.flag			= FB_MODE_IS_DETAILED
+		.sync           = FB_SYNC_EXT, 
+		.vmode          = FB_VMODE_NONINTERLACED 
 } },  };
 size_t display_count = ARRAY_SIZE(displays);
 
@@ -375,6 +374,7 @@ int board_init(void)
 
 #ifdef CONFIG_VIDEO_IPUV3
 	setup_display();
+	config_lvds_clk(0, 33.26 * 1000000); //Set LVDS clock to 33MHz
 #endif
 	setup_usb();
 	return 0;
