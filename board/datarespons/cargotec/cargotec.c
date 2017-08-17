@@ -246,11 +246,6 @@ int board_early_init_f(void)
 	SETUP_IOMUX_PADS(other_pads);
 	SETUP_IOMUX_PADS(wwan_pads);
 
-	/*
-	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
-	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
-	*/
-
 	/* gpio_direction_output(GP_ENABLE_LC_UART, 0);	 Disable LC uart driver */
 	gpio_direction_output(TPM_RESET_N, 0);
 	gpio_direction_output(GPIO_WL_BAT_PWR_EN, 0);
@@ -282,6 +277,8 @@ int board_early_init_f(void)
 	gpio_direction_output(GP_PRST_WWAN_N, 0);
 	gpio_direction_output(GP_DISABLE_WWAN_N, 0);
 
+	int version = get_version();
+
 	if (is_mx6dq()) {
 		setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6q_i2c_pad_info0);
 		setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6q_i2c_pad_info1);
@@ -291,7 +288,8 @@ int board_early_init_f(void)
 		setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6dl_i2c_pad_info0);
 		setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6dl_i2c_pad_info1);
 		setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6dl_i2c_pad_info2);
-		setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6dl_i2c_pad_info3);
+		if (version == 0)
+			setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6dl_i2c_pad_info3);
 	}
 	return 0;
 }
@@ -363,8 +361,12 @@ int board_late_init(void)
 		break;
 
 	default:
-		setenv("fdt_file", "/boot/cargotec-gw-revA.dtb");
+		if (is_mx6dl())
+			setenv("fdt_file", "/boot/cargotec-gw-revB-dl.dtb");
+		else
+			setenv("fdt_file", "/boot/cargotec-gw-revB-q.dtb");
 		break;
+
 	}
 
 	printf("CARGOTEC GW version: %s\n", hw_string[version]);
