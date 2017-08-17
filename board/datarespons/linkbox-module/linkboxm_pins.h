@@ -134,6 +134,10 @@ static iomux_v3_cfg_t const gpo_pads[] = {
 	IOMUX_PADS(PAD_GPIO_19__GPIO4_IO05		| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* GPO2_OD */
 };
 
+static iomux_v3_cfg_t const gpo_od_pads[] = {
+	IOMUX_PADS(PAD_GPIO_18__GPIO7_IO13		| MUX_PAD_CTRL(PAD_CTRL_ODE_NOPULL)),	/* GPO1_OD */
+	IOMUX_PADS(PAD_GPIO_19__GPIO4_IO05		| MUX_PAD_CTRL(PAD_CTRL_ODE_NOPULL)),	/* GPO2_OD */
+};
 
 static struct i2c_pads_info mx6dl_i2c_pad_info0 = {
 	.scl = {
