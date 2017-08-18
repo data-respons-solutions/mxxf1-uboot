@@ -49,7 +49,7 @@ static const char* hw_string[8] = {
 	"REVA",
 	"REVB",
 	"REVC",
-	"FUTURE",
+	"REVC",
 	"FUTURE",
 	"FUTURE",
 	"FUTURE",
