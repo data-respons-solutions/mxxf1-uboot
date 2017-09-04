@@ -268,7 +268,7 @@ int board_early_init_f(void)
 
 	gpio_direction_output(EN_ANI1, 0);
 	gpio_direction_output(EN_ANI2, 0);
-	gpio_direction_output(STATUS_CPU, 0);
+	gpio_direction_output(STATUS_CPU, 1);
 	gpio_direction_output(GP_NINT_MCU, 1);
 
 	gpio_direction_output(GP_EN_GPO1, 0);
@@ -310,11 +310,6 @@ int board_init(void)
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 	gpio_set_value(TPM_RESET_N, 1);
-	gpio_set_value(GPIO_WL_BAT_PWR_EN, 1);
-	gpio_set_value(GPIO_WL_VDDIO_EN, 1);
-
-	gpio_set_value(GPIO_WL_REG_ON, 1);		/* WiFI off */
-	gpio_set_value(GPIO_BT_REG_ON, 1);
 	setup_usb();
 	gpio_set_value(GP_PRST_WWAN_N, 1);
 	gpio_set_value(GP_DISABLE_WWAN_N, 1);
