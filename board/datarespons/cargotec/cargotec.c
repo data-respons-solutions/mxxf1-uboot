@@ -281,13 +281,13 @@ int board_early_init_f(void)
 
 	if (is_mx6dq()) {
 		setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6q_i2c_pad_info0);
-		setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6q_i2c_pad_info1);
-		setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6q_i2c_pad_info2);
+		setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6q_i2c_pad_info1);
+		setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6q_i2c_pad_info2);
 	}
 	else {
 		setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6dl_i2c_pad_info0);
-		setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6dl_i2c_pad_info1);
-		setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6dl_i2c_pad_info2);
+		setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6dl_i2c_pad_info1);
+		setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6dl_i2c_pad_info2);
 		if (version == 0)
 			setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6dl_i2c_pad_info3);
 	}
@@ -668,11 +668,10 @@ void board_init_f(ulong dummy)
 
 	/* UART clocks enabled and gd valid - init serial console */
 	preloader_console_init();
-	printf("SPL started\n");
 	int version = get_version();
-
-	if (version > 1 || is_mx6dq())
-		pmic_bus = 2;
+	printf("SPL started on version %d\n", version);
+	if (version >= 1 || is_mx6dq())
+		pmic_bus = 1;
 
 	err = pmic_setup(pmic_bus);
 	if (err == 0) {
