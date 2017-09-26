@@ -238,7 +238,7 @@ int board_early_init_f(void)
 	SETUP_IOMUX_PADS(uart2_pads);
 	SETUP_IOMUX_PADS(uart3_pads);
 	SETUP_IOMUX_PADS(uart4_pads);
-	SETUP_IOMUX_PADS(uart5_pads);
+
 	SETUP_IOMUX_PADS(can1_pads);
 	SETUP_IOMUX_PADS(can2_pads);
 	SETUP_IOMUX_PADS(ecspi1_pads);
@@ -278,6 +278,11 @@ int board_early_init_f(void)
 	gpio_direction_output(GP_DISABLE_WWAN_N, 0);
 
 	int version = get_version();
+
+	if (version == 0)
+		SETUP_IOMUX_PADS(uart5_pads_dte);
+	else
+		SETUP_IOMUX_PADS(uart5_pads_dce);
 
 	if (is_mx6dq()) {
 		setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6q_i2c_pad_info0);

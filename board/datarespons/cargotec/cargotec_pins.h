@@ -23,12 +23,18 @@ static iomux_v3_cfg_t const uart4_pads[] = {
 
 };
 
-static iomux_v3_cfg_t const uart5_pads[] = {
+static iomux_v3_cfg_t const uart5_pads_dte[] = {
 	IOMUX_PADS(PAD_CSI0_DAT14__UART5_TX_DATA	| MUX_PAD_CTRL(UART_PAD_CTRL)),
 	IOMUX_PADS(PAD_CSI0_DAT15__UART5_RX_DATA	| MUX_PAD_CTRL(UART_PAD_CTRL)),
 	IOMUX_PADS(PAD_CSI0_DAT18__UART5_RTS_B		| MUX_PAD_CTRL(UART_PAD_CTRL)),
 	IOMUX_PADS(PAD_CSI0_DAT19__UART5_CTS_B		| MUX_PAD_CTRL(UART_PAD_CTRL)),
+};
 
+static iomux_v3_cfg_t const uart5_pads_dce[] = {
+	IOMUX_PADS(PAD_CSI0_DAT14__UART5_RX_DATA	| MUX_PAD_CTRL(UART_PAD_CTRL)),
+	IOMUX_PADS(PAD_CSI0_DAT15__UART5_TX_DATA	| MUX_PAD_CTRL(UART_PAD_CTRL)),
+	IOMUX_PADS(PAD_CSI0_DAT18__UART5_CTS_B		| MUX_PAD_CTRL(UART_PAD_CTRL)),
+	IOMUX_PADS(PAD_CSI0_DAT19__UART5_RTS_B		| MUX_PAD_CTRL(UART_PAD_CTRL)),
 };
 
 static iomux_v3_cfg_t const enet_pads[] = {
