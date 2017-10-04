@@ -250,6 +250,7 @@ int board_early_init_f(void)
 	gpio_direction_output(TPM_RESET_N, 0);
 	gpio_direction_output(GPIO_WL_BAT_PWR_EN, 0);
 	gpio_direction_output(GPIO_WL_VDDIO_EN, 0);
+	gpio_direction_output(GPIO_WL_DEV_WAKE, 0);
 
 	gpio_direction_output(GPIO_WL_REG_ON, 0);		/* WiFI off */
 	gpio_direction_output(GPIO_BT_REG_ON, 0);		/* Bluetooth off */
@@ -269,7 +270,7 @@ int board_early_init_f(void)
 	gpio_direction_output(EN_ANI1, 0);
 	gpio_direction_output(EN_ANI2, 0);
 	gpio_direction_output(STATUS_CPU, 1);
-	gpio_direction_output(GP_NINT_MCU, 1);
+	gpio_direction_input(GP_NINT_MCU);
 
 	gpio_direction_output(GP_EN_GPO1, 0);
 	gpio_direction_output(GP_EN_GPO2, 0);
