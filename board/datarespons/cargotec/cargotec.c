@@ -269,7 +269,7 @@ int board_early_init_f(void)
 
 	gpio_direction_output(EN_ANI1, 0);
 	gpio_direction_output(EN_ANI2, 0);
-	gpio_direction_output(STATUS_CPU, 1);
+
 	gpio_direction_input(GP_NINT_MCU);
 	gpio_direction_output(GP_NRST_MCU, 1);
 
@@ -285,6 +285,15 @@ int board_early_init_f(void)
 		SETUP_IOMUX_PADS(uart5_pads_dte);
 	else
 		SETUP_IOMUX_PADS(uart5_pads_dce);
+
+	if (version >= 2) {
+		SETUP_IOMUX_PADS(revc_pads);
+		gpio_direction_input(STATUS_CPU);
+		gpio_direction_output(GP_LED_G_STATUS, 0);
+		gpio_direction_output(GP_LED_R_STATUS, 0);
+	}
+	else
+		gpio_direction_output(STATUS_CPU, 1);
 
 	if (is_mx6dq()) {
 		setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &mx6q_i2c_pad_info0);
@@ -362,11 +371,18 @@ int board_late_init(void)
 		setenv("fdt_file", "/boot/cargotec-gw-revA.dtb");
 		break;
 
-	default:
+	case 1:
 		if (is_mx6dl())
 			setenv("fdt_file", "/boot/cargotec-gw-revB-dl.dtb");
 		else
 			setenv("fdt_file", "/boot/cargotec-gw-revB-q.dtb");
+		break;
+
+	default:
+		if (is_mx6dl())
+			setenv("fdt_file", "/boot/cargotec-gw-revC-dl.dtb");
+		else
+			setenv("fdt_file", "/boot/cargotec-gw-revC-q.dtb");
 		break;
 
 	}

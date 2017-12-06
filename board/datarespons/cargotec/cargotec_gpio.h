@@ -45,4 +45,7 @@
 #define GP_NINT_MCU			IMX_GPIO_NR(5, 15)
 
 #define GP_NRST_MCU			IMX_GPIO_NR(1, 4)
+
+#define GP_LED_G_STATUS		IMX_GPIO_NR(1, 18)
+#define GP_LED_R_STATUS		IMX_GPIO_NR(1, 20)
 #endif
