@@ -137,7 +137,7 @@ static iomux_v3_cfg_t const wwan_pads[] = {
 
 static iomux_v3_cfg_t const other_pads[] = {
 	IOMUX_PADS(PAD_KEY_COL1__GPIO4_IO08		| MUX_PAD_CTRL(WEAK_PULLUP)),	/* GP_NRESET_TPM */
-	IOMUX_PADS(PAD_GPIO_4__GPIO1_IO04		| MUX_PAD_CTRL(WEAK_PULLUP)),	/* GP_NRST_MCU1 */
+
 	IOMUX_PADS(PAD_CSI0_DAT16__GPIO6_IO02	| MUX_PAD_CTRL(WEAK_PULLDOWN)),	/* GP-EN--BUCK_5V--CPU */
 
 	IOMUX_PADS(PAD_GPIO_0__ASRC_EXT_CLK		| MUX_PAD_CTRL(NO_PAD_CTRL)),	/* External audio clk */
@@ -175,11 +175,17 @@ static iomux_v3_cfg_t const other_pads[] = {
 	IOMUX_PADS(PAD_DISP0_DAT10__GPIO4_IO31 	| MUX_PAD_CTRL(WEAK_PULLUP)),	/* GP_Status--CPU */
 };
 
+static iomux_v3_cfg_t const revab_pads[] = {
+	IOMUX_PADS(PAD_GPIO_4__GPIO1_IO04		| MUX_PAD_CTRL(WEAK_PULLUP)),	/* GP_NRST_MCU1 */
+};
+
+
 static iomux_v3_cfg_t const revc_pads[] = {
 	IOMUX_PADS(PAD_SD1_CMD__GPIO1_IO18		| MUX_PAD_CTRL(NO_PULLUP)),		/* GP_LED_G_STATUS */
 	IOMUX_PADS(PAD_SD1_CLK__GPIO1_IO20		| MUX_PAD_CTRL(NO_PULLUP)),		/* GP_LED_R_STATUS */
 	IOMUX_PADS(PAD_SD1_DAT0__GPIO1_IO16		| MUX_PAD_CTRL(NO_PULLUP)),		/* CAN1_ERR_N */
 	IOMUX_PADS(PAD_SD1_DAT1__GPIO1_IO17		| MUX_PAD_CTRL(NO_PULLUP)),		/* CAN2_ERR_N */
+	IOMUX_PADS(PAD_GPIO_4__GPIO1_IO04		| MUX_PAD_CTRL(NO_PULLUP)),	/* GP_NRST_MCU1 */
 };
 
 static struct i2c_pads_info mx6dl_i2c_pad_info0 = {
