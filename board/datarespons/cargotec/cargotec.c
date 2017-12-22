@@ -50,7 +50,7 @@ struct fsl_esdhc_cfg usdhc_cfg[2] = {
 static const char* hw_string[8] = {
 	"REVA",
 	"REVB",
-	"FUTURE",
+	"REVC",
 	"FUTURE",
 	"FUTURE",
 	"FUTURE",
