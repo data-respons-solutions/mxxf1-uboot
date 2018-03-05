@@ -12,6 +12,7 @@
 #include <asm/arch/imx-regs.h>
 #include <asm/imx-common/gpio.h>
 
+#define CONFIG_SYS_FSL_SEC_COMPAT 4
 #ifdef CONFIG_SPL
 
 #include "imx6_spl.h"
