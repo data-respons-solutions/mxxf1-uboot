@@ -1,0 +1,51 @@
+#ifndef __CARGOTEC_GPIO_H__
+#define __CARGOTEC_GPIO_H__
+
+
+#define GPIO_WL_VDDIO_EN	IMX_GPIO_NR(6, 11)
+#define GPIO_BT_WAKE		IMX_GPIO_NR(6, 8)
+#define GPIO_WL_REG_ON		IMX_GPIO_NR(2, 3)
+#define GPIO_BT_REG_ON		IMX_GPIO_NR(2, 4)
+#define GPIO_WL_DEV_WAKE	IMX_GPIO_NR(2, 7)
+#define GPIO_SPI_NOR_WP 	IMX_GPIO_NR(3, 20)
+#define GPIO_WL_BAT_PWR_EN	IMX_GPIO_NR(3, 23)
+#define GPIO_HW_SETTING0	IMX_GPIO_NR(4, 21)
+#define GPIO_HW_SETTING1	IMX_GPIO_NR(4, 22)
+#define GPIO_HW_SETTING2	IMX_GPIO_NR(4, 23)
+#define GPIO_PWR_BTN		IMX_GPIO_NR(3, 29)
+#define SPI_CS_GPIO 		IMX_GPIO_NR(3, 19)
+
+
+#define CAN1_WAKE			IMX_GPIO_NR(4, 18)
+#define CAN1_EN				IMX_GPIO_NR(4, 10)
+#define CAN1_STB_N			IMX_GPIO_NR(4, 12)
+#define CAN1_RES_EN			IMX_GPIO_NR(3, 31)
+
+#define CAN2_WAKE			IMX_GPIO_NR(4, 19)
+#define CAN2_EN				IMX_GPIO_NR(1, 9)
+#define CAN2_STB_N			IMX_GPIO_NR(1, 2)
+#define CAN2_RES_EN			IMX_GPIO_NR(1, 6)
+
+#define EN_ANI1				IMX_GPIO_NR(5, 15)
+#define EN_ANI2				IMX_GPIO_NR(5, 16)
+#define STATUS_CPU			IMX_GPIO_NR(4, 31)
+
+#define GP_EN_GPO1			IMX_GPIO_NR(4, 24)
+#define GP_EN_GPO2			IMX_GPIO_NR(4, 25)
+
+/* WWAN */
+
+#define GP_EN_PWR_ANT_GPS	IMX_GPIO_NR(4, 26)
+#define GP_PRST_WWAN_N		IMX_GPIO_NR(4, 27)
+#define GP_DISABLE_WWAN_N	IMX_GPIO_NR(4, 28)
+
+
+#define GP_ENABLE_LC_UART	IMX_GPIO_NR(7, 13)
+#define TPM_RESET_N			IMX_GPIO_NR(4, 8)
+#define GP_NINT_MCU			IMX_GPIO_NR(5, 15)
+
+#define GP_NRST_MCU			IMX_GPIO_NR(1, 4)
+
+#define GP_LED_G_STATUS		IMX_GPIO_NR(1, 18)
+#define GP_LED_R_STATUS		IMX_GPIO_NR(1, 20)
+#endif

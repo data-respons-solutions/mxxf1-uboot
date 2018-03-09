@@ -445,6 +445,15 @@ config TARGET_ZC5601
 	select DM
 	select DM_THERMAL
 
+config TARGET_CARGOTEC
+	bool "cargotecgw"
+	select MX6QDL
+	select BOARD_LATE_INIT
+	select SUPPORT_SPL
+	select DM
+	select DM_THERMAL
+	select BOARD_EARLY_INIT_F
+	
 endchoice
 
 config SYS_SOC
@@ -497,5 +506,6 @@ source "board/udoo/Kconfig"
 source "board/udoo/neo/Kconfig"
 source "board/wandboard/Kconfig"
 source "board/warp/Kconfig"
+source "board/datarespons/cargotec/Kconfig"
 
 endif

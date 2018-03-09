@@ -1,0 +1,22 @@
+if TARGET_LINKBOX_MODULE
+
+config SYS_BOARD
+	default "linkbox-module"
+
+config SYS_VENDOR
+	default "datarespons"
+
+config SYS_CONFIG_NAME
+	default "linkbox-module"
+
+config FACTORY_BOOT
+	bool "Factory boot mode"
+	default n
+	help
+	  Enables the factory installation boot mode
+
+config LOGLEVEL
+	int "Kernel loglevel"
+	default 4
+
+endif

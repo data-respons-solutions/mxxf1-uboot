@@ -1,0 +1,6 @@
+MXXF1 BOARD
+M:	Hans Christian Lonstad <hcl@datarespons.no>
+S:	Maintained
+F:	board/datarespons/cargotec
+F:	include/configs/cargotec.h
+F:	configs/cargotec_spl_defconfig
