@@ -155,6 +155,8 @@
 	"run loadbootscript;" \
 	"if run check_usb_boot; then " \
 		"echo booting from USB ...;" \
+		"run bootscript;" \
+		"echo USB boot failed, revert to MMC; run setmmc;" \
 	"else " \
 		"run setmmc; echo booting from MMC ...;" \
 	"fi; " \

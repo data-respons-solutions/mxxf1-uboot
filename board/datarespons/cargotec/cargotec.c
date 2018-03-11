@@ -37,6 +37,9 @@
 #include <version.h>
 #include <watchdog.h>
 
+#include <asm/mach-imx/hab.h>
+#include <vsprintf.h>
+
 DECLARE_GLOBAL_DATA_PTR;
 
 #include "../lm-common/lm_common_defs.h"
@@ -394,6 +397,7 @@ int board_late_init(void)
 	printf("CARGOTEC GW version: %s\n", hw_string[version]);
 
 	printf("U-BOOT version [%s]\n", U_BOOT_VERSION);
+	printf("HAB enabled %s\n", imx_hab_is_enabled() ? "yes" : "no");
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
 
 #ifdef CONFIG_CMD_BMODE
@@ -409,8 +413,7 @@ int checkboard(void)
 	puts("Board: Cargotec GW\n");
 	return 0;
 }
-#include <asm/mach-imx/hab.h>
-#include <vsprintf.h>
+
 static int do_led(cmd_tbl_t *cmdtp, int flag, int argc,
 			char * const argv[])
 {
