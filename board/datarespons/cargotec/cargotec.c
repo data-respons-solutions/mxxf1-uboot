@@ -53,7 +53,7 @@ static const char* hw_string[8] = {
 	"REVA",
 	"REVB",
 	"REVC",
-	"FUTURE",
+	"REVD",
 	"FUTURE",
 	"FUTURE",
 	"FUTURE",
@@ -409,8 +409,42 @@ int checkboard(void)
 	puts("Board: Cargotec GW\n");
 	return 0;
 }
+#include <asm/mach-imx/hab.h>
+#include <vsprintf.h>
+static int do_led(cmd_tbl_t *cmdtp, int flag, int argc,
+			char * const argv[])
+{
+	if (argc < 2)
+		return CMD_RET_USAGE;
+	if (get_version() < 2)
+		return 0;
 
+	if (strncmp(argv[1], "red", 3) == 0)
+	{
+		gpio_set_value(GP_LED_G_STATUS, 0);
+		gpio_set_value(GP_LED_G_STATUS, 1);
+		return 0;
+	}
 
+	if (strncmp(argv[1], "green", 5) == 0)
+	{
+		gpio_set_value(GP_LED_G_STATUS, 1);
+		gpio_set_value(GP_LED_G_STATUS, 0);
+		return 0;
+	}
+	if (strncmp(argv[1], "off", 3) == 0)
+	{
+		gpio_set_value(GP_LED_G_STATUS, 0);
+		gpio_set_value(GP_LED_G_STATUS, 0);
+		return 0;
+	}
+	return CMD_RET_SUCCESS;
+}
+
+U_BOOT_CMD(
+	set_led, 2, 1, do_led, "LED control",
+	"set_led color [red,green,off]\n"
+	);
 
 #ifdef CONFIG_SPL_BUILD
 #include <asm/arch/mx6-ddr.h>

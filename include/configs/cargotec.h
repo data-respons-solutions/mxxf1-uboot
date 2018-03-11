@@ -81,8 +81,33 @@
 #define xstr(a) str(a)
 #define str(a) #a
 
+#ifdef CONFIG_SECURE_BOOT
+#define ZIMAGE "/boot/zImage-ivt_signed"
+#define BOOTSCRIPT \
+	"run setargs; " \
+	"if run load_ivt_info; then " \
+		"echo IVT starts at ${ivt_offset}; " \
+		"if run loadimage; then " \
+			"if hab_auth_img ${loadaddr} ${filesize} ${ivt_offset}; then " \
+				"echo Authenticated kernel; " \
+				"run loadfdt; bootz ${loadaddr} - ${fdt_addr}; " \
+			"else " \
+				"echo Failed to authenticate kernel; " \
+			"fi; " \
+		"else " \
+			"echo Failed to load image ${zimage}; " \
+		"fi; " \
+	"else " \
+		"echo No IVT information; " \
+	"fi;"
+#else
+#define ZIMAGE "/boot/zImage"
+#define BOOTSCRIPT \
+	"run setargs; if run loadimage loadfdt; then bootz ${loadaddr} - ${fdt_addr}; else echo ERROR: Could not load prescribed config; fi;"
+#endif
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"zimage=/boot/zImage\0" \
+	"zimage=" ZIMAGE "\0" \
 	"fdt_addr=0x18000000\0" \
 	"ip_dyn=try\0" \
 	"console=" CONSOLE_DEV ",115200\0" \
@@ -102,6 +127,7 @@
 	"mmc_root=" CONFIG_MMCROOT "\0" \
 	"usb_root=/dev/sda1\0" \
 	"loadbootscript=if ext4load mmc 0:4 ${loadaddr} /boot/boot.txt; then env import -t ${loadaddr} ${filesize}; fi; \0" \
+	"load_ivt_info=if ext4load mmc 0:${bootpart} ${loadaddr} /boot/zImage-padded-size; then env import -t ${loadaddr} ${filesize}; fi; \0" \
 	"setmmc=setenv bootfrom mmc; setenv bootdev "MMC_DEV" ; setenv rootdev ${mmc_root}; \0 " \
 	"setusb=setenv bootfrom usb; setenv bootdev 0; setenv bootpart 1; setenv rootdev ${usb_root}; echo Setting boot to usb; \0 " \
 	"loaduboot=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/u-boot.img; \0" \
@@ -110,7 +136,7 @@
 	"loadinitrd=ext4load ${bootfrom} ${bootdev}:${bootpart} ${initrd_addr} ${initrd_file}; \0" \
 	"loadfdt=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file}; \0" \
 	"loadfdtdef=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file_def}; \0" \
-	"bootscript=run setargs; if run loadimage loadfdt; then bootz ${loadaddr} - ${fdt_addr}; else echo ERROR: Could not load prescribed config; fi; \0" \
+	"bootscript=" BOOTSCRIPT " \0" \
 	"check_usb_boot=if usb storage; then run setusb loadfdt; fi;\0" \
 	"initrd_addr=0x12C00000\0" \
 	"initrd_high=0xffffffff\0" \
@@ -140,7 +166,8 @@
 		"setenv bootpart 2; setenv mmc_root /dev/mmcblk0p2;" \
 	"fi; " \
 	"run setmmc;" \
-	"run bootscript;"
+	"run bootscript;" \
+	"set_led red;"
 #endif
 
 #define CONFIG_ARP_TIMEOUT     200UL
