@@ -127,6 +127,7 @@
 	"mmc_root=" CONFIG_MMCROOT "\0" \
 	"usb_root=/dev/sda1\0" \
 	"loadbootscript=if ext4load mmc 0:4 ${loadaddr} /boot/boot.txt; then env import -t ${loadaddr} ${filesize}; fi; \0" \
+	"ivt_offset=0\0" \
 	"load_ivt_info=if ext4load mmc 0:${bootpart} ${loadaddr} /boot/zImage-padded-size; then env import -t ${loadaddr} ${filesize}; fi; \0" \
 	"setmmc=setenv bootfrom mmc; setenv bootdev "MMC_DEV" ; setenv rootdev ${mmc_root}; \0 " \
 	"setusb=setenv bootfrom usb; setenv bootdev 0; setenv bootpart 1; setenv rootdev ${usb_root}; echo Setting boot to usb; \0 " \
