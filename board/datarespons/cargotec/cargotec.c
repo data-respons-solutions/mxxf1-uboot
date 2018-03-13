@@ -84,20 +84,10 @@ int board_mmc_getcd(struct mmc *mmc)
 	int ret = 0;
 
 	switch (cfg->esdhc_base) {
-#ifdef CONFIG_EMU_SABRESD
-	case USDHC3_BASE_ADDR:
-
-		ret = !gpio_get_value(USDHC3_CD_GPIO);
-		break;
-	case USDHC4_BASE_ADDR:
-		ret = 1; /* eMMC/uSDHC4 is always present */
-		break;
-#else
 	case USDHC3_BASE_ADDR:
 	case USDHC4_BASE_ADDR:
 		ret = 1;
 		break;
-#endif
 	}
 
 	return ret;
@@ -369,8 +359,9 @@ static char * const usbcmd[] = {"usb", "start"};
 
 int board_late_init(void)
 {
-	int rep;
-	ulong ticks;
+	int rep=0;
+	ulong ticks=1;
+
 	int version = get_version();
 	switch (version)
 	{
@@ -398,8 +389,9 @@ int board_late_init(void)
 
 	printf("U-BOOT version [%s]\n", U_BOOT_VERSION);
 	printf("HAB enabled %s\n", imx_hab_is_enabled() ? "yes" : "no");
+	printf("Starting USB\n");
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
-
+	printf("Started USB after %ld\n", ticks);
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
 #endif
