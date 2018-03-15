@@ -129,7 +129,7 @@
 	"usb_root=/dev/sda1\0" \
 	"loadbootscript=if ext4load mmc 0:4 ${loadaddr} /boot/boot.txt; then env import -t ${loadaddr} ${filesize}; fi; \0" \
 	"ivt_offset=0\0" \
-	"load_ivt_info=if ext4load mmc 0:${bootpart} ${loadaddr} /boot/zImage-padded-size; then env import -t ${loadaddr} ${filesize}; fi; \0" \
+	"load_ivt_info=if ext4load mmc 0:${bootpart} 17000000 /boot/zImage-padded-size; then env import -t 17000000 ${filesize}; fi; \0" \
 	"setmmc=setenv bootfrom mmc; setenv bootdev "MMC_DEV" ; setenv rootdev ${mmc_root}; \0 " \
 	"setusb=setenv bootfrom usb; setenv bootdev 0; setenv bootpart 1; setenv rootdev ${usb_root}; echo Setting boot to usb; \0 " \
 	"loaduboot=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} /boot/u-boot.img; \0" \
@@ -140,13 +140,14 @@
 	"loadfdtdef=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file_def}; \0" \
 	"bootscript_secure=" BOOTSCRIPT_SECURE " \0" \
 	"bootscript_nosecure=" BOOTSCRIPT_NOSECURE " \0" \
-	"check_usb_boot=if usb storage; then run setusb loadfdt; fi;\0" \
+	"check_usb_boot=if usb storage; then run setusb; fi;\0" \
 	"initrd_addr=0x12C00000\0" \
 	"initrd_high=0xffffffff\0" \
 	"factory_args=setenv bootargs console=${console} rdinit=/linuxrc enable_wait_mode=off \0" \
 	"install_args=setenv bootargs console=${console} rdinit=/install_script enable_wait_mode=off \0" \
 	"factory_boot=run factory_args; bootz ${loadaddr} ${initrd_addr} ${fdt_addr}; \0" \
 	"testfact=run loadfdt loadimage loadinitrd factory_boot; \0" \
+	"habtest=run load_ivt_info loadimage; hab_auth_img ${loadaddr} ${filesize} ${ivt_offset}; \0" \
 	"install_boot=run install_args loadfdt loadimage loadinitrd; bootz ${loadaddr} ${initrd_addr} ${fdt_addr}; \0"
 #ifdef CONFIG_FACTORY_BOOT
 #define CONFIG_BOOTCOMMAND \
@@ -155,12 +156,12 @@
 #else
 #define CONFIG_BOOTCOMMAND \
 	"mmc dev "MMC_DEV"; mmc rescan; " \
-	"run loadbootscript;" \
 	"if run check_usb_boot; then " \
 		"echo booting from USB ...;" \
 		"run bootscript;" \
 		"echo USB boot failed, revert to MMC; run setmmc;" \
 	"else " \
+		"run loadbootscript;" \
 		"run setmmc; echo booting from MMC ...;" \
 	"fi; " \
 	"run bootscript;" \
