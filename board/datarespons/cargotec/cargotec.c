@@ -359,9 +359,8 @@ static char * const usbcmd[] = {"usb", "start"};
 
 int board_late_init(void)
 {
-	int rep=0;
-	ulong ticks=1;
-
+	int rep;
+	ulong ticks;
 	int version = get_version();
 	switch (version)
 	{
@@ -388,10 +387,23 @@ int board_late_init(void)
 	printf("CARGOTEC GW version: %s\n", hw_string[version]);
 
 	printf("U-BOOT version [%s]\n", U_BOOT_VERSION);
-	printf("HAB enabled %s\n", imx_hab_is_enabled() ? "yes" : "no");
-	printf("Starting USB\n");
+#ifdef CONFIG_SECURE_BOOT
+	if (imx_hab_is_enabled())
+	{
+		printf("HAB enabled, setting up secure bootscript\n");
+		env_set("bootscript", BOOTSCRIPT_SECURE);
+		env_set("zimage", ZIMAGE_SECURE);
+	}
+	else
+	{
+		printf("HAB disabled, setting up regular bootscript\n");
+		env_set("bootscript", BOOTSCRIPT_NOSECURE);
+	}
+#else
+	env_set("bootscript", BOOTSCRIPT_NOSECURE);
+#endif
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
-	printf("Started USB after %ld\n", ticks);
+
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
 #endif
