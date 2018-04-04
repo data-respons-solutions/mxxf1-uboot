@@ -9,6 +9,7 @@
 #define __SECURE_MX6Q_H__
 
 #include <linux/types.h>
+#include <linux/compiler.h>
 
 /*
  * IVT header definitions
@@ -21,11 +22,11 @@
 #define IVT_HEADER_V1		0x40
 #define IVT_HEADER_V2		0x41
 
-struct ivt_header {
+struct __packed ivt_header {
 	uint8_t		magic;
 	uint16_t	length;
 	uint8_t		version;
-} __attribute__((packed));
+};
 
 struct ivt {
 	struct ivt_header hdr;	/* IVT header above */
