@@ -104,6 +104,7 @@ static iomux_v3_cfg_t const hw_settings_pads[] = {
 };
 
 static iomux_v3_cfg_t const otg_pads[] = {
+	IOMUX_PADS(PAD_EIM_D21__USB_OTG_OC	 	| MUX_PAD_CTRL(WEAK_PULLUP)),
 	IOMUX_PADS(PAD_EIM_D22__USB_OTG_PWR 	| MUX_PAD_CTRL(NO_PULLUP)),
 	IOMUX_PADS(PAD_KEY_ROW1__GPIO4_IO09 	| MUX_PAD_CTRL(NO_PULLUP)),	/* Note that this is not default, need DT config */
 	IOMUX_PADS(PAD_ENET_RX_ER__USB_OTG_ID 	| MUX_PAD_CTRL(WEAK_PULLUP)),

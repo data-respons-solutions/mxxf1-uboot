@@ -239,4 +239,5 @@
 #define CONFIG_USB_MAX_CONTROLLER_COUNT	2 /* Enabled USB controller number */
 #define CONFIG_USBD_HS
 
+
 #endif                         /* __CTGW_CONFIG_H */

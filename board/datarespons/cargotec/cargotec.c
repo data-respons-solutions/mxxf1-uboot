@@ -199,6 +199,7 @@ int board_eth_init(bd_t *bis)
 #endif
 #ifdef CONFIG_USB_EHCI_MX6
 #define USB_OTHERREGS_OFFSET	0x800
+#define UCTRL_OVER_CUR_POL	(1 << 8) /* OTG Polarity of Overcurrent */
 #define UCTRL_PWR_POL		(1 << 9)
 
 
@@ -212,8 +213,11 @@ int board_ehci_hcd_init(int port)
 
 	usbnc_usb_ctrl = (u32 *)(USB_BASE_ADDR + USB_OTHERREGS_OFFSET +
 				 port * 4);
-
-	setbits_le32(usbnc_usb_ctrl, UCTRL_PWR_POL);
+	if (port == 0)
+	{
+		setbits_le32(usbnc_usb_ctrl, UCTRL_PWR_POL);
+		clrbits_le32(usbnc_usb_ctrl, UCTRL_OVER_CUR_POL);
+	}
 
 	return 0;
 }

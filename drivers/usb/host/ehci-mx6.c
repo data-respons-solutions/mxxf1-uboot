@@ -261,7 +261,11 @@ static void usb_oc_config(int index)
 	/* mx6qarm2 seems to required a different setting*/
 	clrbits_le32(ctrl, UCTRL_OVER_CUR_POL);
 #else
+#ifdef CONFIG_MXC_USB_OTG_OC_LOW
+	clrbits_le32(ctrl, UCTRL_OVER_CUR_POL);
+#else
 	setbits_le32(ctrl, UCTRL_OVER_CUR_POL);
+#endif
 #endif
 
 	setbits_le32(ctrl, UCTRL_OVER_CUR_DIS);
