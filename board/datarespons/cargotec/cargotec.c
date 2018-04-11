@@ -314,6 +314,8 @@ int board_early_init_f(void)
 }
 
 #ifndef CONFIG_SPL_BUILD
+static char * const usbcmd[] = {"usb", "start"};
+
 static void setup_usb(void)
 {
 	/*
@@ -326,12 +328,15 @@ static void setup_usb(void)
 
 int board_init(void)
 {
+	int rep;
+	ulong ticks;
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 	gpio_set_value(TPM_RESET_N, 1);
 	setup_usb();
 	gpio_set_value(GP_PRST_WWAN_N, 1);
 	gpio_set_value(GP_DISABLE_WWAN_N, 1);
+	cmd_process(0, 2, usbcmd, &rep, &ticks);
 	return 0;
 }
 #endif	/* CONFIG_SPL_BUILD */
@@ -359,7 +364,7 @@ static const struct boot_mode board_boot_modes[] = {
 #endif
 
 #ifndef CONFIG_SPL_BUILD
-static char * const usbcmd[] = {"usb", "start"};
+
 
 int board_late_init(void)
 {
@@ -406,7 +411,7 @@ int board_late_init(void)
 #else
 	env_set("bootscript", BOOTSCRIPT_NOSECURE);
 #endif
-	cmd_process(0, 2, usbcmd, &rep, &ticks);
+	//cmd_process(0, 2, usbcmd, &rep, &ticks);
 
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
