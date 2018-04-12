@@ -573,10 +573,23 @@ const struct mx6_mmdc_calibration mx6_mmcd_calib = {
 	.p1_mpwrdlctl =  0x40404040,
 };
 
-static struct mx6_ddr3_cfg mem_ddr = {
+static struct mx6_ddr3_cfg mem_ddr_dl = {
 	.mem_speed = 1600,
 	.density = 4,
 	.width = 32,
+	.banks = 8,
+	.rowaddr = 14,
+	.coladdr = 10,
+	.pagesz = 2,
+	.trcd = 1375,
+	.trcmin = 4875,
+	.trasmin = 3500,
+};
+
+static struct mx6_ddr3_cfg mem_ddr_q = {
+	.mem_speed = 1600,
+	.density = 4,
+	.width = 64,
 	.banks = 8,
 	.rowaddr = 14,
 	.coladdr = 10,
@@ -697,10 +710,17 @@ static void spl_dram_init(void)
 #endif
 
 	if (is_mx6dl())
-		mx6sdl_dram_iocfg(mem_ddr.width, &mx6dl_ddr_ioregs, &mx6dl_grp_ioregs);
+	{
+		mx6sdl_dram_iocfg(mem_ddr_dl.width, &mx6dl_ddr_ioregs, &mx6dl_grp_ioregs);
+		sysinfo.dsize = 1;
+		mx6_dram_cfg(&sysinfo, &mx6_mmcd_calib, &mem_ddr_dl);
+	}
 	else
-		mx6dq_dram_iocfg(mem_ddr.width, &mx6q_ddr_ioregs, &mx6q_grp_ioregs);
-	mx6_dram_cfg(&sysinfo, &mx6_mmcd_calib, &mem_ddr);
+	{
+		sysinfo.dsize = 2;
+		mx6dq_dram_iocfg(mem_ddr_q.width, &mx6q_ddr_ioregs, &mx6q_grp_ioregs);
+		mx6_dram_cfg(&sysinfo, &mx6_mmcd_calib, &mem_ddr_q);
+	}
 }
 
 static void do_hang_error(void)
@@ -747,7 +767,7 @@ void board_init_f(ulong dummy)
 		udelay(10000);
 	}
 	/* DDR initialization */
-	printf("Memory width %d\n", mem_ddr.width);
+	printf("Memory width %d\n", is_mx6dl() ? mem_ddr_dl.width : mem_ddr_q.width);
 
 	spl_dram_init();
 #if 0
