@@ -24,8 +24,4 @@ config LOGLEVEL
 	int "Kernel loglevel"
 	default 4
 	
-config MXC_USB_OTG_OC_LOW
-	bool "OTG overcurrent active low"
-	default y
-
 endif
