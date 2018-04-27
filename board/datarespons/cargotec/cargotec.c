@@ -145,7 +145,7 @@ int board_mmc_init(bd_t *bis)
 
 int board_usb_phy_mode(int port)
 {
-	if (port == 0)
+	if (port == 1)
 		return USB_INIT_HOST;
 
 #ifdef CONFIG_FACTORY_BOOT

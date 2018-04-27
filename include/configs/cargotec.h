@@ -157,6 +157,7 @@
 		"set_led orange;" \
 		"echo booting from USB ...;" \
 		"run bootscript;" \
+		"set_led green;" \
 		"echo USB boot failed, revert to MMC; run setmmc;" \
 	"else " \
 		"run loadbootscript;" \
