@@ -154,11 +154,13 @@
 #define CONFIG_BOOTCOMMAND \
 	"mmc dev "MMC_DEV"; mmc rescan; " \
 	"if run check_usb_boot; then " \
+		"set_led orange;" \
 		"echo booting from USB ...;" \
 		"run bootscript;" \
 		"echo USB boot failed, revert to MMC; run setmmc;" \
 	"else " \
 		"run loadbootscript;" \
+		"set_led green;" \
 		"run setmmc; echo booting from MMC ...;" \
 	"fi; " \
 	"run bootscript;" \

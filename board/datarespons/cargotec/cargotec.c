@@ -143,6 +143,18 @@ int board_mmc_init(bd_t *bis)
 #endif
 }
 
+int board_usb_phy_mode(int port)
+{
+	if (port == 0)
+		return USB_INIT_HOST;
+
+#ifdef CONFIG_FACTORY_BOOT
+	return usb_phy_mode(port);
+#else
+	return USB_INIT_HOST;
+#endif
+}
+
 int mx6_rgmii_rework(struct phy_device *phydev)
 {
 	unsigned short val;
@@ -402,6 +414,7 @@ int board_late_init(void)
 		printf("HAB enabled, setting up secure bootscript\n");
 		env_set("bootscript", BOOTSCRIPT_SECURE);
 		env_set("zimage", ZIMAGE_SECURE);
+		env_set("bootdelay", "0");
 	}
 	else
 	{
@@ -438,20 +451,26 @@ static int do_led(cmd_tbl_t *cmdtp, int flag, int argc,
 	if (strncmp(argv[1], "red", 3) == 0)
 	{
 		gpio_set_value(GP_LED_G_STATUS, 0);
-		gpio_set_value(GP_LED_G_STATUS, 1);
+		gpio_set_value(GP_LED_R_STATUS, 1);
 		return 0;
 	}
 
 	if (strncmp(argv[1], "green", 5) == 0)
 	{
 		gpio_set_value(GP_LED_G_STATUS, 1);
-		gpio_set_value(GP_LED_G_STATUS, 0);
+		gpio_set_value(GP_LED_R_STATUS, 0);
 		return 0;
 	}
 	if (strncmp(argv[1], "off", 3) == 0)
 	{
 		gpio_set_value(GP_LED_G_STATUS, 0);
-		gpio_set_value(GP_LED_G_STATUS, 0);
+		gpio_set_value(GP_LED_R_STATUS, 0);
+		return 0;
+	}
+	if (strncmp(argv[1], "orange", 6) == 0)
+	{
+		gpio_set_value(GP_LED_G_STATUS, 1);
+		gpio_set_value(GP_LED_R_STATUS, 1);
 		return 0;
 	}
 	return CMD_RET_SUCCESS;
