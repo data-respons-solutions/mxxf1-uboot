@@ -24,7 +24,7 @@ static iomux_v3_cfg_t const enet_pads[] = {
 	MX6_PAD_GPIO_16__ENET_REF_CLK		|	MUX_PAD_CTRL(ENET_PAD_CTRL),
 
 	/* LAN8720 PHY Reset */
-	//MX6_PAD_NANDF_CS1__GPIO6_IO14		|	MUX_PAD_CTRL(NO_PAD_CTRL),	/* RGMII_nRST - GPIO6[14] Output low */
+	MX6_PAD_NANDF_CS1__GPIO6_IO14		|	MUX_PAD_CTRL(ENET_PAD_CTRL),	/* RGMII_nRST - GPIO6[14] Output low */
 	//MX6_PAD_GPIO_9__GPIO1_IO09			|	MUX_PAD_CTRL(NO_PAD_CTRL),	/* RGMII_INT - GPIO1[9] (high/in) */
 };
 

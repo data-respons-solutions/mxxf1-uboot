@@ -2,7 +2,7 @@
 #define __SPERRE_GPIO_H__
 
 /* Enet */
-#define GPIO_ENET_RST 			IMX_GPIO_NR(6, 14)	/* Enet Phy reset - Output active low*/
+#define GPIO_ENET_PHY_RESET 	IMX_GPIO_NR(6, 14)	/* Enet Phy reset - Output active low*/
 #define GPIO_ENET_INT			IMX_GPIO_NR(1, 9)	/* Enet Phy interrupt - input high */
 
 #define GPIO_LCD_PPEN			IMX_GPIO_NR(1, 0)	/* LCD Power Enable, Output active low */

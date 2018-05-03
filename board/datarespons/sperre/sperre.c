@@ -44,7 +44,6 @@ DECLARE_GLOBAL_DATA_PTR;
 #include "sperre_pins.h"
 #include "sperre_gpio.h"
 
-#define GPIO_ENET_PHY_RESET	GPIO_ENET_RST
 
 struct fsl_esdhc_cfg usdhc_cfg[1] = {
 		{USDHC4_BASE_ADDR},
@@ -235,26 +234,76 @@ static void setup_iomux_enet(void)
 {
 	struct iomuxc *iomux = (struct iomuxc *)IOMUXC_BASE_ADDR;
 
-	/* Reconfigure enet muxing while LAN8710 PHY is in reset */
-	gpio_direction_output(GPIO_ENET_PHY_RESET, 0);
-	imx_iomux_v3_setup_multiple_pads(enet_pads, ARRAY_SIZE(enet_pads));
-	mdelay(10);
-	gpio_set_value(GPIO_ENET_PHY_RESET, 1);
-	udelay(100);
-
 	/* set GPIO_16 as ENET_REF_CLK_OUT */
 	setbits_le32(&iomux->gpr[1], IOMUXC_GPR1_ENET_CLK_SEL_MASK);
 
 	enable_fec_anatop_clock(0, ENET_50MHZ);
 }
 
+int rmii_rework(struct phy_device *phydev)
+{
+	printf("%s: Reset SMSC phy\n", __func__);
+	return 0;
+	int rc = phy_read(phydev, MDIO_DEVAD_NONE, 18);
+	rc |= 0xE0;
+
+	phy_write(phydev, MDIO_DEVAD_NONE, 18, rc);
+
+	rc = phy_read(phydev, MDIO_DEVAD_NONE, 0);
+	rc &= ~(1 << 12);	// Trun off autoneg
+	phy_write(phydev, MDIO_DEVAD_NONE, 0, rc);
+	rc |= (1 << 11);		// Power down
+	mdelay(2);
+
+	return 0;
+}
+
+int board_phy_config(struct phy_device *phydev)
+{
+	rmii_rework(phydev);
+
+	if (phydev->drv->config)
+		phydev->drv->config(phydev);
+
+	return 0;
+}
 
 int board_eth_init(bd_t *bis)
 {
-	setup_iomux_enet();
-	return cpu_eth_init(bis);
+	uint32_t base = IMX_FEC_BASE;
+	struct mii_dev *bus = NULL;
+	struct phy_device *phydev = NULL;
+	int ret;
+
+	gpio_set_value(GPIO_ENET_PHY_RESET, 0);
+	mdelay(5);
+	gpio_set_value(GPIO_ENET_PHY_RESET, 1);
+	mdelay(10);
+	bus = fec_get_miibus(base, -1);
+	if (!bus)
+		return -EINVAL;
+	/* scan phy 4,5,6,7 */
+	phydev = phy_find_by_mask(bus, (0xf << 0), PHY_INTERFACE_MODE_RMII);
+	if (!phydev) {
+		printf("%s: No phy dev found\n", __func__);
+		ret = -EINVAL;
+		goto free_bus;
+	}
+	printf("%s: using phy at %d\n", __func__, phydev->addr);
+	ret  = fec_probe(bis, -1, base, bus, phydev);
+	if (ret)
+		goto free_phydev;
+
+	return 0;
+
+free_phydev:
+	free(phydev);
+free_bus:
+	free(bus);
+	return ret;
 }
 #endif
+
 #ifdef CONFIG_USB_EHCI_MX6
 #define USB_OTHERREGS_OFFSET	0x800
 #define UCTRL_PWR_POL		(1 << 9)
@@ -315,6 +364,10 @@ int board_early_init_f(void)
 	imx_iomux_v3_setup_multiple_pads(other_pads, ARRAY_SIZE(other_pads));
 	imx_iomux_v3_setup_multiple_pads(ecspi3_pads, ARRAY_SIZE(ecspi3_pads));
 	imx_iomux_v3_setup_multiple_pads(i2c_pads, ARRAY_SIZE(i2c_pads));
+	imx_iomux_v3_setup_multiple_pads(enet_pads, ARRAY_SIZE(enet_pads));
+
+
+	gpio_direction_output(GPIO_ENET_PHY_RESET, 1);
 
 	gpio_direction_output(GPIO_LCD_PPEN, 1);
 	gpio_direction_output(GPIO_BL_EN, 0);
@@ -344,7 +397,7 @@ int board_early_init_f(void)
 	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
 	setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
 	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info2);
-
+	setup_iomux_enet();
 	return 0;
 }
 

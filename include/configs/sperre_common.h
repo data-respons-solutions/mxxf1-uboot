@@ -68,7 +68,7 @@
 #define CONFIG_FEC_MXC_PHYADDR		0
 
 #define CONFIG_PHYLIB
-#define CONFIG_PHY_ATHEROS
+#define CONFIG_PHY_SMSC
 
 #define CONFIG_CMD_SF
 #ifdef CONFIG_CMD_SF
