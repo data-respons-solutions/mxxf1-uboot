@@ -228,7 +228,7 @@ static int show_splash(void *image_at)
 
 #endif
 
-#ifndef CONFIG_SPL_BUILD
+
 
 static void setup_iomux_enet(void)
 {
@@ -240,6 +240,7 @@ static void setup_iomux_enet(void)
 	enable_fec_anatop_clock(0, ENET_50MHZ);
 }
 
+#ifndef CONFIG_SPL_BUILD
 int rmii_rework(struct phy_device *phydev)
 {
 	printf("%s: Reset SMSC phy\n", __func__);
