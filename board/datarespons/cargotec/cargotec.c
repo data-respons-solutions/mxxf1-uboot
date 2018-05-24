@@ -414,7 +414,7 @@ int board_late_init(void)
 		printf("HAB enabled, setting up secure bootscript\n");
 		env_set("bootscript", BOOTSCRIPT_SECURE);
 		env_set("zimage", ZIMAGE_SECURE);
-		env_set("bootdelay", "0");
+		//env_set("bootdelay", "0");
 	}
 	else
 	{

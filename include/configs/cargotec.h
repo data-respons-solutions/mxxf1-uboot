@@ -81,6 +81,11 @@
 #define xstr(a) str(a)
 #define str(a) #a
 
+#ifdef CONFIG_SECURE_BOOT
+#define CONFIG_RESET_TO_RETRY
+#define CONFIG_BOOT_RETRY_TIME 3
+#endif
+
 #define ZIMAGE_SECURE "/boot/zImage-ivt_signed"
 #define BOOTSCRIPT_SECURE \
 	"run setargs; " \
