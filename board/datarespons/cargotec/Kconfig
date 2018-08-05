@@ -24,4 +24,8 @@ config LOGLEVEL
 	int "Kernel loglevel"
 	default 4
 	
+config BOOT_USB_INITRD
+	bool "Only allow usb boot from signed initrd"
+	default n
+
 endif

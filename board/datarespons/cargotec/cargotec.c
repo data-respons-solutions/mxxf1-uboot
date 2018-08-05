@@ -414,15 +414,23 @@ int board_late_init(void)
 		printf("HAB enabled, setting up secure bootscript\n");
 		env_set("bootscript", BOOTSCRIPT_SECURE);
 		env_set("zimage", ZIMAGE_SECURE);
+		env_set("initrd_file", "/boot/initrd-ivt_signed");
+#ifdef CONFIG_BOOT_USB_INITRD
+		env_set("bootscript_usb", BOOTSCRIPT_USB_SECURE);
+#else
+		env_set("bootscript_usb", BOOTSCRIPT_SECURE)
+#endif
 		//env_set("bootdelay", "0");
 	}
 	else
 	{
 		printf("HAB disabled, setting up regular bootscript\n");
 		env_set("bootscript", BOOTSCRIPT_NOSECURE);
+		env_set("bootscript_usb", BOOTSCRIPT_NOSECURE);
 	}
 #else
 	env_set("bootscript", BOOTSCRIPT_NOSECURE);
+	env_set("bootscript_usb", BOOTSCRIPT_NOSECURE);
 #endif
 	//cmd_process(0, 2, usbcmd, &rep, &ticks);
 

@@ -83,7 +83,7 @@
 
 #ifdef CONFIG_SECURE_BOOT
 #define CONFIG_RESET_TO_RETRY
-#define CONFIG_BOOT_RETRY_TIME 3
+#define CONFIG_BOOT_RETRY_TIME 10
 #endif
 
 #define ZIMAGE_SECURE "/boot/zImage-ivt_signed"
@@ -105,8 +105,47 @@
 		"echo No IVT information; " \
 	"fi;"
 
+#define BOOTSCRIPT_USB_SECURE \
+	"echo running secure USB boot; run setargs;" \
+	"if run validate_image; then " \
+		"if run validate_initrd; then " \
+			"run loadfdt; bootz ${loadaddr} ${initrd_addr} ${fdt_addr}; " \
+		"fi; " \
+	"fi;"
+
 #define ZIMAGE "/boot/zImage"
 
+#define VALIDATE_ZIMAGE \
+	"if run load_ivt_info; then " \
+		"echo kernel IVT starts at ${ivt_offset}; " \
+		"if run loadimage; then " \
+			"if hab_auth_img ${loadaddr} ${filesize} ${ivt_offset}; then " \
+				"echo Authenticated kernel; " \
+			"else " \
+				"echo Failed to authenticate kernel && false;" \
+			"fi; " \
+		"else " \
+			"echo Failed to load image ${zimage} && false; " \
+		"fi; " \
+	"else " \
+		"echo No IVT information && false; " \
+	"fi;"
+
+#define VALIDATE_INITRD \
+	"if run load_initrd_ivt_info; then " \
+		"echo INITRD IVT starts at ${ivt_offset}; " \
+		"if run loadinitrd; then " \
+			"if hab_auth_img ${initrd_addr} ${filesize} ${ivt_offset}; then " \
+				"echo Authenticated kernel; " \
+			"else " \
+				"echo Failed to authenticate initrd && false; " \
+			"fi; " \
+		"else " \
+			"echo Failed to load image ${initrd_file} && false; " \
+		"fi; " \
+	"else " \
+		"echo No IVT information && false; " \
+	"fi;"
 
 #define BOOTSCRIPT_NOSECURE \
 	"run setargs; if run loadimage loadfdt; then bootz ${loadaddr} - ${fdt_addr}; else echo ERROR: Could not load prescribed config; fi;"
@@ -134,6 +173,7 @@
 	"loadbootscript=if ext4load mmc 0:4 ${loadaddr} /boot/boot.txt; then env import -t ${loadaddr} ${filesize}; fi; \0" \
 	"ivt_offset=0\0" \
 	"load_ivt_info=if ext4load ${bootfrom} ${bootdev}:${bootpart} 17000000 /boot/zImage-padded-size; then env import -t 17000000 ${filesize}; fi; \0" \
+	"load_initrd_ivt_info=if ext4load ${bootfrom} ${bootdev}:${bootpart} 17000000 /boot/initrd-padded-size; then env import -t 17000000 ${filesize}; fi; \0" \
 	"setmmc=setenv bootfrom mmc; setenv bootdev "MMC_DEV" ; setenv rootdev ${mmc_root}; \0 " \
 	"setusb=setenv bootfrom usb; setenv bootdev 0; setenv bootpart 1; setenv rootdev ${usb_root}; echo Setting boot to usb; \0 " \
 	"loadimage=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} ${zimage}; \0" \
@@ -142,6 +182,9 @@
 	"loadfdtdef=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file_def}; \0" \
 	"bootscript_secure=" BOOTSCRIPT_SECURE " \0" \
 	"bootscript_nosecure=" BOOTSCRIPT_NOSECURE " \0" \
+	"bootscript_usb=" BOOTSCRIPT_NOSECURE " \0" \
+	"validate_image=" VALIDATE_ZIMAGE " \0" \
+	"validate_initrd=" VALIDATE_INITRD " \0" \
 	"check_usb_boot=if usb storage; then run setusb; fi;\0" \
 	"initrd_addr=0x12C00000\0" \
 	"initrd_high=0xffffffff\0" \
@@ -161,7 +204,7 @@
 	"if run check_usb_boot; then " \
 		"set_led orange;" \
 		"echo booting from USB ...;" \
-		"run bootscript;" \
+		"run bootscript_usb;" \
 		"set_led green;" \
 		"echo USB boot failed, revert to MMC; run setmmc;" \
 	"else " \
