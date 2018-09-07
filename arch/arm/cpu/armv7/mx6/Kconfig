@@ -469,6 +469,15 @@ config TARGET_MX6SXSCM
         select DM
         select DM_THERMAL
         select BOARD_EARLY_INIT_F
+        
+config TARGET_CARGOTEC
+	bool "cargotecgw"
+	select MX6QDL
+	select BOARD_LATE_INIT
+	select SUPPORT_SPL
+	select DM
+	select DM_THERMAL
+	select BOARD_EARLY_INIT_F
 
 endchoice
 
@@ -527,5 +536,5 @@ source "board/wandboard/Kconfig"
 source "board/warp/Kconfig"
 source "board/freescale/mx6dqscm/Kconfig"
 source "board/freescale/mx6sxscm/Kconfig"
-
+source "board/datarespons/cargotec/Kconfig"
 endif
