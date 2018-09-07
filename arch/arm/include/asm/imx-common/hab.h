@@ -106,6 +106,7 @@ struct hab_ivt {
 	uint32_t csf;
 	uint32_t reserved2;
 };
+bool is_hab_enabled(void);
 
 #if defined(CONFIG_SECURE_BOOT)
 extern struct imx_sec_config_fuse_t const imx_sec_config_fuse;
