@@ -205,13 +205,12 @@
 		"set_led orange;" \
 		"echo booting from USB ...;" \
 		"run bootscript_usb;" \
-		"set_led green;" \
-		"echo USB boot failed, revert to MMC; run setmmc;" \
-	"else " \
-		"run loadbootscript;" \
-		"set_led green;" \
-		"run setmmc; echo booting from MMC ...;" \
+		"echo USB boot failed, revert to MMC;" \
 	"fi; " \
+	"set_led green;" \
+	"run loadbootscript;" \
+	"run setmmc;" \
+	"echo boot from MMC p${bootpart};" \
 	"run bootscript;" \
 	"echo boot from ${bootpart} failed, swapping;" \
 	"if test ${bootpart} = 2; then " \
