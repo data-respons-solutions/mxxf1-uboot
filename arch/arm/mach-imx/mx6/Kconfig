@@ -490,6 +490,15 @@ config TARGET_CARGOTEC
 	select DM_THERMAL
 	select BOARD_EARLY_INIT_F
 
+config TARGET_MXXF1
+	bool "mxxf1"
+	select MX6QDL
+	select BOARD_LATE_INIT
+	select SUPPORT_SPL
+	select DM
+	select DM_THERMAL
+	select BOARD_EARLY_INIT_F
+	
 endchoice
 
 config SYS_SOC
@@ -545,5 +554,6 @@ source "board/udoo/neo/Kconfig"
 source "board/wandboard/Kconfig"
 source "board/warp/Kconfig"
 source "board/datarespons/cargotec/Kconfig"
+source "board/datarespons/mxxf1/Kconfig"
 
 endif
