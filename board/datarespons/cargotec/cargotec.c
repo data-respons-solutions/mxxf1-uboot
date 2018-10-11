@@ -600,23 +600,10 @@ const struct mx6_mmdc_calibration mx6_mmcd_calib = {
 	.p1_mpwrdlctl =  0x40404040,
 };
 
-static struct mx6_ddr3_cfg mem_ddr_dl = {
+static struct mx6_ddr3_cfg mem_ddr_128x16 = {
 	.mem_speed = 1600,
-	.density = 4,
-	.width = 32,
-	.banks = 8,
-	.rowaddr = 14,
-	.coladdr = 10,
-	.pagesz = 2,
-	.trcd = 1375,
-	.trcmin = 4875,
-	.trasmin = 3500,
-};
-
-static struct mx6_ddr3_cfg mem_ddr_q = {
-	.mem_speed = 1600,
-	.density = 4,
-	.width = 64,
+	.density = 2,
+	.width = 16,
 	.banks = 8,
 	.rowaddr = 14,
 	.coladdr = 10,
@@ -738,16 +725,15 @@ static void spl_dram_init(void)
 
 	if (is_mx6dl())
 	{
-		mx6sdl_dram_iocfg(mem_ddr_dl.width, &mx6dl_ddr_ioregs, &mx6dl_grp_ioregs);
+		mx6sdl_dram_iocfg(32, &mx6dl_ddr_ioregs, &mx6dl_grp_ioregs);
 		sysinfo.dsize = 1;
-		mx6_dram_cfg(&sysinfo, &mx6_mmcd_calib, &mem_ddr_dl);
 	}
 	else
 	{
 		sysinfo.dsize = 2;
-		mx6dq_dram_iocfg(mem_ddr_q.width, &mx6q_ddr_ioregs, &mx6q_grp_ioregs);
-		mx6_dram_cfg(&sysinfo, &mx6_mmcd_calib, &mem_ddr_q);
+		mx6dq_dram_iocfg(64, &mx6q_ddr_ioregs, &mx6q_grp_ioregs);
 	}
+	mx6_dram_cfg(&sysinfo, &mx6_mmcd_calib, &mem_ddr_128x16);
 }
 
 static void do_hang_error(void)
@@ -794,29 +780,37 @@ void board_init_f(ulong dummy)
 		udelay(10000);
 	}
 	/* DDR initialization */
-	printf("Memory width %d\n", is_mx6dl() ? mem_ddr_dl.width : mem_ddr_q.width);
+	printf("Memory width %d\n", is_mx6dl() ? 32 : 64);
 
 	spl_dram_init();
-#if 0
 	err = mmdc_do_write_level_calibration(&sysinfo);
 	if (err & 0x03) {
 		printf("DDR3 write level calibration error - hang\n");
 		do_hang_error();
 
 	}
-#endif
 	err = mmdc_do_dqs_calibration(&sysinfo);
 	if (err) {
 		printf("DDR3 DQS calibration error - hang\n");
 		do_hang_error();
 	}
 	mmdc_read_calibration(&sysinfo, &calib);
+	printf("Calibration results for PHY0\n");
 	printf("mpwldectrl0 = %08x\n", calib.p0_mpwldectrl0);
 	printf("mpwldectrl1 = %08x\n", calib.p0_mpwldectrl1);
 	printf("mpdgctrl0   = %08x\n", calib.p0_mpdgctrl0);
 	printf("mpdgctrl1   = %08x\n", calib.p0_mpdgctrl1);
 	printf("mprddlctl   = %08x\n", calib.p0_mprddlctl);
 	printf("mpwrdlctl   = %08x\n", calib.p0_mpwrdlctl);
+	if (sysinfo.dsize == 2) {
+		printf("\nCalibration results for PHY1\n");
+		printf("mpwldectrl0 = %08x\n", calib.p1_mpwldectrl0);
+		printf("mpwldectrl1 = %08x\n", calib.p1_mpwldectrl1);
+		printf("mpdgctrl0   = %08x\n", calib.p1_mpdgctrl0);
+		printf("mpdgctrl1   = %08x\n", calib.p1_mpdgctrl1);
+		printf("mprddlctl   = %08x\n", calib.p1_mprddlctl);
+		printf("mpwrdlctl   = %08x\n", calib.p1_mpwrdlctl);
+	}
 
 
 	/* Clear the BSS. */
