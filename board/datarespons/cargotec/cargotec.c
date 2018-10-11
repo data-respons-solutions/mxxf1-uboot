@@ -797,26 +797,34 @@ void board_init_f(ulong dummy)
 	printf("Memory width %d\n", is_mx6dl() ? mem_ddr_dl.width : mem_ddr_q.width);
 
 	spl_dram_init();
-#if 0
 	err = mmdc_do_write_level_calibration(&sysinfo);
 	if (err & 0x03) {
 		printf("DDR3 write level calibration error - hang\n");
 		do_hang_error();
 
 	}
-#endif
 	err = mmdc_do_dqs_calibration(&sysinfo);
 	if (err) {
 		printf("DDR3 DQS calibration error - hang\n");
 		do_hang_error();
 	}
 	mmdc_read_calibration(&sysinfo, &calib);
+	printf("Calibration results for PHY0\n");
 	printf("mpwldectrl0 = %08x\n", calib.p0_mpwldectrl0);
 	printf("mpwldectrl1 = %08x\n", calib.p0_mpwldectrl1);
 	printf("mpdgctrl0   = %08x\n", calib.p0_mpdgctrl0);
 	printf("mpdgctrl1   = %08x\n", calib.p0_mpdgctrl1);
 	printf("mprddlctl   = %08x\n", calib.p0_mprddlctl);
 	printf("mpwrdlctl   = %08x\n", calib.p0_mpwrdlctl);
+	if (sysinfo.dsize == 2) {
+		printf("\nCalibration results for PHY1\n");
+		printf("mpwldectrl0 = %08x\n", calib.p1_mpwldectrl0);
+		printf("mpwldectrl1 = %08x\n", calib.p1_mpwldectrl1);
+		printf("mpdgctrl0   = %08x\n", calib.p1_mpdgctrl0);
+		printf("mpdgctrl1   = %08x\n", calib.p1_mpdgctrl1);
+		printf("mprddlctl   = %08x\n", calib.p1_mprddlctl);
+		printf("mpwrdlctl   = %08x\n", calib.p1_mpwrdlctl);
+	}
 
 
 	/* Clear the BSS. */
