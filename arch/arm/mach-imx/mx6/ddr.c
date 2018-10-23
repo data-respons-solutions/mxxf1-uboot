@@ -60,7 +60,7 @@ static void force_delay_measurement(int bus_size)
 static void modify_dg_result(u32 *reg_st0, u32 *reg_st1, u32 *reg_ctrl)
 {
 	u32 dg_tmp_val, dg_dl_abs_offset, dg_hc_del, val_ctrl;
-
+	u32 reg0, reg1;
 	/*
 	 * DQS gating absolute offset should be modified from reflecting
 	 * (HW_DG_LOWx + HW_DG_UPx)/2 to reflecting (HW_DG_UPx - 0x80)
@@ -69,6 +69,8 @@ static void modify_dg_result(u32 *reg_st0, u32 *reg_st1, u32 *reg_ctrl)
 	val_ctrl = readl(reg_ctrl);
 	val_ctrl &= 0xf0000000;
 
+	reg0 = readl(reg_st0);
+	reg1 = readl(reg_st1);
 	dg_tmp_val = ((readl(reg_st0) & 0x07ff0000) >> 16) - 0xc0;
 	dg_dl_abs_offset = dg_tmp_val & 0x7f;
 	dg_hc_del = (dg_tmp_val & 0x780) << 1;
@@ -82,6 +84,7 @@ static void modify_dg_result(u32 *reg_st0, u32 *reg_st1, u32 *reg_ctrl)
 	val_ctrl |= (dg_dl_abs_offset + dg_hc_del) << 16;
 
 	writel(val_ctrl, reg_ctrl);
+	printf("hwst: 0x%08x, 0x%08x -> ctl: 0x%08x\n", reg0, reg1, val_ctrl);
 }
 
 static void correct_mpwldectr_result(void *reg)
