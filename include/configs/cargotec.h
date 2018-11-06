@@ -81,7 +81,7 @@
 #define xstr(a) str(a)
 #define str(a) #a
 
-#ifdef CONFIG_SECURE_BOOT
+#if defined(CONFIG_SECURE_BOOT) && defined(CONFIG_SPL)
 #define CONFIG_RESET_TO_RETRY
 #define CONFIG_BOOT_RETRY_TIME 10
 #endif
