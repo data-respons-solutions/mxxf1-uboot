@@ -600,6 +600,34 @@ const struct mx6_mmdc_calibration mx6_mmcd_calib = {
 	.p1_mpwrdlctl =  0x40404040,
 };
 
+const struct mx6_mmdc_calibration mx6q_mmcd_calib = {
+	.p0_mpwldectrl0 =  0x001B0012,
+	.p0_mpwldectrl1 =  0x0027001D,
+	.p1_mpwldectrl0 =  0x00100021,
+	.p1_mpwldectrl1 =  0x000E001C,
+
+	.p0_mpdgctrl0 =  0x43180330,
+	.p0_mpdgctrl1 =  0x031C0310,
+	.p1_mpdgctrl0 =  0x4320032C,
+	.p1_mpdgctrl1 =  0x031C0264,
+
+	.p0_mprddlctl =  0x4C40444A,
+	.p1_mprddlctl =  0x46403E4E,
+	.p0_mpwrdlctl =  0x32383836,
+	.p1_mpwrdlctl =  0x3A304438,
+};
+
+const struct mx6_mmdc_calibration mx6dl_mmcd_calib = {
+	.p0_mpwldectrl0 =  0x0048004D,
+	.p0_mpwldectrl1 =  0x003F0041,
+
+	.p0_mpdgctrl0 =  0x423C023C,
+	.p0_mpdgctrl1 =  0x02280224,
+
+	.p0_mprddlctl =  0x40424A46,
+	.p0_mpwrdlctl =  0x3638322E,
+};
+
 static struct mx6_ddr3_cfg mem_ddr_128x16 = {
 	.mem_speed = 1600,
 	.density = 2,
@@ -727,13 +755,14 @@ static void spl_dram_init(void)
 	{
 		mx6sdl_dram_iocfg(32, &mx6dl_ddr_ioregs, &mx6dl_grp_ioregs);
 		sysinfo.dsize = 1;
+		mx6_dram_cfg(&sysinfo, &mx6dl_mmcd_calib, &mem_ddr_128x16);
 	}
 	else
 	{
 		sysinfo.dsize = 2;
 		mx6dq_dram_iocfg(64, &mx6q_ddr_ioregs, &mx6q_grp_ioregs);
+		mx6_dram_cfg(&sysinfo, &mx6q_mmcd_calib, &mem_ddr_128x16);
 	}
-	mx6_dram_cfg(&sysinfo, &mx6_mmcd_calib, &mem_ddr_128x16);
 }
 
 static void do_hang_error(void)
@@ -783,6 +812,7 @@ void board_init_f(ulong dummy)
 	printf("Memory width %d\n", is_mx6dl() ? 32 : 64);
 
 	spl_dram_init();
+#ifdef DYNAMIC_CALIB
 	err = mmdc_do_write_level_calibration(&sysinfo);
 	if (err & 0x03) {
 		printf("DDR3 write level calibration error - hang\n");
@@ -794,6 +824,7 @@ void board_init_f(ulong dummy)
 		printf("DDR3 DQS calibration error - hang\n");
 		do_hang_error();
 	}
+
 	mmdc_read_calibration(&sysinfo, &calib);
 	printf("Calibration results for PHY0\n");
 	printf("mpwldectrl0 = %08x\n", calib.p0_mpwldectrl0);
@@ -811,7 +842,7 @@ void board_init_f(ulong dummy)
 		printf("mprddlctl   = %08x\n", calib.p1_mprddlctl);
 		printf("mpwrdlctl   = %08x\n", calib.p1_mpwrdlctl);
 	}
-
+#endif
 
 	/* Clear the BSS. */
 	memset(__bss_start, 0, __bss_end - __bss_start);
