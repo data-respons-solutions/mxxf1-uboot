@@ -134,6 +134,11 @@ config AUTOBOOT_STOP_STR_SHA256
 	  and therefore boot into the U-Boot prompt, when the input
 	  string / password matches a values that is encypted via
 	  a SHA256 hash and saved in the environment.
+ 
+config AUTOBOOT_NOABORT
+	bool "Disable abort final"
+	help
+	  No way to abort boot
 
 endmenu
 
