@@ -418,7 +418,7 @@ int board_late_init(void)
 #ifdef CONFIG_BOOT_USB_INITRD
 		env_set("bootscript_usb", BOOTSCRIPT_USB_SECURE);
 #else
-		env_set("bootscript_usb", BOOTSCRIPT_SECURE)
+		env_set("bootscript_usb", BOOTSCRIPT_SECURE);
 #endif
 		//env_set("bootdelay", "0");
 	}
