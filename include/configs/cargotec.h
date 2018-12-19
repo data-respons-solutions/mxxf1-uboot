@@ -133,10 +133,10 @@
 
 #define VALIDATE_INITRD \
 	"if run load_initrd_ivt_info; then " \
-		"echo INITRD IVT starts at ${ivt_offset}; " \
+		"echo INITRD IVT loaded at ${initrd_addr} offset is ${ivt_offset}; " \
 		"if run loadinitrd; then " \
 			"if hab_auth_img ${initrd_addr} ${filesize} ${ivt_offset}; then " \
-				"echo Authenticated kernel; " \
+				"echo Authenticated initrd; " \
 			"else " \
 				"echo Failed to authenticate initrd && false; " \
 			"fi; " \
@@ -153,14 +153,13 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"zimage=" ZIMAGE "\0" \
-	"fdt_addr=0x18000000\0" \
+	"fdt_addr=0x11000000\0" \
 	"ip_dyn=try\0" \
 	"console=" CONSOLE_DEV ",115200\0" \
 	"fdt_high=0xffffffff\0"	  \
 	"fdt_file=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"fdt_file_def=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"initrd_file=/boot/initrd\0" \
-	"initrd_high=0xffffffff\0" \
 	"loglevel="xstr(CONFIG_LOGLEVEL)"\0" \
 	"consoleblank=0\0" \
 	"showtty=console=ttymxc0,115200 console=tty1\0" \
@@ -172,8 +171,8 @@
 	"usb_root=/dev/sda1\0" \
 	"loadbootscript=if ext4load mmc 0:4 ${loadaddr} /boot/boot.txt; then env import -t ${loadaddr} ${filesize}; fi; \0" \
 	"ivt_offset=0\0" \
-	"load_ivt_info=if ext4load ${bootfrom} ${bootdev}:${bootpart} 17000000 /boot/zImage-padded-size; then env import -t 17000000 ${filesize}; fi; \0" \
-	"load_initrd_ivt_info=if ext4load ${bootfrom} ${bootdev}:${bootpart} 17000000 /boot/initrd-padded-size; then env import -t 17000000 ${filesize}; fi; \0" \
+	"load_ivt_info=if ext4load ${bootfrom} ${bootdev}:${bootpart} 11F00000 /boot/zImage-padded-size; then env import -t 11F00000 ${filesize}; fi; \0" \
+	"load_initrd_ivt_info=if ext4load ${bootfrom} ${bootdev}:${bootpart} 11F00000 /boot/initrd-padded-size; then env import -t 11F00000 ${filesize}; fi; \0" \
 	"setmmc=setenv bootfrom mmc; setenv bootdev "MMC_DEV" ; setenv rootdev ${mmc_root}; \0 " \
 	"setusb=setenv bootfrom usb; setenv bootdev 0; setenv bootpart 1; setenv rootdev ${usb_root}; echo Setting boot to usb; \0 " \
 	"loadimage=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} ${zimage}; \0" \
