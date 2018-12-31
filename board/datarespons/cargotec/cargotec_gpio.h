@@ -48,4 +48,6 @@
 
 #define GP_LED_R_STATUS		IMX_GPIO_NR(1, 18)
 #define GP_LED_G_STATUS		IMX_GPIO_NR(1, 20)
+
+#define GPIO_OTG_PWR	IMX_GPIO_NR(3, 22)
 #endif
