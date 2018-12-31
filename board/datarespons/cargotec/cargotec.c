@@ -145,14 +145,28 @@ int board_mmc_init(bd_t *bis)
 
 int board_usb_phy_mode(int port)
 {
-	if (port == 1)
-		return USB_INIT_HOST;
+	unsigned int bmode = readl(&src_base->sbmr2);
 
+	switch(port) {
+	case 0:
 #ifdef CONFIG_FACTORY_BOOT
-	return usb_phy_mode(port);
+		return USB_INIT_DEVICE;
 #else
-	return USB_INIT_HOST;
+		if (((bmode >> 24) & 0x03) == 0x01)	{
+			printf("USB OTG in serial download mode\n");
+			return USB_INIT_DEVICE;
+		}
+		else
+			return USB_INIT_HOST;
 #endif
+		break;
+	case 1:
+		return USB_INIT_HOST;
+		break;
+	default:
+		return USB_INIT_DEVICE;
+		break;
+	}
 }
 
 int mx6_rgmii_rework(struct phy_device *phydev)
@@ -209,7 +223,7 @@ int board_eth_init(bd_t *bis)
 	return cpu_eth_init(bis);
 }
 #endif
-#ifdef CONFIG_USB_EHCI_MX6
+#if !defined(CONFIG_SPL_BUILD) && defined(CONFIG_USB_EHCI_MX6)
 #define USB_OTHERREGS_OFFSET	0x800
 #define UCTRL_OVER_CUR_POL	(1 << 8) /* OTG Polarity of Overcurrent */
 #define UCTRL_PWR_POL		(1 << 9)
@@ -234,6 +248,28 @@ int board_ehci_hcd_init(int port)
 	return 0;
 }
 
+int board_ehci_power(int port, int on) {
+	int isPowered;
+	if (port == 0 && board_usb_phy_mode(0) == USB_INIT_HOST) {
+		isPowered = gpio_get_value(GPIO_OTG_PWR) ? 1 : 0;
+		gpio_set_value(GPIO_OTG_PWR, on);
+		if (!isPowered && on)
+			mdelay(600);
+	}
+	return 0;
+}
+
+
+
+static void setup_usb(void)
+{
+	/*
+	 * set daisy chain for otg_pin_id on 6q.
+	 * for 6dl, this bit is reserved
+	 */
+	if (is_mx6dq())
+		imx_iomux_set_gpr_register(1, 13, 1, 0);
+}
 #endif
 
 int board_early_init_f(void)
@@ -303,6 +339,7 @@ int board_early_init_f(void)
 		gpio_direction_output(GP_LED_G_STATUS, 0);
 		gpio_direction_output(GP_LED_R_STATUS, 0);
 		gpio_direction_output(GP_NRST_MCU, 0);
+		gpio_direction_output(GPIO_OTG_PWR, 0);
 	}
 	else {
 		SETUP_IOMUX_PADS(revab_pads);
@@ -328,15 +365,6 @@ int board_early_init_f(void)
 #ifndef CONFIG_SPL_BUILD
 static char * const usbcmd[] = {"usb", "start"};
 
-static void setup_usb(void)
-{
-	/*
-	 * set daisy chain for otg_pin_id on 6q.
-	 * for 6dl, this bit is reserved
-	 */
-	if (is_mx6dq())
-		imx_iomux_set_gpr_register(1, 13, 1, 0);
-}
 
 int board_init(void)
 {
@@ -365,23 +393,12 @@ int board_spi_cs_gpio(unsigned bus, unsigned cs)
 	}
 }
 
-#ifdef CONFIG_CMD_BMODE
-static const struct boot_mode board_boot_modes[] = {
-	/* 4 bit bus width */
-	{"sd3",	 MAKE_CFGVAL(0x40, 0x30, 0x00, 0x00)},
-	/* 8 bit bus width */
-	{"emmc", MAKE_CFGVAL(0x40, 0x38, 0x00, 0x00)},
-	{NULL,	 0},
-};
-#endif
 
 #ifndef CONFIG_SPL_BUILD
 
 
 int board_late_init(void)
 {
-	int rep;
-	ulong ticks;
 	int version = get_version();
 	switch (version)
 	{
@@ -431,11 +448,6 @@ int board_late_init(void)
 #else
 	env_set("bootscript", BOOTSCRIPT_NOSECURE);
 	env_set("bootscript_usb", BOOTSCRIPT_NOSECURE);
-#endif
-	//cmd_process(0, 2, usbcmd, &rep, &ticks);
-
-#ifdef CONFIG_CMD_BMODE
-	add_board_boot_modes(board_boot_modes);
 #endif
 
 	return 0;
@@ -786,6 +798,7 @@ void board_init_f(ulong dummy)
 	ccgr_init();
 	gpr_init();
 #ifdef CONFIG_SPL_WATCHDOG_SUPPORT
+	void hw_watchdog_init(void);
 	hw_watchdog_init();
 #endif
 	/* iomux and setup of i2c */
