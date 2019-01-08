@@ -39,7 +39,6 @@
 
 #define CONFIG_IMX_THERMAL
 
-#define CONFIG_SYS_GENERIC_BOARD
 
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		(40 * SZ_1M)
@@ -235,7 +234,6 @@
 #define CONFIG_SYS_LOAD_ADDR           CONFIG_LOADADDR
 
 /* Physical Memory Map */
-#define CONFIG_NR_DRAM_BANKS           1
 #define PHYS_SDRAM                     MMDC0_ARB_BASE_ADDR
 
 #define CONFIG_SYS_SDRAM_BASE          PHYS_SDRAM
@@ -250,38 +248,12 @@
 /* FLASH and environment organization */
 #define CONFIG_ENV_OVERWRITE
 
-
 #define CONFIG_ENV_SIZE			(64 * 1024)
 
 #define CONFIG_PWM_IMX
 #define CONFIG_IMX6_PWM_PER_CLK	66000000
-#define CONFIG_SYS_I2C_MXC_I2C1
-#define CONFIG_SYS_I2C_MXC_I2C2
-#define CONFIG_SYS_I2C_MXC_I2C3
-#define CONFIG_SYS_I2C_MXC_I2C4
 
 #define CMD_CRC32
-
-#ifdef CONFIG_CMD_PCI
-#define CONFIG_PCI_SCAN_SHOW
-#define CONFIG_PCIE_IMX
-#if 0
-#define CONFIG_PCIE_IMX_PERST_GPIO	IMX_GPIO_NR(7, 12)
-#define CONFIG_PCIE_IMX_POWER_GPIO	IMX_GPIO_NR(3, 19)
-#endif
-#endif
-
-
-/* I2C Configs */
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_MXC
-#define CONFIG_SYS_I2C_SPEED		  100000
-
-/* PMIC */
-#define CONFIG_POWER
-#define CONFIG_POWER_I2C
-#define CONFIG_POWER_PFUZE100
-#define CONFIG_POWER_PFUZE100_I2C_ADDR	0x08
 
 #define CONFIG_EHCI_HCD_INIT_AFTER_RESET
 #define CONFIG_MXC_USB_PORTSC		(PORT_PTS_UTMI | PORT_PTS_PTW)

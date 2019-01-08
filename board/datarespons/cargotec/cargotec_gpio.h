@@ -2,8 +2,6 @@
 #define __CARGOTEC_GPIO_H__
 
 
-#define GPIO_WL_VDDIO_EN	IMX_GPIO_NR(6, 11)
-#define GPIO_BT_WAKE		IMX_GPIO_NR(6, 8)
 #define GPIO_WL_REG_ON		IMX_GPIO_NR(2, 3)
 #define GPIO_BT_REG_ON		IMX_GPIO_NR(2, 4)
 #define GPIO_WL_DEV_WAKE	IMX_GPIO_NR(2, 7)

@@ -522,7 +522,19 @@ config TARGET_CARGOTEC
 	select SUPPORT_SPL
 	select DM
 	select DM_THERMAL
-	select BOARD_EARLY_INIT_F
+	select DM_GPIO
+	select DM_USB
+	select DM_REGULATOR
+	select DM_PMIC
+	select DM_PMIC_PFUZE100
+	select DM_I2C
+	select DM_MMC
+	select OF_CONTROL
+	select SYS_I2C_MXC
+	select PINCTRL
+	select PINCTRL_FULL
+	select PINCTRL_IMX6
+	imply CMD_DM
 
 endchoice
 
