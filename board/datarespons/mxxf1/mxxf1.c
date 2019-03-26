@@ -678,6 +678,7 @@ static void setup_usb(void)
 #endif
 
 
+#if 0
 int board_ehci_hcd_init(int port)
 {
 	u32 *usbnc_usb_ctrl;
@@ -692,24 +693,27 @@ int board_ehci_hcd_init(int port)
 
 	return 0;
 }
+#endif
 
 int board_ehci_power(int port, int on)
 {
+	static int calls_to_one = 0;
 	switch (port) {
 	case 0:
 		break;
 	case 1:
 		if (on) {
 			gpio_direction_output(GPIO_USB_H1_EN, 1);
-			mdelay(10);
+			udelay(100);
 			gpio_direction_output(GPIO_USBP0_EN, 1);
-			mdelay(1);
+			udelay(100);
 			gpio_direction_output(GPIO_USBP1_EN, 1);
-			mdelay(1);
+			udelay(100);
 			gpio_direction_output(GPIO_USBP2_EN, 1);
-			mdelay(1);
+			udelay(100);
 			gpio_direction_output(GPIO_USBP3_EN, 1);
-			mdelay(10);
+			printf("Delay USB startup after power (%d)\n", calls_to_one++);
+			mdelay(1000);
 		}
 		else {
 			gpio_direction_output(GPIO_USB_H1_EN, 0);
@@ -876,6 +880,7 @@ int board_late_init(void)
 		vpd_update_eeprom(egalax_fw);
 	else
 		vpd_update_eeprom(0);
+
 
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
 	eeprom_get_mac_addr();
