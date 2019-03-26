@@ -695,6 +695,7 @@ int board_ehci_hcd_init(int port)
 
 int board_ehci_power(int port, int on)
 {
+
 	switch (port) {
 	case 0:
 		break;
@@ -709,7 +710,7 @@ int board_ehci_power(int port, int on)
 			gpio_direction_output(GPIO_USBP2_EN, 1);
 			mdelay(1);
 			gpio_direction_output(GPIO_USBP3_EN, 1);
-			mdelay(10);
+			mdelay(2000);
 		}
 		else {
 			gpio_direction_output(GPIO_USB_H1_EN, 0);
@@ -876,6 +877,7 @@ int board_late_init(void)
 		vpd_update_eeprom(egalax_fw);
 	else
 		vpd_update_eeprom(0);
+
 
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
 	eeprom_get_mac_addr();
