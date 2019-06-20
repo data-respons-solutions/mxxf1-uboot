@@ -159,6 +159,7 @@
 	"fdt_high=0xffffffff\0"	  \
 	"fdt_file=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"fdt_file_def=" CONFIG_DEFAULT_FDT_FILE "\0" \
+	"usb_pgood_delay=2000\0" \
 	"initrd_file=/boot/initrd\0" \
 	"loglevel="xstr(CONFIG_LOGLEVEL)"\0" \
 	"consoleblank=0\0" \
