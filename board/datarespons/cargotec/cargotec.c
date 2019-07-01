@@ -640,12 +640,25 @@ const struct mx6_mmdc_calibration mx6dl_mmcd_calib = {
 	.p0_mpwrdlctl =  0x3638322E,
 };
 
-static struct mx6_ddr3_cfg mem_ddr_128x16 = {
+static struct mx6_ddr3_cfg mem_ddr_256x16 = {
 	.mem_speed = 1600,
-	.density = 2,
+	.density = 4,
 	.width = 16,
 	.banks = 8,
-	.rowaddr = 14,
+	.rowaddr = 15,
+	.coladdr = 10,
+	.pagesz = 2,
+	.trcd = 1375,
+	.trcmin = 4875,
+	.trasmin = 3500,
+};
+
+static struct mx6_ddr3_cfg mem_ddr_512x16 = {
+	.mem_speed = 1600,
+	.density = 4,
+	.width = 16,
+	.banks = 8,
+	.rowaddr = 16,
 	.coladdr = 10,
 	.pagesz = 2,
 	.trcd = 1375,
@@ -767,13 +780,13 @@ static void spl_dram_init(void)
 	{
 		mx6sdl_dram_iocfg(32, &mx6dl_ddr_ioregs, &mx6dl_grp_ioregs);
 		sysinfo.dsize = 1;
-		mx6_dram_cfg(&sysinfo, &mx6dl_mmcd_calib, &mem_ddr_128x16);
+		mx6_dram_cfg(&sysinfo, &mx6dl_mmcd_calib, &mem_ddr_256x16);
 	}
 	else
 	{
 		sysinfo.dsize = 2;
 		mx6dq_dram_iocfg(64, &mx6q_ddr_ioregs, &mx6q_grp_ioregs);
-		mx6_dram_cfg(&sysinfo, &mx6q_mmcd_calib, &mem_ddr_128x16);
+		mx6_dram_cfg(&sysinfo, &mx6q_mmcd_calib, &mem_ddr_512x16);
 	}
 }
 
