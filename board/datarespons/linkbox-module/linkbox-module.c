@@ -219,6 +219,7 @@ int board_ehci_power(int port, int on)
 {
 	switch (port) {
 	case 0:
+		mdelay(1000);	/* Allow unit to start */
 		break;
 	default:
 		printf("MXC USB port %d not yet supported\n", port);
