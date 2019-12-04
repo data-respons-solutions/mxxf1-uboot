@@ -245,7 +245,7 @@ int board_ehci_power(int port, int on)
 	case 1:
 		if (on) {
 			gpio_direction_output(GPIO_USB_H1_EN, 1);
-			mdelay(10);
+			mdelay(1000);
 		}
 		else {
 			gpio_direction_output(GPIO_USB_H1_EN, 0);
