@@ -111,12 +111,12 @@ int board_mmc_init(bd_t *bis)
 	int ret;
 
 
-		imx_iomux_v3_setup_multiple_pads(usdhc3_pads, ARRAY_SIZE(usdhc3_pads));
+	SETUP_IOMUX_PADS(usdhc3_pads);
 #ifdef CONFIG_EMU_SABRESD
 		gpio_direction_input(USDHC3_CD_GPIO);
 #endif
 		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC3_CLK);
-		imx_iomux_v3_setup_multiple_pads(usdhc4_pads, ARRAY_SIZE(usdhc4_pads));
+		SETUP_IOMUX_PADS(usdhc4_pads);
 		usdhc_cfg[1].sdhc_clk = mxc_get_clock(MXC_ESDHC4_CLK);
 
 		ret = fsl_esdhc_initialize(bis, &usdhc_cfg[0]);
@@ -141,15 +141,13 @@ int board_mmc_init(bd_t *bis)
 
 	switch (reg & 0x3) {
 	case 0x2:
-		imx_iomux_v3_setup_multiple_pads(
-			usdhc3_pads, ARRAY_SIZE(usdhc3_pads));
+		SETUP_IOMUX_PADS(usdhc3_pads);
 		usdhc_cfg[0].esdhc_base = USDHC3_BASE_ADDR;
 		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC3_CLK);
 		gd->arch.sdhc_clk = usdhc_cfg[0].sdhc_clk;
 		break;
 	case 0x3:
-		imx_iomux_v3_setup_multiple_pads(
-			usdhc4_pads, ARRAY_SIZE(usdhc4_pads));
+		SETUP_IOMUX_PADS(usdhc4_pads);
 		usdhc_cfg[0].esdhc_base = USDHC4_BASE_ADDR;
 		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC4_CLK);
 		gd->arch.sdhc_clk = usdhc_cfg[0].sdhc_clk;
@@ -198,7 +196,7 @@ int board_phy_config(struct phy_device *phydev)
 
 static void setup_iomux_enet(void)
 {
-	imx_iomux_v3_setup_multiple_pads(enet_pads, ARRAY_SIZE(enet_pads));
+	SETUP_IOMUX_PADS(enet_pads);
 	/* Reset AR8031 PHY */
 	gpio_direction_output(IMX_GPIO_NR(1, 25) , 0);
 
@@ -263,7 +261,7 @@ int board_ehci_power(int port, int on)
 int board_early_init_f(void)
 {
 	int version;
-	imx_iomux_v3_setup_multiple_pads(hw_settings_pads, ARRAY_SIZE(hw_settings_pads));
+	SETUP_IOMUX_PADS(hw_settings_pads);
 	gpio_direction_input(GPIO_HW_SETTING0);
 	gpio_direction_input(GPIO_HW_SETTING1);
 	gpio_direction_input(GPIO_HW_SETTING2);
@@ -273,33 +271,29 @@ int board_early_init_f(void)
 	switch (version)
 	{
 	case 0:
-		imx_iomux_v3_setup_multiple_pads(ecspi2_pads, ARRAY_SIZE(ecspi2_pads));
-		imx_iomux_v3_setup_multiple_pads(revc_pads, ARRAY_SIZE(revc_pads));
+		SETUP_IOMUX_PADS(ecspi2_pads);
+		SETUP_IOMUX_PADS(revc_pads);
 		gpio_direction_input(IMX_GPIO_NR(3,31));
 		break;
 
 	case 1: /* Rev D */
-		imx_iomux_v3_setup_multiple_pads(revd_pads, ARRAY_SIZE(revd_pads));
+		SETUP_IOMUX_PADS(revd_pads);
 		gpio_direction_input(IMX_GPIO_NR(4,21));
 		break;
 
 	default:
-		imx_iomux_v3_setup_multiple_pads(revd_pads, ARRAY_SIZE(revd_pads));
+		SETUP_IOMUX_PADS(revd_pads);
 		gpio_direction_input(IMX_GPIO_NR(4,21));
 		break;
 	}
 
-	imx_iomux_v3_setup_multiple_pads(uart1_pads, ARRAY_SIZE(uart1_pads));
-	imx_iomux_v3_setup_multiple_pads(ecspi1_pads, ARRAY_SIZE(ecspi1_pads));
-	imx_iomux_v3_setup_multiple_pads(other_pads, ARRAY_SIZE(other_pads));
-	imx_iomux_v3_setup_multiple_pads(i2c_pads, ARRAY_SIZE(i2c_pads));
-
-	/*
+	SETUP_IOMUX_PADS(uart1_pads);
+	SETUP_IOMUX_PADS(ecspi1_pads);
+	SETUP_IOMUX_PADS(other_pads);
 	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
 	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
-	*/
-
-
+	setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info2);
+	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
 
 	/* Keep manikin off */
 	gpio_direction_output(GPIO_AUX_12V_EN, 0);
@@ -325,13 +319,10 @@ int board_early_init_f(void)
 
 	gpio_direction_input(GPIO_PWR_BTN);
 
-
-
 	gpio_direction_input(GPIO_PMU_RST_N);
 	gpio_direction_output(GPIO_MCU_RST, 1);
 	gpio_direction_input(GPIO_MCU_BOOT0);
 	gpio_direction_input(GPIO_MCU_BOOT1);
-	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
 
 	gpio_direction_output(GPIO_LED_R, 0);
 	gpio_direction_output(GPIO_LED_G, 0);

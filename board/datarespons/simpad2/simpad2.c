@@ -338,7 +338,6 @@ int board_early_init_f(void)
 	SETUP_IOMUX_PADS(ecspi1_pads);
 	SETUP_IOMUX_PADS(usb_otg_pads);
 	SETUP_IOMUX_PADS(other_pads);
-	SETUP_IOMUX_PADS(i2c_pads);
 	gpio_direction_output(GPIO_AUX_5V_EN, 0);	/* Turn off power */
 
 
@@ -380,11 +379,9 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_CHARGER_ISET, 1);
 	gpio_direction_output(GPIO_VIBRA, 0);
 
-	/*
 	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
 	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
 	setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info2);
-	*/
 	setup_i2c(3, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
 
 	gpio_direction_output(GPIO_LED_R, 0);
