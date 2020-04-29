@@ -10,6 +10,7 @@
 #include <asm/arch/imx-regs.h>
 #include <asm/arch/iomux.h>
 #include <asm/arch/mx6-pins.h>
+#include <asm/arch/sys_proto.h>
 #include <asm/mach-imx/sata.h>
 #include <errno.h>
 #include <asm/gpio.h>
@@ -1130,8 +1131,10 @@ void board_init_f(ulong dummy)
 		udelay(10000);
 	}
 
-	/* DDR initialization */
+	/* Set RGMII voltage to 1.5V */
+	iomuxc_set_rgmii_io_voltage(0xC0000);
 
+	/* DDR initialization */
 
 	spl_dram_init();
 #ifdef DYNAMIC_CALIB
