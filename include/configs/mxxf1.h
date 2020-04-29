@@ -75,7 +75,7 @@
 	"zimage=/boot/zImage\0" \
 	"uimage=/boot/uImage\0" \
 	"panel=MXXF1-XGA\0" \
-	"fdt_addr=0x11000000\0" \
+	"fdt_addr=0x18000000\0" \
 	"boot_fdt=try\0" \
 	"ip_dyn=try\0" \
 	"hasusbkbd=no\0" \
