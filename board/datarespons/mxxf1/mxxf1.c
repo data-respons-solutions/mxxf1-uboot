@@ -64,6 +64,8 @@ DECLARE_GLOBAL_DATA_PTR;
 	PAD_CTL_PUS_100K_UP | PAD_CTL_SPEED_LOW   |		\
 	PAD_CTL_DSE_40ohm   | PAD_CTL_HYS)
 
+#define OC_PAD_CTRL (PAD_CTL_ODE | PAD_CTL_SPEED_LOW | PAD_CTL_DSE_40ohm | PAD_CTL_HYS)
+
 #define OUT_LOW_PAD_CTRL  (PAD_CTL_PKE | PAD_CTL_PUE |		\
 	PAD_CTL_PUS_100K_DOWN | PAD_CTL_SPEED_LOW   |		\
 	PAD_CTL_DSE_40ohm   | PAD_CTL_HYS)
@@ -105,23 +107,23 @@ iomux_v3_cfg_t const uart1_pads[] = {
 };
 
 iomux_v3_cfg_t const extra_nandf_pads[] = {
-	IOMUX_PADS(PAD_NANDF_CS0__GPIO6_IO11		| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)),	/* SPI_NOR_WP	*/
-	IOMUX_PADS(PAD_NANDF_CS1__GPIO6_IO14		| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)),	/* LAN2_EEWP	*/
-	IOMUX_PADS(PAD_NANDF_CS2__GPIO6_IO15		| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* LCD_EN		*/
-	IOMUX_PADS(PAD_NANDF_CS3__GPIO6_IO16		| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)),	/* CAP_TCH_RST	*/
+	IOMUX_PADS(PAD_NANDF_CS0__GPIO6_IO11 | MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)), /* SPI_NOR_WP	*/
+	IOMUX_PADS(PAD_NANDF_CS1__GPIO6_IO14 | MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)), /* LAN2_EEWP	*/
+	IOMUX_PADS(PAD_NANDF_CS2__GPIO6_IO15 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* LCD_EN		*/
+	IOMUX_PADS(PAD_NANDF_CS3__GPIO6_IO16 | MUX_PAD_CTRL(OC_PAD_CTRL)), /* CAP_TCH_RST	*/
 
-	IOMUX_PADS(PAD_NANDF_ALE__GPIO6_IO08		| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* CAP_TCH_INT	*/
-	IOMUX_PADS(PAD_NANDF_CLE__GPIO6_IO07		| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* USBP3_OC		*/
-	IOMUX_PADS(PAD_NANDF_WP_B__GPIO6_IO09		| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* USBP3_EN		*/
-	IOMUX_PADS(PAD_NANDF_RB0__GPIO6_IO10		| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* AUX_5V_EN	*/
+	IOMUX_PADS(PAD_NANDF_ALE__GPIO6_IO08 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* CAP_TCH_INT	*/
+	IOMUX_PADS(PAD_NANDF_CLE__GPIO6_IO07 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* USBP3_OC		*/
+	IOMUX_PADS(PAD_NANDF_WP_B__GPIO6_IO09 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* USBP3_EN		*/
+	IOMUX_PADS(PAD_NANDF_RB0__GPIO6_IO10 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* AUX_5V_EN	*/
 
-	IOMUX_PADS(PAD_NANDF_D2__GPIO2_IO02		| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* USBP1_OC		*/
-	IOMUX_PADS(PAD_NANDF_D3__GPIO2_IO03		| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* USBP1_EN		*/
+	IOMUX_PADS(PAD_NANDF_D2__GPIO2_IO02 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* USBP1_OC		*/
+	IOMUX_PADS(PAD_NANDF_D3__GPIO2_IO03 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* USBP1_EN		*/
 
-	IOMUX_PADS(PAD_NANDF_D4__GPIO2_IO04		| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* WDOG_PWR_EN	*/
-	IOMUX_PADS(PAD_NANDF_D5__GPIO2_IO05		| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)),	/* EMMC_RST#	*/
-	IOMUX_PADS(PAD_NANDF_D6__GPIO2_IO06		| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* USBP2_OC		*/
-	IOMUX_PADS(PAD_NANDF_D7__GPIO2_IO07		| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* USBP2_EN		*/
+	IOMUX_PADS(PAD_NANDF_D4__GPIO2_IO04 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* WDOG_PWR_EN	*/
+	IOMUX_PADS(PAD_NANDF_D5__GPIO2_IO05 | MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)), /* EMMC_RST#	*/
+	IOMUX_PADS(PAD_NANDF_D6__GPIO2_IO06 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* USBP2_OC		*/
+	IOMUX_PADS(PAD_NANDF_D7__GPIO2_IO07 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* USBP2_EN		*/
 };
 
 iomux_v3_cfg_t const extra_nvcc_gpio_pads[] = {
@@ -550,11 +552,12 @@ static void setup_display(void)
 #ifndef CONFIG_SPL_BUILD
 #define MAX_I2C_DATA_LEN 10
 static char egalax_fw[32];
+static int i2c_addr = 0x04;
 static int egalax_firmware_version(void)
 {
-	int to=100000;
+	int to = 100000;
 	static const uint8_t cmd[MAX_I2C_DATA_LEN] = { 0x03, 0x03, 0xa, 0x01, 'D', 0, 0, 0, 0, 0 };
-	uint8_t rcv_buf[MAX_I2C_DATA_LEN+1];
+	uint8_t rcv_buf[MAX_I2C_DATA_LEN + 1];
 
 	int ret;
 	gpio_set_value(GPIO_CAP_TOUCH_RST, 0);
@@ -564,48 +567,49 @@ static int egalax_firmware_version(void)
 	i2c_set_bus_num(2);
 	i2c_set_bus_speed(CONFIG_SYS_I2C_SPEED);
 
-	ret = i2c_probe(0x04);
-	if (ret)
-	{
-		printf("%s: NO touch controller\n", __func__);
+	ret = i2c_probe(i2c_addr);
+	if (ret) {
+		printf("%s: NO touch controller at address 0x04, trying TSUP_I2C\n", __func__);
+		i2c_addr = TSUP_I2C;
+		ret = i2c_probe(i2c_addr);
+	}
+	if (ret < 0) {
+		printf("No touch controller\n");
 		return -ENODEV;
 	}
-	if (i2c_write(0x04, 0, 0, (uint8_t*)cmd, MAX_I2C_DATA_LEN))
-	{
-		printf("%s: Error requesting FW version\n", __func__);
-		return -EIO;
-	}
-	else
-	{
-		while (gpio_get_value(GPIO_TOUCH_IRQ) && to > 0)
-		{
-			udelay(1000);
-			to--;
-		}
-		if (to <= 0)
-		{
-			printf("%s: timeout waiting for touch irq\n", __func__);
-			return -EIO;
-		}
-		ret = i2c_read(0x04, 0, 0, rcv_buf, MAX_I2C_DATA_LEN);
-		if (ret)
-		{
-			printf("%s: Error receiving FW version\n", __func__);
-			return -EIO;
-		}
-		if (rcv_buf[0] == 0x03 && rcv_buf[4] == 'D')
-		{
-			rcv_buf[MAX_I2C_DATA_LEN] = '\0';
-			strcpy(egalax_fw, (char *)&rcv_buf[5]);
-			printf("%s: FW version [%s]\n", __func__, egalax_fw);
-		}
-		else
-		{
-			printf("%s: Got touch message %x.%x.%x\n", __func__, rcv_buf[0], rcv_buf[1], rcv_buf[2]);
-			return -EINVAL;
-		}
-	}
 
+	printf("Touch controller found at 0x%02x\n", i2c_addr);
+	if (i2c_addr == 0x04) {
+		if (i2c_write(i2c_addr, 0, 0, (uint8_t *)cmd, MAX_I2C_DATA_LEN)) {
+			printf("%s: Error requesting FW version\n", __func__);
+			return -EIO;
+		} else {
+			while (gpio_get_value(GPIO_TOUCH_IRQ) && to > 0) {
+				udelay(1000);
+				to--;
+			}
+			if (to <= 0) {
+				printf("%s: timeout waiting for touch irq\n", __func__);
+				return -EIO;
+			}
+			ret = i2c_read(i2c_addr, 0, 0, rcv_buf, MAX_I2C_DATA_LEN);
+			if (ret) {
+				printf("%s: Error receiving FW version\n", __func__);
+				return -EIO;
+			}
+			if (rcv_buf[0] == 0x03 && rcv_buf[4] == 'D') {
+				rcv_buf[MAX_I2C_DATA_LEN] = '\0';
+				strcpy(egalax_fw, (char *)&rcv_buf[5]);
+				printf("%s: FW EXC80W46\n", __func__);
+			} else {
+				printf("%s: Got touch message %x.%x.%x\n", __func__, rcv_buf[0], rcv_buf[1],
+				       rcv_buf[2]);
+				return -EINVAL;
+			}
+		}
+	} else {
+		printf("%s: FW version [%s]\n", __func__, egalax_fw);
+	}
 	gpio_set_value(GPIO_CAP_TOUCH_RST, 0);
 	udelay(500);
 	gpio_set_value(GPIO_CAP_TOUCH_RST, 1);
@@ -616,12 +620,9 @@ static void setup_iomux_enet(void)
 {
 
 	/* Reset AR8031 PHY */
-	gpio_direction_output(IMX_GPIO_NR(1, 25) , 0);
-	gpio_direction_output(GPIO_CAP_TOUCH_RST, 0);
-
+	gpio_direction_output(IMX_GPIO_NR(1, 25), 0);
 	udelay(500);
 	gpio_set_value(IMX_GPIO_NR(1, 25), 1);
-	gpio_set_value(GPIO_CAP_TOUCH_RST, 1);
 }
 
 
@@ -878,7 +879,9 @@ int board_late_init(void)
 		vpd_update_eeprom(egalax_fw);
 	else
 		vpd_update_eeprom(0);
-
+	/* Check for new touch controlle */
+	if (i2c_addr == TSUP_I2C)
+		env_set("fdt_file", "/boot/mxxf1-tsup.dtb");
 
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
 	eeprom_get_mac_addr();

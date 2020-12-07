@@ -232,6 +232,7 @@
 #define CONFIG_USB_MAX_CONTROLLER_COUNT	2 /* Enabled USB controller number */
 #define CONFIG_USBD_HS
 
+#define TSUP_I2C 0x2a /* New touch i2c address */
 #if 0
 #define CONFIG_USB_KEYBOARD
 #define CONFIG_CONSOLE_MUX
