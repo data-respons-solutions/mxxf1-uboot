@@ -63,7 +63,12 @@ int mxxf1_eeprom_init(unsigned dev_addr)
 	eeprom_ok = 0;
 	vpd_valid = 0;
 	eeprom_addr = dev_addr;
-	int res = mxxf1_eeprom_read();
+	int res;
+	i2c_set_bus_num(1);
+	i2c_set_bus_speed(CONFIG_SYS_I2C_SPEED);
+	printf("Probe for EEPROM at 0x%02x\n", dev_addr);
+	i2c_probe(dev_addr);
+	res = mxxf1_eeprom_read();
 	if (res)
 		return res;
 	eeprom_ok = 1;
@@ -187,6 +192,22 @@ int eeprom_get_mac_addr(void)
 	return ret;
 }
 
+const char *eeprom_get_value(const char *key)
+{
+	char *value, *ph;
+	int ret = param_find(&ee, key);
+	if (ret < 0) {
+		printf("%s: no key %s\n", __func__, key);
+		return 0;
+	}
+	ret = param_split(ee.param[ret], &ph, &value);
+	if (ret == 0) {
+		return value;
+	}
+	printf("%s: bad value for %s\n", __func__, key);
+	return 0;
+}
+
 static int check_and_update(const char *key, const char *value)
 {
 	int dirty = 0;
@@ -223,8 +244,7 @@ static int check_and_update(const char *key, const char *value)
 
 int vpd_update_eeprom(char *touch_fw_ver)
 {
-	int retries=3;
-	int status;
+	int retries = 3;
 	int dirty=0;
 	dirty = check_and_update("UBOOT_VERSION", U_BOOT_VERSION);
 	if (touch_fw_ver)
@@ -235,7 +255,11 @@ int vpd_update_eeprom(char *touch_fw_ver)
 		param_generate(&ee);
 		while (retries--)
 		{
-			status = mxxf1_eeprom_write(eeprom_addr, 0, ee.data, ee.size);
+			int status = mxxf1_eeprom_write(eeprom_addr, 0, ee.data, ee.size);
+			if (status) {
+				printf("write eeprom error (%d)\n", status);
+				continue;
+			}
 			printf("%s: Validating VPD\n", __func__);
 			memset(eeprom_content, 0xff, MXXF1_EEPROM_SIZE);
 			mxxf1_eeprom_read();

@@ -105,8 +105,19 @@
 	"flashuboot=if run loaduboot; then sf erase 40000 90000; sf write ${loadaddr} 40000 ${filesize}; fi; \0" \
 	"loadimage=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} ${zimage}; \0" \
 	"loaduimage=ext4load ${bootfrom} ${bootdev}:${bootpart} ${loadaddr} ${uimage}; \0" \
-	"loadfdt=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file}; \0" \
-	"bootscript=run setargs; if run loadimage loadfdt; then bootz ${loadaddr} - ${fdt_addr}; else echo ERROR: Could not load image; fi; \0" \
+	"loadfdt_default=echo loading default fdt; ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} /boot/mxxf1.dtb; \0" \
+	"loadfdt=ext4load ${bootfrom} ${bootdev}:${bootpart} ${fdt_addr} ${fdt_file} || run loadfdt_default; \0" \
+	"blcheck="\
+		"fdt addr ${fdt_addr}; " \
+		"if fdt get addr bladdr /backlight brightness-levels; then " \
+			"fdt get size blsize /backlight brightness-levels; " \
+			"if blfix ${bladdr} ${blsize}; then " \
+				"echo blfix OK; " \
+			"else " \
+				"echo blfix failed; " \
+			"fi; " \
+		"fi; \0" \
+	"bootscript=run setargs; if run loadimage loadfdt; then run blcheck; bootz ${loadaddr} - ${fdt_addr}; else echo ERROR: Could not load image; fi; \0" \
 	"bootscript_legacy=run setargs; if run loaduimage ; then bootm ${loadaddr}; else echo ERROR: Could not load legacy image; fi; \0" \
 	"check_usb_boot=if usb storage; then run setusb loadfdt; fi;\0" \
 	"check_sata=if sata init; then setenv usb_root /dev/sdb1; setenv has_sata 1; fi;\0" \

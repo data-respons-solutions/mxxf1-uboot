@@ -13,6 +13,7 @@
 #include <asm/arch/sys_proto.h>
 #include <asm/mach-imx/sata.h>
 #include <errno.h>
+#include <linux/ctype.h>
 #include <asm/gpio.h>
 #include <asm/mach-imx/mxc_i2c.h>
 #include <asm/mach-imx/iomux-v3.h>
@@ -89,10 +90,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #include "mxxf1_gpio.h"
 
 typedef enum  { SW1AB, SW1C, SW3AB } pf100_regs;
-typedef enum {VER_PANEL, VER_DIN, VER_UNKNOWN} PanelVersion;
-#ifndef CONFIG_SPL_BUILD
-static PanelVersion board_version = VER_UNKNOWN;
-#endif
+typedef enum { VER_PANEL, VER_DIN, VER_UNKNOWN } PanelVersion;
 int vpd_update_eeprom(char *touch_fw_ver);
 
 int dram_init(void)
@@ -127,91 +125,97 @@ iomux_v3_cfg_t const extra_nandf_pads[] = {
 };
 
 iomux_v3_cfg_t const extra_nvcc_gpio_pads[] = {
-	IOMUX_PADS(PAD_KEY_COL0__GPIO4_IO06		| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* DIMM-	*/
-	IOMUX_PADS(PAD_KEY_ROW0__GPIO4_IO07		| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* DIMM+	*/
-	IOMUX_PADS(PAD_KEY_COL1__GPIO4_IO08		| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* TEMP_OS	*/
+	IOMUX_PADS(PAD_KEY_COL0__GPIO4_IO06 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* DIMM-	*/
+	IOMUX_PADS(PAD_KEY_ROW0__GPIO4_IO07 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* DIMM+	*/
+	IOMUX_PADS(PAD_KEY_COL1__GPIO4_IO08 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* TEMP_OS	*/
 
-	IOMUX_PADS(PAD_KEY_COL2__GPIO4_IO10		| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* CODEC_PWR_EN	*/
-	IOMUX_PADS(PAD_KEY_ROW2__GPIO4_IO11		| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* HDMI_CEC_IN	*/
+	IOMUX_PADS(PAD_KEY_COL2__GPIO4_IO10 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* CODEC_PWR_EN	*/
+	IOMUX_PADS(PAD_KEY_ROW2__GPIO4_IO11 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* HDMI_CEC_IN	*/
 
-	IOMUX_PADS(PAD_KEY_COL4__FLEXCAN2_TX		| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)),	/* CAN2_TX	*/
-	IOMUX_PADS(PAD_KEY_ROW4__FLEXCAN2_RX		| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* CAN2_RX	*/
+	IOMUX_PADS(PAD_KEY_COL4__FLEXCAN2_TX | MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)), /* CAN2_TX	*/
+	IOMUX_PADS(PAD_KEY_ROW4__FLEXCAN2_RX | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* CAN2_RX	*/
 
-	IOMUX_PADS(PAD_GPIO_0__CCM_CLKO1			| MUX_PAD_CTRL(PAD_CTL_DSE_40ohm | PAD_CTL_SPEED_HIGH)),	/* AUD_MCLK	*/
-	IOMUX_PADS(PAD_GPIO_1__WDOG2_B				| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)),	/* WDOG_B		*/
-	IOMUX_PADS(PAD_GPIO_2__GPIO1_IO02			| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* BLON_3V_H	*/
+	IOMUX_PADS(PAD_GPIO_0__CCM_CLKO1 | MUX_PAD_CTRL(PAD_CTL_DSE_40ohm | PAD_CTL_SPEED_HIGH)), /* AUD_MCLK	*/
+	IOMUX_PADS(PAD_GPIO_1__WDOG2_B | MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)), /* WDOG_B		*/
+	IOMUX_PADS(PAD_GPIO_2__GPIO1_IO02 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* BLON_3V_H	*/
 
-	IOMUX_PADS(PAD_GPIO_4__GPIO1_IO04			| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* TCH_PWRON	*/
-	IOMUX_PADS(PAD_GPIO_5__GPIO1_IO05			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)),	/* EEPROM_WP	*/
-	IOMUX_PADS(PAD_GPIO_7__FLEXCAN1_TX			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)),	/* CAN1_TX	*/
+	IOMUX_PADS(PAD_GPIO_4__GPIO1_IO04 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* TCH_PWRON	*/
+	IOMUX_PADS(PAD_GPIO_5__GPIO1_IO05 | MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)), /* EEPROM_WP	*/
+	IOMUX_PADS(PAD_GPIO_7__FLEXCAN1_TX | MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)), /* CAN1_TX	*/
 
-	IOMUX_PADS(PAD_GPIO_8__FLEXCAN1_RX			| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* CAN1_RX		*/
+	IOMUX_PADS(PAD_GPIO_8__FLEXCAN1_RX | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* CAN1_RX		*/
 #ifdef USE_PWM_FOR_BL
-	IOMUX_PADS(PAD_GPIO_9__PWM1_OUT			| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/*  BL_PWM		*/
+	IOMUX_PADS(PAD_GPIO_9__PWM1_OUT | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /*  BL_PWM		*/
 #else
-	IOMUX_PADS(PAD_GPIO_9__GPIO1_IO09			| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),
+	IOMUX_PADS(PAD_GPIO_9__GPIO1_IO09 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),
 #endif
-	IOMUX_PADS(PAD_GPIO_17__GPIO7_IO12			| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)),	/* PCIE_RST	*/
-	IOMUX_PADS(PAD_GPIO_18__GPIO7_IO13			| MUX_PAD_CTRL(PAD_CTL_HYS | PAD_CTL_PUE | PAD_CTL_PUS_100K_DOWN)),	/* PMIC_INT_B	*/
+	IOMUX_PADS(PAD_GPIO_17__GPIO7_IO12 | MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)), /* PCIE_RST	*/
+	IOMUX_PADS(PAD_GPIO_18__GPIO7_IO13 |
+		   MUX_PAD_CTRL(PAD_CTL_HYS | PAD_CTL_PUE | PAD_CTL_PUS_100K_DOWN)), /* PMIC_INT_B	*/
 
 };
 
 iomux_v3_cfg_t const extra_pads[] = {
-	IOMUX_PADS(PAD_ENET_RX_ER__GPIO1_IO24		| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* USB_OTG_ID	*/
-	IOMUX_PADS(PAD_ENET_RXD0__GPIO1_IO27		| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* UOK_B		*/
-	IOMUX_PADS(PAD_ENET_TXD1__GPIO1_IO29		| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* USB_H1_PWR_EN	*/
-	IOMUX_PADS(PAD_SD1_CMD__GPIO1_IO18			| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* FAN_EN		*/
-	IOMUX_PADS(PAD_SD1_DAT1__PWM3_OUT			| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* BUZ_INT_EN	*/
-	IOMUX_PADS(PAD_SD1_DAT2__GPIO1_IO19		| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* BUZ_EXT_EN	*/
+	IOMUX_PADS(PAD_ENET_RX_ER__GPIO1_IO24 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* USB_OTG_ID	*/
+	IOMUX_PADS(PAD_ENET_RXD0__GPIO1_IO27 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* UOK_B		*/
+	IOMUX_PADS(PAD_ENET_TXD1__GPIO1_IO29 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* USB_H1_PWR_EN	*/
+	IOMUX_PADS(PAD_SD1_CMD__GPIO1_IO18 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* FAN_EN		*/
+	IOMUX_PADS(PAD_SD1_DAT1__PWM3_OUT | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* BUZ_INT_EN	*/
+	IOMUX_PADS(PAD_SD1_DAT2__GPIO1_IO19 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* BUZ_EXT_EN	*/
 
-	IOMUX_PADS(PAD_CSI0_DATA_EN__GPIO5_IO20	| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* PCIE_WAKE_B	*/
+	IOMUX_PADS(PAD_CSI0_DATA_EN__GPIO5_IO20 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* PCIE_WAKE_B	*/
 
-	IOMUX_PADS(PAD_EIM_D21__GPIO3_IO21			| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* USB_OTG_OC		*/
-	IOMUX_PADS(PAD_EIM_D22__GPIO3_IO22			| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* USB_ORG_PWR_EN	*/
-	IOMUX_PADS(PAD_EIM_D29__GPIO3_IO29			| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* PWR_BTN_SNS		*/
-	IOMUX_PADS(PAD_EIM_D30__GPIO3_IO30			| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* USB_H1_OC		*/
-	IOMUX_PADS(PAD_EIM_D31__GPIO3_IO31			| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* USB_P0_OC		*/
-	IOMUX_PADS(PAD_EIM_D28__GPIO3_IO28			| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* USBP0_EN			*/
+	IOMUX_PADS(PAD_EIM_D21__GPIO3_IO21 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* USB_OTG_OC		*/
+	IOMUX_PADS(PAD_EIM_D22__GPIO3_IO22 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* USB_ORG_PWR_EN	*/
+	IOMUX_PADS(PAD_EIM_D29__GPIO3_IO29 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* PWR_BTN_SNS		*/
+	IOMUX_PADS(PAD_EIM_D30__USB_H1_OC | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* USB_H1_OC		*/
+	IOMUX_PADS(PAD_EIM_D31__GPIO3_IO31 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* USB_P0_OC		*/
+	IOMUX_PADS(PAD_EIM_D28__GPIO3_IO28 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* USBP0_EN			*/
 
-	IOMUX_PADS(PAD_EIM_D23__GPIO3_IO23			| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* LAN2_DEV_OFF#	*/
-	IOMUX_PADS(PAD_EIM_D24__GPIO3_IO24			| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* LAN2_SMB_ALRT#	*/
-	IOMUX_PADS(PAD_GPIO_16__GPIO7_IO11			| MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)),	/* LVDS_ROTATE		*/
+	IOMUX_PADS(PAD_EIM_D23__GPIO3_IO23 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* LAN2_DEV_OFF#	*/
+	IOMUX_PADS(PAD_EIM_D24__GPIO3_IO24 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* LAN2_SMB_ALRT#	*/
+	IOMUX_PADS(PAD_GPIO_16__GPIO7_IO11 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* LVDS_ROTATE		*/
 
+};
+iomux_v3_cfg_t const hwrev_pads[] = {
+	IOMUX_PADS(PAD_SD2_DAT0__GPIO1_IO15 | MUX_PAD_CTRL(PAD_CTL_PUS_100K_DOWN | PAD_CTL_PUE)), /* HW_REV0 */
+	IOMUX_PADS(PAD_SD2_DAT1__GPIO1_IO14 | MUX_PAD_CTRL(PAD_CTL_PUS_100K_DOWN | PAD_CTL_PUE)), /* HW_REV1 */
+	IOMUX_PADS(PAD_SD2_DAT2__GPIO1_IO13 | MUX_PAD_CTRL(PAD_CTL_PUS_100K_DOWN | PAD_CTL_PUE)), /* HW_REV2 */
+	IOMUX_PADS(PAD_SD2_DAT3__GPIO1_IO12 | MUX_PAD_CTRL(PAD_CTL_PUS_100K_DOWN | PAD_CTL_PUE)), /* HW_REV3 */
 };
 
 iomux_v3_cfg_t const audio_pads[] = {
-	IOMUX_PADS(PAD_CSI0_DAT4__AUD3_TXC		| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)),	/* AUD3_TXC		*/
-	IOMUX_PADS(PAD_CSI0_DAT5__AUD3_TXD		| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)),	/* AUD3_TXD		*/
-	IOMUX_PADS(PAD_CSI0_DAT6__AUD3_TXFS	| MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)),	/* AUD3_TXFS	*/
-	IOMUX_PADS(PAD_CSI0_DAT7__AUD3_RXD		| MUX_PAD_CTRL(REGINP_PAD_CTRL)),	/* AUD3_RXD		*/
+	IOMUX_PADS(PAD_CSI0_DAT4__AUD3_TXC | MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)), /* AUD3_TXC		*/
+	IOMUX_PADS(PAD_CSI0_DAT5__AUD3_TXD | MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)), /* AUD3_TXD		*/
+	IOMUX_PADS(PAD_CSI0_DAT6__AUD3_TXFS | MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)), /* AUD3_TXFS	*/
+	IOMUX_PADS(PAD_CSI0_DAT7__AUD3_RXD | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* AUD3_RXD		*/
 };
 
 iomux_v3_cfg_t const enet_pads[] = {
-	IOMUX_PADS(PAD_ENET_MDIO__ENET_MDIO		| MUX_PAD_CTRL(ENET_PAD_CTRL_UP)),
-	IOMUX_PADS(PAD_ENET_MDC__ENET_MDC			| MUX_PAD_CTRL(ENET_PAD_CTRL_UP)),
-	IOMUX_PADS(PAD_RGMII_TXC__RGMII_TXC		| MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
-	IOMUX_PADS(PAD_RGMII_TD0__RGMII_TD0		| MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
-	IOMUX_PADS(PAD_RGMII_TD1__RGMII_TD1		| MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
-	IOMUX_PADS(PAD_RGMII_TD2__RGMII_TD2		| MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
-	IOMUX_PADS(PAD_RGMII_TD3__RGMII_TD3		| MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
-	IOMUX_PADS(PAD_RGMII_TX_CTL__RGMII_TX_CTL	| MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
-	IOMUX_PADS(PAD_ENET_REF_CLK__ENET_TX_CLK	| MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
-	IOMUX_PADS(PAD_RGMII_RXC__RGMII_RXC		| MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
-	IOMUX_PADS(PAD_RGMII_RD0__RGMII_RD0		| MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
-	IOMUX_PADS(PAD_RGMII_RD1__RGMII_RD1		| MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
-	IOMUX_PADS(PAD_RGMII_RD2__RGMII_RD2		| MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
-	IOMUX_PADS(PAD_RGMII_RD3__RGMII_RD3		| MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
-	IOMUX_PADS(PAD_RGMII_RX_CTL__RGMII_RX_CTL	| MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
+	IOMUX_PADS(PAD_ENET_MDIO__ENET_MDIO | MUX_PAD_CTRL(ENET_PAD_CTRL_UP)),
+	IOMUX_PADS(PAD_ENET_MDC__ENET_MDC | MUX_PAD_CTRL(ENET_PAD_CTRL_UP)),
+	IOMUX_PADS(PAD_RGMII_TXC__RGMII_TXC | MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
+	IOMUX_PADS(PAD_RGMII_TD0__RGMII_TD0 | MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
+	IOMUX_PADS(PAD_RGMII_TD1__RGMII_TD1 | MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
+	IOMUX_PADS(PAD_RGMII_TD2__RGMII_TD2 | MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
+	IOMUX_PADS(PAD_RGMII_TD3__RGMII_TD3 | MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
+	IOMUX_PADS(PAD_RGMII_TX_CTL__RGMII_TX_CTL | MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
+	IOMUX_PADS(PAD_ENET_REF_CLK__ENET_TX_CLK | MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
+	IOMUX_PADS(PAD_RGMII_RXC__RGMII_RXC | MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
+	IOMUX_PADS(PAD_RGMII_RD0__RGMII_RD0 | MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
+	IOMUX_PADS(PAD_RGMII_RD1__RGMII_RD1 | MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
+	IOMUX_PADS(PAD_RGMII_RD2__RGMII_RD2 | MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
+	IOMUX_PADS(PAD_RGMII_RD3__RGMII_RD3 | MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
+	IOMUX_PADS(PAD_RGMII_RX_CTL__RGMII_RX_CTL | MUX_PAD_CTRL(ENET_PAD_CTRL_DN)),
 	/* AR8031 PHY Reset */
-	IOMUX_PADS(PAD_ENET_CRS_DV__GPIO1_IO25		| MUX_PAD_CTRL(ENET_PAD_CTRL_UP)),
-	IOMUX_PADS(PAD_ENET_TX_EN__GPIO1_IO28		| MUX_PAD_CTRL(ENET_PAD_CTRL_UP)), 	/* ENET_WOL_INT (low)	*/
-	IOMUX_PADS(PAD_ENET_RXD1__GPIO1_IO26		| MUX_PAD_CTRL(ENET_PAD_CTRL_UP)), 	/* RGMII_INT (low)	*/
+	IOMUX_PADS(PAD_ENET_CRS_DV__GPIO1_IO25 | MUX_PAD_CTRL(ENET_PAD_CTRL_UP)),
+	IOMUX_PADS(PAD_ENET_TX_EN__GPIO1_IO28 | MUX_PAD_CTRL(ENET_PAD_CTRL_UP)), /* ENET_WOL_INT (low)	*/
+	IOMUX_PADS(PAD_ENET_RXD1__GPIO1_IO26 | MUX_PAD_CTRL(ENET_PAD_CTRL_UP)), /* RGMII_INT (low)	*/
 };
 
-
 iomux_v3_cfg_t const usdhc3_pads[] = {
-	IOMUX_PADS(PAD_SD3_CLK__SD3_CLK   | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
-	IOMUX_PADS(PAD_SD3_CMD__SD3_CMD   | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
+	IOMUX_PADS(PAD_SD3_CLK__SD3_CLK | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
+	IOMUX_PADS(PAD_SD3_CMD__SD3_CMD | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD3_DAT0__SD3_DATA0 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD3_DAT1__SD3_DATA1 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD3_DAT2__SD3_DATA2 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
@@ -220,14 +224,14 @@ iomux_v3_cfg_t const usdhc3_pads[] = {
 	IOMUX_PADS(PAD_SD3_DAT5__SD3_DATA5 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD3_DAT6__SD3_DATA6 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD3_DAT7__SD3_DATA7 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
-	IOMUX_PADS(PAD_NANDF_D0__GPIO2_IO00    | MUX_PAD_CTRL(REGINP_PAD_CTRL)), 		/* CD 				*/
-	IOMUX_PADS(PAD_NANDF_D1__GPIO2_IO01    | MUX_PAD_CTRL(REGINP_PAD_CTRL)),		/* WP 				*/
-	IOMUX_PADS(PAD_SD3_RST__GPIO7_IO08	  | MUX_PAD_CTRL(REGINP_PAD_CTRL)),		/* HEADPHONE_DET	*/
+	IOMUX_PADS(PAD_NANDF_D0__GPIO2_IO00 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* CD 				*/
+	IOMUX_PADS(PAD_NANDF_D1__GPIO2_IO01 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* WP 				*/
+	IOMUX_PADS(PAD_SD3_RST__GPIO7_IO08 | MUX_PAD_CTRL(REGINP_PAD_CTRL)), /* HEADPHONE_DET	*/
 };
 
 iomux_v3_cfg_t const usdhc4_pads[] = {
-	IOMUX_PADS(PAD_SD4_CLK__SD4_CLK   | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
-	IOMUX_PADS(PAD_SD4_CMD__SD4_CMD   | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
+	IOMUX_PADS(PAD_SD4_CLK__SD4_CLK | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
+	IOMUX_PADS(PAD_SD4_CMD__SD4_CMD | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD4_DAT0__SD4_DATA0 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD4_DAT1__SD4_DATA1 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD4_DAT2__SD4_DATA2 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
@@ -236,51 +240,35 @@ iomux_v3_cfg_t const usdhc4_pads[] = {
 	IOMUX_PADS(PAD_SD4_DAT5__SD4_DATA5 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD4_DAT6__SD4_DATA6 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD4_DAT7__SD4_DATA7 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
-	IOMUX_PADS(PAD_NANDF_D5__GPIO2_IO05    | MUX_PAD_CTRL(USDHC_PAD_CTRL)),	/* eMMC reset */
+	IOMUX_PADS(PAD_NANDF_D5__GPIO2_IO05 | MUX_PAD_CTRL(USDHC_PAD_CTRL)), /* eMMC reset */
 };
 
 struct i2c_pads_info i2c_pad_info0 = {
-	.scl = {
-		.i2c_mode = MX6Q_PAD_CSI0_DAT9__I2C1_SCL | MUX_PAD_CTRL(I2C_PAD_CTRL),
-		.gpio_mode = MX6Q_PAD_CSI0_DAT9__GPIO5_IO27 | MUX_PAD_CTRL(I2C_PAD_CTRL),
-		.gp = IMX_GPIO_NR(5, 27)
-	},
-	.sda = {
-		.i2c_mode = MX6Q_PAD_CSI0_DAT8__I2C1_SDA | MUX_PAD_CTRL(I2C_PAD_CTRL),
-		.gpio_mode = MX6Q_PAD_CSI0_DAT8__GPIO5_IO26 | MUX_PAD_CTRL(I2C_PAD_CTRL),
-		.gp = IMX_GPIO_NR(5, 26)
-	}
+	.scl = { .i2c_mode = MX6Q_PAD_CSI0_DAT9__I2C1_SCL | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		 .gpio_mode = MX6Q_PAD_CSI0_DAT9__GPIO5_IO27 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		 .gp = IMX_GPIO_NR(5, 27) },
+	.sda = { .i2c_mode = MX6Q_PAD_CSI0_DAT8__I2C1_SDA | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		 .gpio_mode = MX6Q_PAD_CSI0_DAT8__GPIO5_IO26 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+		 .gp = IMX_GPIO_NR(5, 26) }
 };
 
-struct i2c_pads_info i2c_pad_info1 = {
-	.scl = {
-		.i2c_mode = MX6Q_PAD_KEY_COL3__I2C2_SCL | MUX_PAD_CTRL(I2C_PAD_CTRL),
-		.gpio_mode = MX6Q_PAD_KEY_COL3__GPIO4_IO12 | MUX_PAD_CTRL(I2C_PAD_CTRL),
-		.gp = IMX_GPIO_NR(4, 12)
-	},
-	.sda = {
-		.i2c_mode = MX6Q_PAD_KEY_ROW3__I2C2_SDA | MUX_PAD_CTRL(I2C_PAD_CTRL),
-		.gpio_mode = MX6Q_PAD_KEY_ROW3__GPIO4_IO13 | MUX_PAD_CTRL(I2C_PAD_CTRL),
-		.gp = IMX_GPIO_NR(4, 13)
-	}
-};
+struct i2c_pads_info i2c_pad_info1 = { .scl = { .i2c_mode = MX6Q_PAD_KEY_COL3__I2C2_SCL | MUX_PAD_CTRL(I2C_PAD_CTRL),
+						.gpio_mode = MX6Q_PAD_KEY_COL3__GPIO4_IO12 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+						.gp = IMX_GPIO_NR(4, 12) },
+				       .sda = { .i2c_mode = MX6Q_PAD_KEY_ROW3__I2C2_SDA | MUX_PAD_CTRL(I2C_PAD_CTRL),
+						.gpio_mode = MX6Q_PAD_KEY_ROW3__GPIO4_IO13 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+						.gp = IMX_GPIO_NR(4, 13) } };
 
-struct i2c_pads_info i2c_pad_info2 = {
-	.scl = {
-		.i2c_mode = MX6Q_PAD_GPIO_3__I2C3_SCL | MUX_PAD_CTRL(I2C_PAD_CTRL),
-		.gpio_mode = MX6Q_PAD_GPIO_3__GPIO1_IO03 | MUX_PAD_CTRL(I2C_PAD_CTRL),
-		.gp = IMX_GPIO_NR(1, 3)
-	},
-	.sda = {
-		.i2c_mode = MX6Q_PAD_GPIO_6__I2C3_SDA | MUX_PAD_CTRL(I2C_PAD_CTRL),
-		.gpio_mode = MX6Q_PAD_GPIO_6__GPIO1_IO06 | MUX_PAD_CTRL(I2C_PAD_CTRL),
-		.gp = IMX_GPIO_NR(1, 6)
-	}
-};
+struct i2c_pads_info i2c_pad_info2 = { .scl = { .i2c_mode = MX6Q_PAD_GPIO_3__I2C3_SCL | MUX_PAD_CTRL(I2C_PAD_CTRL),
+						.gpio_mode = MX6Q_PAD_GPIO_3__GPIO1_IO03 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+						.gp = IMX_GPIO_NR(1, 3) },
+				       .sda = { .i2c_mode = MX6Q_PAD_GPIO_6__I2C3_SDA | MUX_PAD_CTRL(I2C_PAD_CTRL),
+						.gpio_mode = MX6Q_PAD_GPIO_6__GPIO1_IO06 | MUX_PAD_CTRL(I2C_PAD_CTRL),
+						.gp = IMX_GPIO_NR(1, 6) } };
 
 iomux_v3_cfg_t const ecspi1_pads[] = {
 	/* SS1 */
-	IOMUX_PADS(PAD_EIM_D19__GPIO3_IO19  | MUX_PAD_CTRL(SPI_PAD_CTRL)),
+	IOMUX_PADS(PAD_EIM_D19__GPIO3_IO19 | MUX_PAD_CTRL(SPI_PAD_CTRL)),
 	IOMUX_PADS(PAD_EIM_D17__ECSPI1_MISO | MUX_PAD_CTRL(SPI_PAD_CTRL)),
 	IOMUX_PADS(PAD_EIM_D18__ECSPI1_MOSI | MUX_PAD_CTRL(SPI_PAD_CTRL)),
 	IOMUX_PADS(PAD_EIM_D16__ECSPI1_SCLK | MUX_PAD_CTRL(SPI_PAD_CTRL)),
@@ -288,12 +276,18 @@ iomux_v3_cfg_t const ecspi1_pads[] = {
 
 #ifdef CONFIG_FSL_ESDHC
 struct fsl_esdhc_cfg usdhc_cfg[2] = {
-	{USDHC3_BASE_ADDR},
-	{USDHC4_BASE_ADDR},
+	{ USDHC3_BASE_ADDR },
+	{ USDHC4_BASE_ADDR },
 };
 
-
-#define USDHC3_CD_GPIO	IMX_GPIO_NR(2, 0)
+static int get_hw_rev(void)
+{
+	int rev = gpio_get_value(GPIO_HW_REV0);
+	rev |= gpio_get_value(GPIO_HW_REV1) << 1;
+	rev |= gpio_get_value(GPIO_HW_REV2) << 2;
+	rev |= gpio_get_value(GPIO_HW_REV3) << 3;
+	return rev;
+}
 
 int board_mmc_getcd(struct mmc *mmc)
 {
@@ -301,7 +295,6 @@ int board_mmc_getcd(struct mmc *mmc)
 	int ret = 0;
 
 	switch (cfg->esdhc_base) {
-
 	case USDHC3_BASE_ADDR:
 		ret = !gpio_get_value(USDHC3_CD_GPIO);
 		break;
@@ -427,8 +420,7 @@ static void disable_lvds(struct display_info_t const *dev)
 
 	int reg = readl(&iomux->gpr[2]);
 
-	reg &= ~(IOMUXC_GPR2_LVDS_CH0_MODE_MASK |
-		 IOMUXC_GPR2_LVDS_CH1_MODE_MASK);
+	reg &= ~(IOMUXC_GPR2_LVDS_CH0_MODE_MASK | IOMUXC_GPR2_LVDS_CH1_MODE_MASK);
 
 	writel(reg, &iomux->gpr[2]);
 }
@@ -441,56 +433,50 @@ static void do_enable_hdmi(struct display_info_t const *dev)
 
 static void enable_lvds(struct display_info_t const *dev)
 {
-	struct iomuxc *iomux = (struct iomuxc *)
-				IOMUXC_BASE_ADDR;
+	struct iomuxc *iomux = (struct iomuxc *)IOMUXC_BASE_ADDR;
 	u32 reg = readl(&iomux->gpr[2]);
-	reg |= IOMUXC_GPR2_DATA_WIDTH_CH0_24BIT |
-	       IOMUXC_GPR2_DATA_WIDTH_CH1_24BIT;
+	reg |= IOMUXC_GPR2_DATA_WIDTH_CH0_24BIT | IOMUXC_GPR2_DATA_WIDTH_CH1_24BIT;
 	writel(reg, &iomux->gpr[2]);
 }
 
-
-struct display_info_t const displays[] = {{
-	.bus	= -1,
-	.addr	= 0,
-	.pixfmt	= IPU_PIX_FMT_RGB24,
-	.detect	= NULL,
-	.enable	= enable_lvds,
-	.mode	= {
-			.name           = "MXXF1-XGA",
-			.refresh        = 60,
-			.xres           = 1024,
-			.yres           = 768,
-			.pixclock       = 15385,
-			.left_margin    = 220,
-			.right_margin   = 40,
-			.upper_margin   = 21,
-			.lower_margin   = 7,
-			.hsync_len      = 60,
-			.vsync_len      = 10,
-			.sync           = FB_SYNC_EXT,
-			.vmode          = FB_VMODE_NONINTERLACED
-} }, {
-	.bus	= -1,
-	.addr	= 0,
-	.pixfmt	= IPU_PIX_FMT_RGB24,
-	.detect	= detect_hdmi,
-	.enable	= do_enable_hdmi,
-	.mode	= {
-			.name           = "HDMI",
-			.refresh        = 60,
-			.xres           = 1280,
-			.yres           = 720,
-			.pixclock       = 15686,
-			.left_margin    = 48,
-			.right_margin   = 32,
-			.upper_margin   = 3,
-			.lower_margin   = 5,
-			.hsync_len      = 80,
-			.vsync_len      = 13,
-			.sync           = FB_SYNC_EXT,
-			.vmode          = FB_VMODE_NONINTERLACED
-} },  };
+struct display_info_t const displays[] = {
+	{ .bus = -1,
+	  .addr = 0,
+	  .pixfmt = IPU_PIX_FMT_RGB24,
+	  .detect = NULL,
+	  .enable = enable_lvds,
+	  .mode = { .name = "MXXF1-XGA",
+		    .refresh = 60,
+		    .xres = 1024,
+		    .yres = 768,
+		    .pixclock = 15385,
+		    .left_margin = 220,
+		    .right_margin = 40,
+		    .upper_margin = 21,
+		    .lower_margin = 7,
+		    .hsync_len = 60,
+		    .vsync_len = 10,
+		    .sync = FB_SYNC_EXT,
+		    .vmode = FB_VMODE_NONINTERLACED } },
+	{ .bus = -1,
+	  .addr = 0,
+	  .pixfmt = IPU_PIX_FMT_RGB24,
+	  .detect = detect_hdmi,
+	  .enable = do_enable_hdmi,
+	  .mode = { .name = "HDMI",
+		    .refresh = 60,
+		    .xres = 1280,
+		    .yres = 720,
+		    .pixclock = 15686,
+		    .left_margin = 48,
+		    .right_margin = 32,
+		    .upper_margin = 3,
+		    .lower_margin = 5,
+		    .hsync_len = 80,
+		    .vsync_len = 13,
+		    .sync = FB_SYNC_EXT,
+		    .vmode = FB_VMODE_NONINTERLACED } },
+};
 size_t display_count = ARRAY_SIZE(displays);
 
 static void setup_display(void)
@@ -504,15 +490,13 @@ static void setup_display(void)
 
 	/* Turn on LDB0, LDB1, IPU,IPU DI0 clocks */
 	reg = readl(&mxc_ccm->CCGR3);
-	reg |=  MXC_CCM_CCGR3_LDB_DI0_MASK | MXC_CCM_CCGR3_LDB_DI1_MASK;
+	reg |= MXC_CCM_CCGR3_LDB_DI0_MASK | MXC_CCM_CCGR3_LDB_DI1_MASK;
 	writel(reg, &mxc_ccm->CCGR3);
 
 	/* set LDB0, LDB1 clk select to 011/011 */
 	reg = readl(&mxc_ccm->cs2cdr);
-	reg &= ~(MXC_CCM_CS2CDR_LDB_DI0_CLK_SEL_MASK
-		 | MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_MASK);
-	reg |= (3 << MXC_CCM_CS2CDR_LDB_DI0_CLK_SEL_OFFSET)
-	      | (3 << MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_OFFSET);
+	reg &= ~(MXC_CCM_CS2CDR_LDB_DI0_CLK_SEL_MASK | MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_MASK);
+	reg |= (3 << MXC_CCM_CS2CDR_LDB_DI0_CLK_SEL_OFFSET) | (3 << MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_OFFSET);
 	writel(reg, &mxc_ccm->cs2cdr);
 
 	reg = readl(&mxc_ccm->cscmr2);
@@ -520,38 +504,30 @@ static void setup_display(void)
 	writel(reg, &mxc_ccm->cscmr2);
 
 	reg = readl(&mxc_ccm->chsccdr);
-	reg |= (CHSCCDR_CLK_SEL_LDB_DI0
-		<< MXC_CCM_CHSCCDR_IPU1_DI0_CLK_SEL_OFFSET);
-	reg |= (CHSCCDR_CLK_SEL_LDB_DI0
-		<< MXC_CCM_CHSCCDR_IPU1_DI1_CLK_SEL_OFFSET);
+	reg |= (CHSCCDR_CLK_SEL_LDB_DI0 << MXC_CCM_CHSCCDR_IPU1_DI0_CLK_SEL_OFFSET);
+	reg |= (CHSCCDR_CLK_SEL_LDB_DI0 << MXC_CCM_CHSCCDR_IPU1_DI1_CLK_SEL_OFFSET);
 	writel(reg, &mxc_ccm->chsccdr);
 
-	reg = IOMUXC_GPR2_BGREF_RRMODE_EXTERNAL_RES
-	     | IOMUXC_GPR2_DI1_VS_POLARITY_ACTIVE_LOW
-	     | IOMUXC_GPR2_DI0_VS_POLARITY_ACTIVE_LOW
-	     | IOMUXC_GPR2_BIT_MAPPING_CH1_SPWG
-	     | IOMUXC_GPR2_DATA_WIDTH_CH1_24BIT
-	     | IOMUXC_GPR2_BIT_MAPPING_CH0_SPWG
-	     | IOMUXC_GPR2_DATA_WIDTH_CH0_24BIT
-	     | IOMUXC_GPR2_LVDS_CH1_MODE_DISABLED
-	     | IOMUXC_GPR2_LVDS_CH0_MODE_ENABLED_DI0;
+	reg = IOMUXC_GPR2_BGREF_RRMODE_EXTERNAL_RES | IOMUXC_GPR2_DI1_VS_POLARITY_ACTIVE_LOW |
+	      IOMUXC_GPR2_DI0_VS_POLARITY_ACTIVE_LOW | IOMUXC_GPR2_BIT_MAPPING_CH1_SPWG |
+	      IOMUXC_GPR2_DATA_WIDTH_CH1_24BIT | IOMUXC_GPR2_BIT_MAPPING_CH0_SPWG | IOMUXC_GPR2_DATA_WIDTH_CH0_24BIT |
+	      IOMUXC_GPR2_LVDS_CH1_MODE_DISABLED | IOMUXC_GPR2_LVDS_CH0_MODE_ENABLED_DI0;
 	writel(reg, &iomux->gpr[2]);
 
 	reg = readl(&iomux->gpr[3]);
-	reg = (reg & ~(IOMUXC_GPR3_LVDS0_MUX_CTL_MASK
-			| IOMUXC_GPR3_HDMI_MUX_CTL_MASK))
-	    | (IOMUXC_GPR3_MUX_SRC_IPU1_DI0
-	       << IOMUXC_GPR3_LVDS0_MUX_CTL_OFFSET);
+	reg = (reg & ~(IOMUXC_GPR3_LVDS0_MUX_CTL_MASK | IOMUXC_GPR3_HDMI_MUX_CTL_MASK)) |
+	      (IOMUXC_GPR3_MUX_SRC_IPU1_DI0 << IOMUXC_GPR3_LVDS0_MUX_CTL_OFFSET);
 	writel(reg, &iomux->gpr[3]);
 }
 #else
-	void setup_display(void) {}
+void setup_display(void)
+{
+}
 #endif /* CONFIG_VIDEO_IPUV3 */
-
 
 #ifndef CONFIG_SPL_BUILD
 #define MAX_I2C_DATA_LEN 10
-static char egalax_fw[32];
+static char egalax_fw[32] = "NA";
 static int i2c_addr = 0x04;
 static int egalax_firmware_version(void)
 {
@@ -607,8 +583,6 @@ static int egalax_firmware_version(void)
 				return -EINVAL;
 			}
 		}
-	} else {
-		printf("%s: FW version [%s]\n", __func__, egalax_fw);
 	}
 	gpio_set_value(GPIO_CAP_TOUCH_RST, 0);
 	udelay(500);
@@ -618,45 +592,15 @@ static int egalax_firmware_version(void)
 
 static void setup_iomux_enet(void)
 {
-
 	/* Reset AR8031 PHY */
 	gpio_direction_output(IMX_GPIO_NR(1, 25), 0);
 	udelay(500);
 	gpio_set_value(IMX_GPIO_NR(1, 25), 1);
 }
 
-
-int mxxf1_eeprom_init (unsigned dev_addr);
+int mxxf1_eeprom_init(unsigned dev_addr);
 int eeprom_get_mac_addr(void);
-int eeprom_addr;
-
-static PanelVersion check_version(void)
-{
-	PanelVersion ret=VER_UNKNOWN;
-	eeprom_addr = MXXF1_EEPROM_ADDR2;
-	i2c_set_bus_num(1);
-	i2c_set_bus_speed(CONFIG_SYS_I2C_SPEED);
-	ret = i2c_probe(eeprom_addr);
-
-	if (ret == 0)
-	{
-		printf("%s: I2C EEPROM at 0x%x - DIN RAIL version\n", __func__, eeprom_addr);
-		ret = VER_DIN;
-	}
-	else
-	{
-		eeprom_addr = MXXF1_EEPROM_ADDR;
-		ret = i2c_probe(eeprom_addr);
-		if (ret == 0)
-		{
-			printf("%s: I2C EEPROM at 0x%x - PANEL version\n", __func__, eeprom_addr);
-			ret = VER_PANEL;
-		}
-	}
-
-	return ret;
-}
-
+const char *eeprom_get_value(const char *key);
 
 int board_eth_init(bd_t *bis)
 {
@@ -665,8 +609,8 @@ int board_eth_init(bd_t *bis)
 }
 #endif
 #ifdef CONFIG_USB_EHCI_MX6
-#define USB_OTHERREGS_OFFSET	0x800
-#define UCTRL_PWR_POL		(1 << 9)
+#define USB_OTHERREGS_OFFSET 0x800
+#define UCTRL_PWR_POL (1 << 9)
 
 #ifndef CONFIG_SPL_BUILD
 static void setup_usb(void)
@@ -678,7 +622,6 @@ static void setup_usb(void)
 	imx_iomux_set_gpr_register(1, 13, 1, 0);
 }
 #endif
-
 
 #if 0
 int board_ehci_hcd_init(int port)
@@ -716,8 +659,7 @@ int board_ehci_power(int port, int on)
 			gpio_direction_output(GPIO_USBP3_EN, 1);
 			printf("Delay USB startup after power (%d)\n", calls_to_one++);
 			mdelay(1000);
-		}
-		else {
+		} else {
 			gpio_direction_output(GPIO_USB_H1_EN, 0);
 			gpio_direction_output(GPIO_USBP0_EN, 0);
 			gpio_direction_output(GPIO_USBP1_EN, 0);
@@ -733,11 +675,10 @@ int board_ehci_power(int port, int on)
 	return 0;
 }
 #endif
-static const u32 buzzer_period = 1000000000/2300;
 
 int board_early_init_f(void)
 {
-
+	SETUP_IOMUX_PADS(hwrev_pads);
 	SETUP_IOMUX_PADS(enet_pads);
 	SETUP_IOMUX_PADS(extra_pads);
 	SETUP_IOMUX_PADS(extra_nandf_pads);
@@ -765,14 +706,21 @@ int board_early_init_f(void)
 	gpio_direction_input(GPIO_DIMM_UP);
 	gpio_direction_input(GPIO_TOUCH_IRQ);
 
+	gpio_direction_input(GPIO_HW_REV0);
+	gpio_direction_input(GPIO_HW_REV1);
+	gpio_direction_input(GPIO_HW_REV2);
+	gpio_direction_input(GPIO_HW_REV3);
+
 #if !defined(CONFIG_SPL_BUILD) && defined(CONFIG_VIDEO_IPUV3)
 	setup_display();
 #endif
 #ifndef CONFIG_SPL_BUILD
-	if (pwm_config(2, buzzer_period/2, buzzer_period))
+	static const u32 buzzer_period = 1000000000 / 2300;
+	if (pwm_config(2, buzzer_period / 2, buzzer_period))
 		printf("%s: pwm_config for buzzer ERROR\n", __func__);
 	pwm_disable(2);
 #endif
+	printf("HW rev: %d\n", get_hw_rev());
 	return 0;
 }
 
@@ -783,14 +731,11 @@ int board_init(void)
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
-
 	if (get_imx_reset_cause() == 0x00010) {
 		clrbits_le32(&iomuxc_regs->gpr[12], IOMUXC_GPR12_APPS_LTSSM_ENABLE);
 	}
 
-	printf("Init\n");
-	board_version = check_version();
-
+	printf("Board Init ...\n");
 	setup_display();
 
 #ifdef USE_PWM_FOR_BL
@@ -806,8 +751,7 @@ int board_init(void)
 	setup_usb();
 	setup_sata();
 
-	if (mxxf1_eeprom_init(eeprom_addr))
-	{
+	if (mxxf1_eeprom_init(MXXF1_EEPROM_ADDR)) {
 		printf("%s: Failed to init VPD eeprom\n", __func__);
 	}
 	return 0;
@@ -821,80 +765,118 @@ int board_spi_cs_gpio(unsigned bus, unsigned cs)
 }
 #endif
 
-#ifdef CONFIG_CMD_BMODE
-static const struct boot_mode board_boot_modes[] = {
-	/* 4 bit bus width */
-	{"sd3",	 MAKE_CFGVAL(0x40, 0x30, 0x00, 0x00)},
-	/* 8 bit bus width */
-	{"emmc", MAKE_CFGVAL(0x40, 0x38, 0x00, 0x00)},
-	{NULL,	 0},
-};
-#endif
-
 #ifndef CONFIG_SPL_BUILD
-static char * const usbcmd[] = {"usb", "start"};
-static char * const reset_env_cmd[] = {"env", "default", "-a"};
-static char * const save_env_cmd[] = {"env", "save"};
-
+static char *const usbcmd[] = { "usb", "start" };
+static char *const reset_env_cmd[] = { "env", "default", "-a" };
+static char *const save_env_cmd[] = { "env", "save" };
 
 int board_late_init(void)
 {
 	int rep;
 	ulong ticks;
 	char *version_from_env;
-	char *fdt_defined;
-
-
+	int hw_ver = get_hw_rev();
+	env_set("stdout", "vga");
+	env_set("stderr", "vga");
 	version_from_env = env_get("UBOOT_VERSION");
-	if (version_from_env == 0 || strncmp(U_BOOT_VERSION, version_from_env, 128))
-	{
-		if (board_version == VER_PANEL)
-		{
-			env_set("stdout", "vga");
-			env_set("stderr", "vga");
-		}
+	if (version_from_env && strncmp(U_BOOT_VERSION, version_from_env, 128)) {
 		printf("U-Boot version [%s] differs from env [%s] - update\n", U_BOOT_VERSION, version_from_env);
 		cmd_process(0, 3, reset_env_cmd, &rep, &ticks);
 		env_set("UBOOT_VERSION", U_BOOT_VERSION);
 		cmd_process(0, 2, save_env_cmd, &rep, &ticks);
 	}
 
-	fdt_defined = env_get("fdt_file");
-	switch (board_version)
-	{
-	case VER_DIN:
-		if (NULL == fdt_defined)
-			env_set("fdt_file", "/boot/mxxf1-hdmi.dtb");
-		break;
-
-	case VER_PANEL:
-		env_set("stdout", "vga");
-		env_set("stderr", "vga");
-		if (NULL == fdt_defined)
-			env_set("fdt_file", "/boot/mxxf1.dtb");
-		break;
-
-	default:
-		break;
-	}
+	eeprom_get_mac_addr();
+	printf("HW revision %d\n", hw_ver);
 	printf("MXXF1 U-BOOT version [%s]\n", U_BOOT_VERSION);
-	if (egalax_firmware_version() == 0)
-		vpd_update_eeprom(egalax_fw);
-	else
-		vpd_update_eeprom(0);
+	egalax_firmware_version();
+	i2c_set_bus_num(1);
+	i2c_set_bus_speed(CONFIG_SYS_I2C_SPEED);
+	vpd_update_eeprom(egalax_fw);
 	/* Check for new touch controlle */
-	if (i2c_addr == TSUP_I2C)
+	if (i2c_addr == TSUP_I2C && hw_ver < 3)
 		env_set("fdt_file", "/boot/mxxf1-tsup.dtb");
+	else {
+		switch (hw_ver) {
+		case 2:
+			env_set("fdt_file", "/boot/mxxf1-rev2.dtb");
+			break;
+
+		default:
+			env_set("fdt_file", "/boot/mxxf1.dtb");
+			break;
+		}
+	}
 
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
-	eeprom_get_mac_addr();
 
 #ifdef CONFIG_CMD_BMODE
+
+	static const struct boot_mode board_boot_modes[] = {
+		/* 4 bit bus width */
+		{ "sd3", MAKE_CFGVAL(0x40, 0x30, 0x00, 0x00) },
+		/* 8 bit bus width */
+		{ "emmc", MAKE_CFGVAL(0x40, 0x38, 0x00, 0x00) },
+		{ NULL, 0 },
+	};
 	add_board_boot_modes(board_boot_modes);
 #endif
 
 	return 0;
 }
+
+static int do_patch_bl(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
+{
+	unsigned long table_size;
+	int *array;
+	int rev = get_hw_rev();
+	if (rev < 2) {
+		printf("%s: not applicable to version %d\n", __func__, rev);
+		return CMD_RET_SUCCESS;
+	}
+
+	const char *vpd_table = eeprom_get_value("BLTABLE");
+	if (vpd_table == 0) {
+		printf("%s: No VPD data for BL\n", __func__);
+		return CMD_RET_SUCCESS;
+	}
+	if (argc < 3)
+		return CMD_RET_USAGE;
+	array = (int *)simple_strtoul(argv[1], 0, 16);
+	table_size = simple_strtoul(argv[2], 0, 16) / 4;
+	if (table_size > 53) {
+		printf("%s: table size of %ld to big\n", __func__, table_size);
+		return CMD_RET_SUCCESS;
+	}
+	printf("Applying backlight patch for hw rev %d\n", rev);
+	const char *p = vpd_table;
+	const char *end = p + strnlen(p, 512);
+	for (int n = 0; n < table_size; n++) {
+		while (p < end && isspace(*p))
+			p++;
+		if (p >= end)
+			break;
+		char *endptr = p;
+		while (endptr < end && isdigit(*endptr))
+			endptr++;
+		if (endptr > end)
+			break;
+		*endptr = '\0';
+
+		unsigned long v = simple_strtoul(p, &endptr, 10);
+		if (endptr == p) {
+			printf("%s: not a valid digit\n", __func__);
+			return CMD_RET_FAILURE;
+			break;
+		}
+		printf("array[%d] = %d\n", n, (int)v);
+		array[n] = cpu_to_fdt32(v);
+		p = endptr + 1;
+	}
+	return CMD_RET_SUCCESS;
+}
+
+U_BOOT_CMD(blfix, 3, 0, do_patch_bl, "patch bl", "");
 #endif
 
 int checkboard(void)
@@ -1096,7 +1078,7 @@ static void spl_dram_init(void)
 #endif
 }
 
-static void do_hang_error(void)
+__maybe_unused static void do_hang_error(void)
 {
 	for(;;) {
 		udelay(1000000);
@@ -1105,13 +1087,14 @@ static void do_hang_error(void)
 
 void board_init_f(ulong dummy)
 {
-	int err, n;
+	int err;
 	/* setup AIPS and disable watchdog */
 	arch_cpu_init();
 
 	ccgr_init();
 	gpr_init();
 #ifdef CONFIG_SPL_WATCHDOG_SUPPORT
+	void hw_watchdog_init(void);
 	hw_watchdog_init();
 #endif
 
