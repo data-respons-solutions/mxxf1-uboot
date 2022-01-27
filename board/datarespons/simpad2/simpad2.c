@@ -516,11 +516,5 @@ int checkboard(void)
 
 int lm_ram64(void)
 {
-#ifndef CONFIG_EMU_SABRESD
-	return gpio_get_value(GPIO_DDR_SETTING);
-#else
 	return 1;
-#endif
 }
-
-
