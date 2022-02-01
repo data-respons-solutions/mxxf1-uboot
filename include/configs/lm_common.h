@@ -41,7 +41,7 @@
 #if defined(CONFIG_CMD_FUSE) || defined(CONFIG_IMX6_THERMAL)
 #define CONFIG_MXC_OCOTP
 #endif
-#define CONFIG_IMX_DDRTUNE
+#undef CONFIG_IMX_DDRTUNE
 
 /* MMC Configs */
 #define CONFIG_FSL_ESDHC
