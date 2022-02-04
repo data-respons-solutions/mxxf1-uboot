@@ -1,0 +1,12 @@
+if TARGET_MXXF1
+
+config SYS_BOARD
+	default "mxxf1"
+
+config SYS_VENDOR
+	default "datarespons"
+
+config SYS_CONFIG_NAME
+	default "mxxf1"
+
+endif

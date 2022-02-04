@@ -1,0 +1,27 @@
+if TARGET_LINKBOX2
+
+config SYS_BOARD
+	default "linkbox2"
+
+config SYS_VENDOR
+	default "datarespons"
+
+
+config SYS_CONFIG_NAME
+	default "linkbox2"
+
+config PMIC_I2C_BUS
+	int
+	default 0
+
+config FACTORY_BOOT
+	bool "Factory boot mode"
+	default n
+	help
+	  Enables the factory installation boot mode
+
+config LOGLEVEL
+	int "Kernel loglevel"
+	default 4
+
+endif
