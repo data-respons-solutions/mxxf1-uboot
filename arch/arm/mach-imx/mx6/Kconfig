@@ -481,6 +481,33 @@ config TARGET_ZC5601
 	select DM
 	select DM_THERMAL
 
+config TARGET_LM_CPU_MODULE
+	bool "Laerdal CPU Module"
+	select MX6QDL
+	select BOARD_LATE_INIT
+	select SUPPORT_SPL
+	select DM
+	select DM_THERMAL
+	select BOARD_EARLY_INIT_F
+
+config TARGET_LM_SIMPAD2
+	bool "Laerdal Simpad2"
+	select MX6DL
+	select BOARD_LATE_INIT
+	select SUPPORT_SPL
+	select DM
+	select DM_THERMAL
+	select BOARD_EARLY_INIT_F
+
+config TARGET_LINKBOX2
+	bool "Laerdal Linkkbox2"
+	select MX6QDL
+	select BOARD_LATE_INIT
+	select SUPPORT_SPL
+	select DM
+	select DM_THERMAL
+	select BOARD_EARLY_INIT_F
+
 endchoice
 
 config SYS_SOC
@@ -535,5 +562,7 @@ source "board/udoo/Kconfig"
 source "board/udoo/neo/Kconfig"
 source "board/wandboard/Kconfig"
 source "board/warp/Kconfig"
-
+source "board/datarespons/lm-cpu-module/Kconfig"
+source "board/datarespons/simpad2/Kconfig"
+source "board/datarespons/linkbox2/Kconfig"
 endif

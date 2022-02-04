@@ -1,3 +1,4 @@
+
 #ifndef __SIMPAD2_GPIO_H__
 #define __SIMPAD2_GPIO_H__
 
@@ -19,4 +20,5 @@
 #define GPIO_GPO1			IMX_GPIO_NR(7, 13)
 #define GPIO_GPO2			IMX_GPIO_NR(4, 5)
 
+#define GPIO_USB_PWR        IMX_GPIO_NR(3, 22)
 #endif

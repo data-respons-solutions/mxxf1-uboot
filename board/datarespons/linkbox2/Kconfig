@@ -10,10 +10,6 @@ config SYS_VENDOR
 config SYS_CONFIG_NAME
 	default "linkbox2"
 
-config PMIC_I2C_BUS
-	int
-	default 0
-
 config FACTORY_BOOT
 	bool "Factory boot mode"
 	default n

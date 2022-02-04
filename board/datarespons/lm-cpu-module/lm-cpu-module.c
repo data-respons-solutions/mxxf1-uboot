@@ -36,9 +36,10 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 #include "../lm-common/lm_common_defs.h"
-#include "linkboxm_pins.h"
-#include "linkboxm_gpio.h"
+#include "lm-cpu-module-pins.h"
+#include "lm-cpu-module-gpio.h"
 
+#define CONFIG_PMIC_I2C_BUS 1
 struct fsl_esdhc_cfg usdhc_cfg[2] = {
 	{USDHC3_BASE_ADDR},
 	{USDHC4_BASE_ADDR},
@@ -201,8 +202,9 @@ int board_ehci_hcd_init(int port)
 {
 	int version;
 	u32 *usbnc_usb_ctrl;
-	if (port > 0)
+	if (port > 0) {
 		return -EINVAL;
+	}
 
 	usbnc_usb_ctrl = (u32 *)(USB_BASE_ADDR + USB_OTHERREGS_OFFSET +
 				 port * 4);
@@ -217,9 +219,15 @@ int board_ehci_hcd_init(int port)
 
 int board_ehci_power(int port, int on)
 {
+	printf("Port %d power %s\n", port, on ? "on" : "off");
 	switch (port) {
 	case 0:
-		mdelay(1000);	/* Allow unit to start */
+		if (on) {
+			gpio_set_value(GPIO_USB_PWR, 1);
+			mdelay(600);	/* Allow time for USB stick to power */
+		} else {
+			gpio_set_value(GPIO_USB_PWR, 0);
+		}
 		break;
 	default:
 		printf("MXC USB port %d not yet supported\n", port);
@@ -243,6 +251,8 @@ int board_early_init_f(void)
 	SETUP_IOMUX_PADS(other_pads);
 
 	SETUP_IOMUX_PADS(otg_pads);
+
+	gpio_direction_output(GPIO_USB_PWR, 0);
 	SETUP_IOMUX_PADS(can1_pads);
 	SETUP_IOMUX_PADS(can2_pads);
 	SETUP_IOMUX_PADS(uart5_pads);
@@ -282,8 +292,6 @@ int board_early_init_f(void)
 		break;
 	}
 
-
-
 	gpio_direction_output(GPIO_WL_REG_ON, 0);		/* WiFI off */
 	gpio_direction_output(GPIO_BT_REG_ON, 0);		/* Bluetooth off */
 	gpio_direction_output(GPIO_SPI_NOR_WP, 1);
@@ -295,11 +303,9 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_LED_G, 1);
 	gpio_direction_output(GPIO_LED_B, 0);
 
-
 	return 0;
 }
 
-#ifndef CONFIG_SPL_BUILD
 static void setup_usb(void)
 {
 	/*
@@ -318,7 +324,6 @@ int board_init(void)
 	setup_usb();
 	return 0;
 }
-#endif	/* CONFIG_SPL_BUILD */
 
 int board_spi_cs_gpio(unsigned bus, unsigned cs)
 {
@@ -333,7 +338,7 @@ int board_spi_cs_gpio(unsigned bus, unsigned cs)
 }
 
 #ifdef CONFIG_CMD_BMODE
-static const struct boot_mode board_boot_modes[] = {
+__maybe_unused static const struct boot_mode board_boot_modes[] = {
 	/* 4 bit bus width */
 	{"sd3",	 MAKE_CFGVAL(0x40, 0x30, 0x00, 0x00)},
 	/* 8 bit bus width */
@@ -344,8 +349,6 @@ static const struct boot_mode board_boot_modes[] = {
 
 #ifndef CONFIG_SPL_BUILD
 static char * const usbcmd[] = {"usb", "start"};
-static char * const reset_env_cmd[] = {"env", "default", "-a"};
-static char * const save_env_cmd[] = {"env", "save"};
 
 int board_late_init(void)
 {
@@ -487,18 +490,18 @@ const struct mx6dq_iomux_grp_regs mx6q_grp_ioregs = {
 	.grp_b7ds =  0x00000030,
 };
 
-const struct mx6_mmdc_calibration mx6_mmcd_calib = {
-	.p0_mpwldectrl0 =  0x001F001F,
-	.p0_mpwldectrl1 =  0x001F001F,
+static struct mx6_mmdc_calibration mx6_mmcd_calib = {
+	.p0_mpwldectrl0 =  0x0046004E,
+	.p0_mpwldectrl1 =  0x003D0048,
 	.p1_mpwldectrl0 =  0x001F001F,
 	.p1_mpwldectrl1 =  0x001F001F,
-	.p0_mpdgctrl0 =  0x40404040,
-	.p0_mpdgctrl1 =  0x40404040,
+	.p0_mpdgctrl0 =  0x0305031b,
+	.p0_mpdgctrl1 =  0x027b0275,
 	.p1_mpdgctrl0 =  0x40404040,
 	.p1_mpdgctrl1 =  0x40404040,
-	.p0_mprddlctl =  0x40404040,
+	.p0_mprddlctl =  0x483e4245,
 	.p1_mprddlctl =  0x40404040,
-	.p0_mpwrdlctl =  0x40404040,
+	.p0_mpwrdlctl =  0x44474843,
 	.p1_mpwrdlctl =  0x40404040,
 };
 
@@ -537,7 +540,7 @@ static struct mx6_ddr_sysinfo sysinfo = {
 	.rst_to_cke = 0x23,	/* 33 cycles, 500us (JEDEC default) */
 	.ddr_type = DDR_TYPE_DDR3,
 	.refsel = 1,	/* Refresh cycles at 32KHz */
-	.refr = 7,	/* 8 refresh commands per refresh cycle */
+	.refr = 3,	/* 4 refresh commands per refresh cycle */
 };
 
 static void ccgr_init(void)
@@ -553,10 +556,10 @@ static void ccgr_init(void)
 	writel(0x000003FF, &ccm->CCGR6);
 }
 
-int pmic_setup(int bus)
+int pmic_setup(void)
 {
 	int ret;
-	i2c_set_bus_num(bus);
+	i2c_set_bus_num(CONFIG_PMIC_I2C_BUS);
 	ret = i2c_probe(CONFIG_POWER_PFUZE100_I2C_ADDR);
 	if (ret)
 	{
@@ -567,10 +570,10 @@ int pmic_setup(int bus)
 }
 
 
-static int pmic_set(int bus, pf100_regs reg, int mV)
+static int pmic_set(pf100_regs reg, int mV)
 {
 	u8 values[2];
-	i2c_set_bus_num(bus);
+	i2c_set_bus_num(CONFIG_PMIC_I2C_BUS);
 	switch (reg) {
 
 	case SW1AB:
@@ -609,22 +612,14 @@ static int pmic_set(int bus, pf100_regs reg, int mV)
 		values[0] = ((mV - 1800) * 15) / 1500;
 		i2c_write(0x08, PFUZE100_VGEN4VOL, 1, values, 1);
 		break;
+
+	case USB_5V:
+		values[0] = 0x6c;
+		i2c_write(0x08, PFUZE100_SWBSTCON1, 1, values, 1);
+		break;
 	}
 	return 0;
 }
-static void gpr_init(void)
-{
-	struct iomuxc *iomux = (struct iomuxc *)IOMUXC_BASE_ADDR;
-
-	/* enable AXI cache for VDOA/VPU/IPU */
-	writel(0xF00000CF, &iomux->gpr[4]);
-	/* set IPU AXI-id0 Qos=0xf(bypass) AXI-id1 Qos=0x7 */
-	writel(0x007F007F, &iomux->gpr[6]);
-	writel(0x007F007F, &iomux->gpr[7]);
-}
-
-
-
 
 /*
  * This section requires the differentiation between iMX6 Sabre boards, but
@@ -632,34 +627,41 @@ static void gpr_init(void)
  */
 static void spl_dram_init(void)
 {
-
+#ifdef CONFIG_MX6_DDRCAL
+	int err;
+#endif
 	if (is_mx6dl())
 		mx6sdl_dram_iocfg(mem_ddr.width, &mx6dl_ddr_ioregs, &mx6dl_grp_ioregs);
 	else
 		mx6dq_dram_iocfg(mem_ddr.width, &mx6q_ddr_ioregs, &mx6q_grp_ioregs);
 	mx6_dram_cfg(&sysinfo, &mx6_mmcd_calib, &mem_ddr);
-}
-
-static void do_hang_error(void)
-{
-
-	for(;;) {
-		udelay(1000000);
+	udelay(100);
+#ifdef CONFIG_MX6_DDRCAL
+	err = mmdc_do_write_level_calibration(&sysinfo);
+	if (err) {
+		printf("error %d from write level calibration\n", err);
+	} else {
+		err = mmdc_do_dqs_calibration(&sysinfo);
+		if (err) {
+			printf("error %d from dqs calibration\n", err);
+		} else {
+			printf("completed successfully\n");
+			mmdc_read_calibration(&sysinfo, &mx6_mmcd_calib);
+			display_calibration(&sysinfo, &mx6_mmcd_calib);
+		}
 	}
-
+#endif
 }
-
-static struct mx6_mmdc_calibration calib;
 
 void board_init_f(ulong dummy)
 {
 	int err;
-	int pmic_bus = 3;
 	/* setup AIPS and disable watchdog */
 	arch_cpu_init();
 
 	ccgr_init();
 	gpr_init();
+
 #ifdef CONFIG_SPL_WATCHDOG_SUPPORT
 	hw_watchdog_init();
 #endif
@@ -671,51 +673,25 @@ void board_init_f(ulong dummy)
 
 	/* UART clocks enabled and gd valid - init serial console */
 	preloader_console_init();
+	spl_dram_init();
 	printf("SPL started\n");
-	int version = get_version();
 
-	if (version > 1 || is_mx6dq())
-		pmic_bus = 1;
-
-	err = pmic_setup(pmic_bus);
+	err = pmic_setup();
 	if (err == 0) {
-		pmic_set(pmic_bus, SW1AB, 1425);
-		pmic_set(pmic_bus, SW1C, 1425);
-		pmic_set(pmic_bus, SW3AB, 1350);
+		pmic_set(SW1AB, 1425);
+		pmic_set(SW1C, 1425);
+		pmic_set(SW3AB, 1350);
 		udelay(10000);
 	}
+	/* DDR initialization */
 	printf("Memory width %d\n", mem_ddr.width);
-
-	spl_dram_init();
-#if 0
-	err = mmdc_do_write_level_calibration(&sysinfo);
-	if (err & 0x03) {
-		printf("DDR3 write level calibration error - hang\n");
-		do_hang_error();
-
-	}
-#endif
-	err = mmdc_do_dqs_calibration(&sysinfo);
-	if (err) {
-		printf("DDR3 DQS calibration error - hang\n");
-		do_hang_error();
-	}
-	mmdc_read_calibration(&sysinfo, &calib);
-	printf("mpwldectrl0 = %08x\n", calib.p0_mpwldectrl0);
-	printf("mpwldectrl1 = %08x\n", calib.p0_mpwldectrl1);
-	printf("mpdgctrl0   = %08x\n", calib.p0_mpdgctrl0);
-	printf("mpdgctrl1   = %08x\n", calib.p0_mpdgctrl1);
-	printf("mprddlctl   = %08x\n", calib.p0_mprddlctl);
-	printf("mpwrdlctl   = %08x\n", calib.p0_mpwrdlctl);
-
-
-	/* Clear the BSS. */
-	memset(__bss_start, 0, __bss_end - __bss_start);
-
-	/* load/boot image from boot device */
-	board_init_r(NULL, 0);
 }
 
+#ifndef CONFIG_SPL_WATCHDOG_SUPPORT
+void reset_cpu(ulong addr)
+{
+}
+#endif
 
 #endif
 

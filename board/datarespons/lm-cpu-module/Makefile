@@ -7,4 +7,4 @@
 #
 
 
-obj-y  := linkbox-module.o 
+obj-y  := lm-cpu-module.o ../lm-common/lm-common.o

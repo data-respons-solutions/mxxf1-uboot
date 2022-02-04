@@ -65,7 +65,11 @@
 #define OC_SLOW_PAD_CTRL (PAD_CTL_ODE | SLOWOUT_PAD_CTRL)
 #define I2C_PAD MUX_PAD_CTRL(I2C_PAD_CTRL)
 
-typedef enum  { SW1AB, SW1C, SW3AB, VGEN4 } pf100_regs;
+typedef enum  { SW1AB, SW1C, SW3AB, VGEN4, USB_5V } pf100_regs;
 
 int vpd_update(char *touch_fw_ver, int wp_gpio);
+#ifdef CONFIG_SPL_BUILD
+#include <asm/arch/mx6-ddr.h>
+void display_calibration(struct mx6_ddr_sysinfo *s, struct mx6_mmdc_calibration *m);
+#endif
 #endif

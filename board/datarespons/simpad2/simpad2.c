@@ -43,6 +43,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define USE_PWM_FOR_BL
 #define BL_PWM 0
 #define VIBRA_PWM 1
+#define CONFIG_PMIC_I2C_BUS 2
 
 #include "../lm-common/lm_common_defs.h"
 #include "simpad2_pins.h"
@@ -568,7 +569,7 @@ static void ccgr_init(void)
 	writel(0x000003FF, &ccm->CCGR6);
 }
 
-int simpad2_pmic_setup(void)
+int pmic_setup(void)
 {
 	int ret;
 	i2c_set_bus_num(CONFIG_PMIC_I2C_BUS);
@@ -582,7 +583,7 @@ int simpad2_pmic_setup(void)
 }
 
 
-static int simpad2_pmic_set(pf100_regs reg, int mV)
+static int pmic_set(pf100_regs reg, int mV)
 {
 	u8 values[2];
 	i2c_set_bus_num(CONFIG_PMIC_I2C_BUS);
@@ -627,49 +628,7 @@ static int simpad2_pmic_set(pf100_regs reg, int mV)
 	}
 	return 0;
 }
-#ifdef CONFIG_MX6_DDRCAL
-static void display_calibration(struct mx6_ddr_sysinfo sysinfo, struct mx6_mmdc_calibration *calib)
-{
-	printf(".p0_mpdgctrl0\t= 0x%08X\n", calib->p0_mpdgctrl0);
-	printf(".p0_mpdgctrl1\t= 0x%08X\n", calib->p0_mpdgctrl1);
-	printf(".p0_mprddlctl\t= 0x%08X\n", calib->p0_mprddlctl);
-	printf(".p0_mpwrdlctl\t= 0x%08X\n", calib->p0_mpwrdlctl);
-	printf(".p0_mpwldectrl0\t= 0x%08X\n", calib->p0_mpwldectrl0);
-	printf(".p0_mpwldectrl1\t= 0x%08X\n", calib->p0_mpwldectrl1);
-	if (sysinfo.dsize == 2) {
-		printf(".p1_mpdgctrl0\t= 0x%08X\n", calib->p1_mpdgctrl0);
-		printf(".p1_mpdgctrl1\t= 0x%08X\n", calib->p1_mpdgctrl1);
-		printf(".p1_mprddlctl\t= 0x%08X\n", calib->p1_mprddlctl);
-		printf(".p1_mpwrdlctl\t= 0x%08X\n", calib->p1_mpwrdlctl);
-		printf(".p1_mpwldectrl0\t= 0x%08X\n", calib->p1_mpwldectrl0);
-		printf(".p1_mpwldectrl1\t= 0x%08X\n", calib->p1_mpwldectrl1);
-	}
-#ifdef CONFIG_IMXIMAGE_OUTPUT
-	printf("DATA 4 MX6_MMDC_P0_MPDGCTRL0\t= 0x%08X\n", calib->p0_mpdgctrl0);
-	printf("DATA 4 MX6_MMDC_P0_MPDGCTRL1\t= 0x%08X\n", calib->p0_mpdgctrl1);
-	printf("DATA 4 MX6_MMDC_P0_MPRDDLCTL\t= 0x%08X\n", calib->p0_mprddlctl);
-	printf("DATA 4 MX6_MMDC_P0_MPWRDLCTL\t= 0x%08X\n", calib->p0_mpwrdlctl);
-	printf("DATA 4 MX6_MMDC_P0_MPWLDECTRL0\t= 0x%08X\n",
-	       calib->p0_mpwldectrl0);
-	printf("DATA 4 MX6_MMDC_P0_MPWLDECTRL1\t= 0x%08X\n",
-	       calib->p0_mpwldectrl1);
-	if (sysinfo.dsize == 2) {
-		printf("DATA 4 MX6_MMDC_P1_MPDGCTRL0\t= 0x%08X\n",
-		       calib->p1_mpdgctrl0);
-		printf("DATA 4 MX6_MMDC_P1_MPDGCTRL1\t= 0x%08X\n",
-		       calib->p1_mpdgctrl1);
-		printf("DATA 4 MX6_MMDC_P1_MPRDDLCTL\t= 0x%08X\n",
-		       calib->p1_mprddlctl);
-		printf("DATA 4 MX6_MMDC_P1_MPWRDLCTL\t= 0x%08X\n",
-		       calib->p1_mpwrdlctl);
-		printf("DATA 4 MX6_MMDC_P1_MPWLDECTRL0\t= 0x%08X\n",
-		       calib->p1_mpwldectrl0);
-		printf("DATA 4 MX6_MMDC_P1_MPWLDECTRL1\t= 0x%08X\n",
-		       calib->p1_mpwldectrl1);
-	}
-#endif
-}
-#endif
+
 /*
  * This section requires the differentiation between iMX6 Sabre boards, but
  * for now, it will configure only for the mx6q variant.
@@ -717,7 +676,7 @@ static void spl_dram_init(void)
 		} else {
 			printf("completed successfully\n");
 			mmdc_read_calibration(&sysinfo, &mx6_mmcd_calib);
-			display_calibration(sysinfo, &mx6_mmcd_calib);
+			display_calibration(&sysinfo, &mx6_mmcd_calib);
 		}
 	}
 #endif
@@ -732,7 +691,9 @@ void board_init_f(ulong dummy)
 	ccgr_init();
 	gpr_init();
 
-	//hw_watchdog_init();
+#ifdef CONFIG_SPL_WATCHDOG_SUPPORT
+	hw_watchdog_init();
+#endif
 	/* iomux and setup of i2c */
 	board_early_init_f();
 
@@ -744,25 +705,15 @@ void board_init_f(ulong dummy)
 	spl_dram_init();
 	printf("SPL started\n");
 
-#if 1
-	err = simpad2_pmic_setup();
+	err = pmic_setup();
 	if (err == 0) {
-		simpad2_pmic_set(SW1AB, 1425);
-		simpad2_pmic_set(SW1C, 1425);
-		simpad2_pmic_set(SW3AB, 1350);
+		pmic_set(SW1AB, 1425);
+		pmic_set(SW1C, 1425);
+		pmic_set(SW3AB, 1350);
 		udelay(10000);
 	}
 	/* DDR initialization */
-#endif
 	printf("Memory width %d\n", mem_ddr.width);
-
-#if 0
-	/* Clear the BSS. */
-	memset(__bss_start, 0, __bss_end - __bss_start);
-
-	/* load/boot image from boot device */
-	board_init_r(NULL, 0);
-#endif
 }
 
 #ifndef CONFIG_SPL_WATCHDOG_SUPPORT

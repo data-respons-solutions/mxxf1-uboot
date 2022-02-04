@@ -69,10 +69,9 @@ static iomux_v3_cfg_t const hw_settings_pads[] = {
 };
 
 static iomux_v3_cfg_t const otg_pads[] = {
-	IOMUX_PADS(PAD_EIM_D22__USB_OTG_PWR 	| MUX_PAD_CTRL(NO_PAD_CTRL)),
-	IOMUX_PADS(PAD_EIM_D21__USB_OTG_OC 	| MUX_PAD_CTRL(ENET_PAD_CTRL_UP)),	/* NC on REV A */
+	IOMUX_PADS(PAD_EIM_D22__GPIO3_IO22 	| MUX_PAD_CTRL(PAD_CTL_LS_STRONG)),
+	IOMUX_PADS(PAD_EIM_D21__USB_OTG_OC 	| MUX_PAD_CTRL(NO_PAD_CTRL)),	/* NC on REV A */
 	IOMUX_PADS(PAD_ENET_RX_ER__USB_OTG_ID 	| MUX_PAD_CTRL(NO_PAD_CTRL)),
-	IOMUX_PADS(PAD_KEY_ROW1__GPIO4_IO09	| MUX_PAD_CTRL(NO_PAD_CTRL)),		/* OTG_NFLT */
 };
 
 static iomux_v3_cfg_t const can1_pads[] = {

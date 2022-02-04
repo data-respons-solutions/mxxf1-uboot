@@ -6,30 +6,33 @@
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
-#ifndef __MXXF1_CONFIG_H
-#define __MXXF1_CONFIG_H
+#ifndef __LM_CPUM_CONFIG_H
+#define __LM_CPUM_CONFIG_H
 
-#include <asm/arch/imx-regs.h>
+#include "lm_common.h"
 
 #ifdef CONFIG_SPL
-
 #include "imx6_spl.h"
+#define CONFIG_SYS_SPI_U_BOOT_OFFS (256 * 1024)
 #undef CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR
 #define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR 512
 #endif
 
 #define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONSOLE_DEV		"ttymxc0"
+
+#if CONFIG_SPL_WATCHDOG_SUPPORT
 #define CONFIG_IMX_WATCHDOG
+#define CONFIG_HW_WATCHDOG
 #undef CONFIG_IMX_WATCHDOG_USE_WD2
+#endif
 
 #define CONFIG_MMCROOT			"/dev/mmcblk0p1"
 #define MMC_DEV "0"
-#define PHYS_SDRAM_SIZE		(1u * 512 * 1024 * 1024)
 #define CONFIG_SUPPORT_EMMC_BOOT /* eMMC specific */
 
 #undef CONFIG_VIDEO
-#include "lm_common.h"
+
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_SYS_MMC_ENV_DEV		0	/* SDHC3 */
@@ -40,7 +43,6 @@
 #define CONFIG_SYS_I2C_MXC_I2C1
 #define CONFIG_SYS_I2C_MXC_I2C2
 #define CONFIG_SYS_I2C_MXC_I2C3
-#define CONFIG_SYS_I2C_MXC_I2C4
 
 #define CMD_CRC32
 
@@ -55,7 +57,11 @@
 #define CONFIG_POWER_PFUZE100
 #define CONFIG_POWER_PFUZE100_I2C_ADDR	0x08
 
-/* USB Configs */
-#define CONFIG_USB_MAX_CONTROLLER_COUNT	1 /* Enabled USB controller number */
 
-#endif                         /* __MXXF1_CONFIG_H */
+/* USB Configs */
+#define CONFIG_USBD_HS
+#define CONFIG_EHCI_HCD_INIT_AFTER_RESET
+#define CONFIG_MXC_USB_PORTSC (PORT_PTS_UTMI | PORT_PTS_PTW)
+#define CONFIG_MXC_USB_FLAGS 0
+#define CONFIG_USB_MAX_CONTROLLER_COUNT 1 /* Enabled USB controller number */
+#endif                         /* __LM_CPUM_CONFIG_H */

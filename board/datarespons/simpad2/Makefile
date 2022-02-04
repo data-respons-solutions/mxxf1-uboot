@@ -7,5 +7,5 @@
 #
 
 
-obj-y  := simpad2.o 
+obj-y  := simpad2.o  ../lm-common/lm-common.o
 #obj-y += ../lm-common/vpd.o ../lm-common/param.o

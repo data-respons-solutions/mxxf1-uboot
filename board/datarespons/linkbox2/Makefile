@@ -7,4 +7,4 @@
 #
 
 
-obj-y  := linkbox2.o 
+obj-y  := linkbox2.o ../lm-common/lm-common.o

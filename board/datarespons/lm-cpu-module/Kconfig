@@ -1,13 +1,13 @@
 if TARGET_LM_CPU_MODULE
 
 config SYS_BOARD
-	default "linkbox-module"
+	default "lm-cpu-module"
 
 config SYS_VENDOR
 	default "datarespons"
 
 config SYS_CONFIG_NAME
-	default "linkbox-module"
+	default "lm-cpu-module"
 
 config FACTORY_BOOT
 	bool "Factory boot mode"
