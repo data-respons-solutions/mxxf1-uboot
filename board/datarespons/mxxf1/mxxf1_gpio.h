@@ -33,4 +33,6 @@
 #define GPIO_HW_REV2 IMX_GPIO_NR(1, 13)
 #define GPIO_HW_REV3 IMX_GPIO_NR(1, 12)
 
+#define GPIO_FEC_PHY_NRST IMX_GPIO_NR(1, 25)
+
 #endif

@@ -89,7 +89,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #include "mxxf1_gpio.h"
 
-typedef enum  { SW1AB, SW1C, SW3AB } pf100_regs;
+typedef enum { SW1AB, SW1C, SW3AB, VGEN3 } pf100_regs;
 typedef enum { VER_PANEL, VER_DIN, VER_UNKNOWN } PanelVersion;
 int vpd_update_eeprom(char *touch_fw_ver);
 
@@ -105,7 +105,7 @@ iomux_v3_cfg_t const uart1_pads[] = {
 };
 
 iomux_v3_cfg_t const extra_nandf_pads[] = {
-	IOMUX_PADS(PAD_NANDF_CS0__GPIO6_IO11 | MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)), /* SPI_NOR_WP	*/
+	IOMUX_PADS(PAD_NANDF_CS0__GPIO6_IO11 | MUX_PAD_CTRL(PAD_CTL_SPEED_LOW | PAD_CTL_DSE_40ohm)), /* SPI_NOR_WP	*/
 	IOMUX_PADS(PAD_NANDF_CS1__GPIO6_IO14 | MUX_PAD_CTRL(SLOWOUT_PAD_CTRL)), /* LAN2_EEWP	*/
 	IOMUX_PADS(PAD_NANDF_CS2__GPIO6_IO15 | MUX_PAD_CTRL(OUT_LOW_PAD_CTRL)), /* LCD_EN		*/
 	IOMUX_PADS(PAD_NANDF_CS3__GPIO6_IO16 | MUX_PAD_CTRL(OC_PAD_CTRL)), /* CAP_TCH_RST	*/
@@ -405,7 +405,12 @@ int mx6_rgmii_rework(struct phy_device *phydev)
 
 int board_phy_config(struct phy_device *phydev)
 {
-	mx6_rgmii_rework(phydev);
+	int rev = get_hw_rev();
+	if (rev < 4) {
+		/* Set RGMII voltage to 1.5V */
+		iomuxc_set_rgmii_io_voltage(0xC0000);
+		mx6_rgmii_rework(phydev);
+	}
 
 	if (phydev->drv->config)
 		phydev->drv->config(phydev);
@@ -604,8 +609,19 @@ const char *eeprom_get_value(const char *key);
 
 int board_eth_init(bd_t *bis)
 {
+	int res;
+	struct eth_device *edev;
 	setup_iomux_enet();
-	return cpu_eth_init(bis);
+	gpio_set_value(GPIO_PCIE_RST_N, 0);
+	gpio_set_value(GPIO_FEC_PHY_NRST, 0);
+	udelay(500);
+	gpio_set_value(GPIO_FEC_PHY_NRST, 1);
+	gpio_set_value(GPIO_PCIE_RST_N, 1);
+	mdelay(10);
+	res = cpu_eth_init(bis);
+	if (res)
+		printf("cpu_eth_init returned %d\n", res);
+	return res;
 }
 #endif
 #ifdef CONFIG_USB_EHCI_MX6
@@ -690,7 +706,7 @@ int board_early_init_f(void)
 	gpio_direction_output(GPIO_PCIE_RST_N, 1);
 	gpio_direction_output(GPIO_EEPROM_WP, 1);
 	gpio_direction_output(GPIO_LAN2_EE_WP, 1);
-	gpio_direction_output(GPIO_SPI_NOR_WP, 1);
+	gpio_direction_output(GPIO_SPI_NOR_WP, 0);
 	gpio_direction_output(GPIO_CAP_TOUCH_PWR, 1);
 	gpio_direction_output(GPIO_LCD_EN, 0);
 	gpio_direction_output(GPIO_BL_EN, 0);
@@ -720,7 +736,7 @@ int board_early_init_f(void)
 		printf("%s: pwm_config for buzzer ERROR\n", __func__);
 	pwm_disable(2);
 #endif
-	printf("HW rev: %d\n", get_hw_rev());
+
 	return 0;
 }
 
@@ -786,30 +802,47 @@ int board_late_init(void)
 		cmd_process(0, 2, save_env_cmd, &rep, &ticks);
 	}
 
-	eeprom_get_mac_addr();
+
 	printf("HW revision %d\n", hw_ver);
 	printf("MXXF1 U-BOOT version [%s]\n", U_BOOT_VERSION);
-	egalax_firmware_version();
 	i2c_set_bus_num(1);
 	i2c_set_bus_speed(CONFIG_SYS_I2C_SPEED);
-	vpd_update_eeprom(egalax_fw);
-	/* Check for new touch controlle */
-	if (i2c_addr == TSUP_I2C && hw_ver < 3)
-		env_set("fdt_file", "/boot/mxxf1-tsup.dtb");
-	else {
-		switch (hw_ver) {
-		case 2:
-			env_set("fdt_file", "/boot/mxxf1-rev2.dtb");
-			break;
+	switch (hw_ver) {
+	case 1:
+	case 2:
+	case 3:
+		egalax_firmware_version();
+		vpd_update_eeprom(egalax_fw);
+		/* Check for new touch controlle */
+		if (i2c_addr == TSUP_I2C && hw_ver < 3)
+			env_set("fdt_file", "/boot/mxxf1-tsup.dtb");
+		else {
+			switch (hw_ver) {
+			case 2:
+				env_set("fdt_file", "/boot/mxxf1-rev2.dtb");
+				break;
 
-		default:
-			env_set("fdt_file", "/boot/mxxf1.dtb");
-			break;
+			default:
+				env_set("fdt_file", "/boot/mxxf1.dtb");
+				break;
+			}
 		}
+		break;
+
+	case 4:
+		vpd_update_eeprom("N/A");
+		env_set("fdt_file", "/boot/mxxf1-hw4.dtb");
+		break;
+
+	default:
+		printf("Unknown version\n");
+		break;
 	}
-
+	if (eeprom_get_mac_addr() == 0) {
+		printf("MAC Address set from eeprom -> %s\n", env_get("ethaddr)"));
+	}
 	cmd_process(0, 2, usbcmd, &rep, &ticks);
-
+	mdelay(800);
 #ifdef CONFIG_CMD_BMODE
 
 	static const struct boot_mode board_boot_modes[] = {
@@ -830,7 +863,7 @@ static int do_patch_bl(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 	unsigned long table_size;
 	int *array;
 	int rev = get_hw_rev();
-	if (rev < 2) {
+	if (rev != 3) {
 		printf("%s: not applicable to version %d\n", __func__, rev);
 		return CMD_RET_SUCCESS;
 	}
@@ -856,7 +889,7 @@ static int do_patch_bl(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 			p++;
 		if (p >= end)
 			break;
-		char *endptr = p;
+		char *endptr = (char*)p;
 		while (endptr < end && isdigit(*endptr))
 			endptr++;
 		if (endptr > end)
@@ -1037,6 +1070,11 @@ static int mxxf1_pmic_set(pf100_regs reg, int mV)
 		i2c_write(0x08, PFUZE100_SW3AVOL, 1, values, 1);
 		i2c_write(0x08, PFUZE100_SW3BVOL, 1, values, 1);
 		break;
+
+	case VGEN3:
+		values[0] = (mV - 1800) / 100;
+		i2c_write(0x08, PFUZE100_VGEN3VOL, 1, values, 1);
+		break;
 	}
 
 	return 0;
@@ -1106,16 +1144,17 @@ void board_init_f(ulong dummy)
 
 	/* UART clocks enabled and gd valid - init serial console */
 	preloader_console_init();
+	printf("HW rev: %d\n", get_hw_rev());
 	err = mxxf1_pmic_setup();
 	if (err == 0) {
 		mxxf1_pmic_set(SW1AB, 1425);
 		mxxf1_pmic_set(SW1C, 1425);
 		mxxf1_pmic_set(SW3AB, 1350);
+		mxxf1_pmic_set(VGEN3, 2500);
 		udelay(10000);
 	}
 
-	/* Set RGMII voltage to 1.5V */
-	iomuxc_set_rgmii_io_voltage(0xC0000);
+
 
 	/* DDR initialization */
 

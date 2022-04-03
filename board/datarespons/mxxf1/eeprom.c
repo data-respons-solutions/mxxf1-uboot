@@ -189,7 +189,7 @@ int eeprom_get_mac_addr(void)
 	if (ret)
 		printf("%s: FEC_MAC_ADDR not present in eeprom\n", __func__);
 
-	return ret;
+	return 0;
 }
 
 const char *eeprom_get_value(const char *key)
@@ -214,7 +214,7 @@ static int check_and_update(const char *key, const char *value)
 	int psize;
 	char *param;
 	int index;
-	if (param_check_key(key) || param_check_data(value))
+	if (!vpd_valid || param_check_key(key) || param_check_data(value))
 	{
 		printf("%s: Illegal key/value\n", __func__);
 		return -EINVAL;
